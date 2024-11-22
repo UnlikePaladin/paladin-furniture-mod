@@ -21,7 +21,7 @@ public class BlockEntityRegistry {
         storage9x3Blocks.addAll(PaladinFurnitureModBlocksItems.furnitureEntryMap.get(KitchenCabinetBlock.class).getAllBlocks());
         storage9x3Blocks.addAll(PaladinFurnitureModBlocksItems.furnitureEntryMap.get(ClassicNightstandBlock.class).getAllBlocks());
         BlockEntities.DRAWER_BLOCK_ENTITY = registerBlockEntity("drawer_block_entity", storage9x3Blocks.toArray(Block[]::new), GenericStorageBlockEntity9x3.getFactory());
-        BlockEntities.FRIDGE_BLOCK_ENTITY = registerBlockEntity("fridge_block_entity", new Block[]{PaladinFurnitureModBlocksItems.WHITE_FRIDGE, PaladinFurnitureModBlocksItems.XBOX_FRIDGE, PaladinFurnitureModBlocksItems.GRAY_MIRROR, PaladinFurnitureModBlocksItems.IRON_FRIDGE}, FridgeBlockEntity.getFactory());
+        BlockEntities.FRIDGE_BLOCK_ENTITY = registerBlockEntity("fridge_block_entity", new Block[]{PaladinFurnitureModBlocksItems.WHITE_FRIDGE, PaladinFurnitureModBlocksItems.XBOX_FRIDGE, PaladinFurnitureModBlocksItems.GRAY_FRIDGE, PaladinFurnitureModBlocksItems.IRON_FRIDGE}, FridgeBlockEntity.getFactory());
         BlockEntities.FREEZER_BLOCK_ENTITY = registerBlockEntity("freezer_block_entity", new Block[]{PaladinFurnitureModBlocksItems.WHITE_FREEZER, PaladinFurnitureModBlocksItems.GRAY_FREEZER, PaladinFurnitureModBlocksItems.IRON_FREEZER}, FreezerBlockEntity.getFactory());
         Block[] counterOvens = PaladinFurnitureModBlocksItems.furnitureEntryMap.get(KitchenCounterOvenBlock.class).getAllBlocks().toArray(Block[]::new);
         BlockEntities.KITCHEN_COUNTER_OVEN_BLOCK_ENTITY = registerBlockEntity("kitchen_counter_oven_block_entity", counterOvens, KitchenCounterOvenBlock.getFactory());

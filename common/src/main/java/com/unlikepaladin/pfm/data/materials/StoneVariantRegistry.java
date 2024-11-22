@@ -42,11 +42,11 @@ public class StoneVariantRegistry extends VariantRegistryBase<StoneVariant> {
         }
         String namespace = blockId.getNamespace();
         if (!namespace.equals("cozy_home") && name != null && !namespace.equals("securitycraft") &&
-                !namespace.equals("absentbydesign") && !namespace.equals("chipped")) {
+                !namespace.equals("absentbydesign") && !namespace.equals("chipped") && !namespace.equals("extshape")) {
 
             BlockState state = baseBlock.getDefaultState();
             // can't check if the block is a full one, so I do this. Adding some checks here
-            if (state.getProperties().size() <= 2 && !(baseBlock instanceof SlabBlock)) {
+            if (state.getProperties().size() <= 2 && !(baseBlock instanceof SlabBlock) && !name.contains("slab")) {
                 // needs to use wood sound type
                 // if (state.getSoundType() == SoundType.WOOD) { //wood from tcon has diff sounds
                 Material mat = state.getMaterial();

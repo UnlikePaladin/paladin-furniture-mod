@@ -27,10 +27,6 @@ import java.util.List;
 public class ColorRegistry {
     public static void registerBlockColors(){
         List<Block> sinks = new ArrayList<>();
-        KitchenSinkBlock.streamStoneSinks().map(FurnitureBlock::getBlock).forEach(sinks::add);
-        KitchenSinkBlock.streamWoodSinks().map(FurnitureBlock::getBlock).forEach(sinks::add);
-        BasicSinkBlock.streamSinks().forEach(sinks::add);
-        sinks.forEach(block -> registerBlockColor(block, addWaterColor()));
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_TOILET, addToiletColor());
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_BATHTUB, addWaterColor());
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_LAMP, (state, world, pos, tintIndex) -> {
@@ -55,14 +51,36 @@ public class ColorRegistry {
         PaladinFurnitureModBlocksItems.furnitureEntryMap.forEach((key, value) -> {
             value.getVariantToBlockMap().forEach((variantBase, block) -> {
                 BlockColorProvider blockColorProvider = getBlockColor(variantBase.getBaseBlock());
-                if (blockColorProvider != null) {
-                    registerBlockColor(block, blockColorProvider);
+                if (key.isAssignableFrom(KitchenSinkBlock.class)) {
+                    registerBlockColor(block, ((state, world, pos, tintIndex) -> {
+                        if (tintIndex == 1) {
+                            return addWaterColor().getColor(state, world, pos, tintIndex);
+                        } else if (blockColorProvider == null) {
+                            return 0xFFFFFFF;
+                        }
+                        return blockColorProvider.getColor(state, world, pos, tintIndex);
+                    }));
+                } else {
+                    if (blockColorProvider != null) {
+                        registerBlockColor(block, blockColorProvider);
+                    }
                 }
             });
             value.getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-                BlockColorProvider blockColorProvider = getBlockColor(variantBase.getSecondaryBlock());
-                if (blockColorProvider != null) {
-                    registerBlockColor(block, blockColorProvider);
+                BlockColorProvider blockColorProvider = getBlockColor(variantBase.getBaseBlock());
+                if (key.isAssignableFrom(KitchenSinkBlock.class)) {
+                    registerBlockColor(block, ((state, world, pos, tintIndex) -> {
+                        if (tintIndex == 1) {
+                            return addWaterColor().getColor(state, world, pos, tintIndex);
+                        } else if (blockColorProvider == null) {
+                            return 0xFFFFFFF;
+                        }
+                        return blockColorProvider.getColor(state, world, pos, tintIndex);
+                    }));
+                } else {
+                    if (blockColorProvider != null) {
+                        registerBlockColor(block, blockColorProvider);
+                    }
                 }
             });
         });
