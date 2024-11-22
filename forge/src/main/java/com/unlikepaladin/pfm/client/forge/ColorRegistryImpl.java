@@ -7,6 +7,7 @@ import net.minecraft.client.color.item.ItemColorProvider;
 import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.Item;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.HashMap;
 import java.util.Map;
