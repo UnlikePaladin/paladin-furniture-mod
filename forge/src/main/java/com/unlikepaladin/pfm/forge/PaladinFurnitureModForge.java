@@ -3,19 +3,13 @@ package com.unlikepaladin.pfm.forge;
 import com.google.common.base.Suppliers;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.client.PathPackRPWrapper;
+import com.unlikepaladin.pfm.client.forge.ColorRegistryForge;
 import com.unlikepaladin.pfm.config.PaladinFurnitureModConfig;
-import com.unlikepaladin.pfm.data.forge.PFMTagsImpl;
-import com.unlikepaladin.pfm.registry.BlockItemRegistry;
 import com.unlikepaladin.pfm.registry.dynamic.forge.LateBlockRegistryForge;
 import com.unlikepaladin.pfm.registry.forge.*;
-import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
-import net.minecraft.resource.featuretoggle.FeatureSet;
-import net.minecraft.util.Identifier;
 import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
-import net.minecraft.block.Block;
-import net.minecraft.item.Item;
 import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import net.minecraft.SharedConstants;
 import net.minecraft.resource.ResourcePackProfile;
@@ -25,6 +19,7 @@ import net.minecraft.text.Text;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddPackFindersEvent;
+import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -54,12 +49,15 @@ public class PaladinFurnitureModForge extends PaladinFurnitureMod {
         MinecraftForge.EVENT_BUS.register(BlockEntityRegistryForge.class);
         MinecraftForge.EVENT_BUS.register(SoundRegistryForge.class);
         MinecraftForge.EVENT_BUS.register(NetworkRegistryForge.class);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.LOW, ColorRegistryForge::registerBlockColors);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.LOWEST, ColorRegistryForge::registerItemColors);
         NetworkRegistryForge.registerPackets();
         LateBlockRegistryForge.addDynamicBlockRegistration();
         PaladinFurnitureMod.isClient = FMLEnvironment.dist == Dist.CLIENT;
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ItemGroupRegistryForge::registerItemGroups);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ItemGroupRegistryForge::addToVanillaItemGroups);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(PaladinFurnitureModForge::generateResources);
+
     }
 
     @SubscribeEvent
