@@ -5,14 +5,21 @@ import com.unlikepaladin.pfm.client.PaladinFurnitureModClient;
 import com.unlikepaladin.pfm.client.ScreenRegistry;
 import com.unlikepaladin.pfm.client.fabric.modelLoaders.PFMModelLoadingV0;
 import com.unlikepaladin.pfm.client.fabric.modelLoaders.PFMModelLoadingV1;
+import com.unlikepaladin.pfm.client.screens.PFMConfigScreen;
+import com.unlikepaladin.pfm.config.option.Side;
 import com.unlikepaladin.pfm.fabric.PaladinFurnitureModFabric;
+import com.unlikepaladin.pfm.networking.MicrowaveUpdatePayload;
+import com.unlikepaladin.pfm.networking.SyncConfigPayload;
 import com.unlikepaladin.pfm.networking.fabric.LeaveEventHandlerFabric;
+import com.unlikepaladin.pfm.registry.NetworkIDs;
 import com.unlikepaladin.pfm.registry.fabric.NetworkRegistryFabric;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
@@ -30,7 +37,7 @@ public class PaladinFurnitureModClientFabric implements ClientModInitializer {
         PaladinFurnitureModFabric.registerLateEntries();
         PaladinFurnitureModFabric.replaceHomePOIStates();
         ColorRegistryFabric.registerAll();
-        NetworkRegistryFabric.registerClientPackets();
+        ClientPacketRegistry.registerClientPackets();
 
         PaladinFurnitureModClient.USE_TOILET_KEYBIND = KeyBindingHelper.registerKeyBinding(new KeyBinding(
                 "key.pfm.toiletUse", // The translation key of the keybinding's name
@@ -49,4 +56,5 @@ public class PaladinFurnitureModClientFabric implements ClientModInitializer {
         ParticleProviderRegistryFabric.registerParticleFactories();
         ClientPlayConnectionEvents.DISCONNECT.register(LeaveEventHandlerFabric::onServerLeave);
     }
+
 }
