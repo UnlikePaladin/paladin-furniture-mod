@@ -7,15 +7,13 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
 
-@Mod.EventBusSubscriber(modid = "pfm", bus = Mod.EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ColorRegistryNeoForge {
-    @SubscribeEvent
     public static void registerBlockColors(RegisterColorHandlersEvent.Block event){
         ColorRegistryImpl.blockColors = event.getBlockColors();
         ColorRegistry.registerBlockColors();
         ColorRegistryImpl.BLOCK_COLOR_PROVIDER_MAP.forEach((block, blockColorProvider) -> event.getBlockColors().registerColorProvider(blockColorProvider, block));
     }
-    @SubscribeEvent
+
     public static void registerItemColors(RegisterColorHandlersEvent.Item event){
         ColorRegistryImpl.itemColors = event.getItemColors();
         ColorRegistry.registerItemColors();

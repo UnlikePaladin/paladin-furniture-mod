@@ -3,9 +3,9 @@ package com.unlikepaladin.pfm.neoforge;
 import com.google.common.base.Suppliers;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.client.PathPackRPWrapper;
+import com.unlikepaladin.pfm.client.neoforge.ColorRegistryNeoForge;
 import com.unlikepaladin.pfm.config.PaladinFurnitureModConfig;
 import com.unlikepaladin.pfm.registry.dynamic.neoforge.LateBlockRegistryNeoForge;
-import com.unlikepaladin.pfm.registry.neoforge.*;
 import com.unlikepaladin.pfm.registry.neoforge.*;
 import net.minecraft.resource.*;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
@@ -15,6 +15,7 @@ import net.minecraft.SharedConstants;
 import net.minecraft.resource.metadata.PackResourceMetadata;
 import net.minecraft.text.Text;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -49,12 +50,15 @@ public class PaladinFurnitureModNeoForge extends PaladinFurnitureMod {
         NeoForge.EVENT_BUS.register(BlockEntityRegistryNeoForge.class);
         NeoForge.EVENT_BUS.register(SoundRegistryNeoForge.class);
         NeoForge.EVENT_BUS.register(NetworkRegistryNeoForge.class);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.LOW, ColorRegistryNeoForge::registerBlockColors);
+        FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.LOWEST, ColorRegistryNeoForge::registerItemColors);
         NetworkRegistryNeoForge.registerPackets();
         LateBlockRegistryNeoForge.addDynamicBlockRegistration();
         PaladinFurnitureMod.isClient = FMLEnvironment.dist == Dist.CLIENT;
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ItemGroupRegistryNeoForge::registerItemGroups);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ItemGroupRegistryNeoForge::addToVanillaItemGroups);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(PaladinFurnitureModNeoForge::generateResources);
+
     }
 
     @SubscribeEvent
