@@ -1,12 +1,9 @@
 package com.unlikepaladin.pfm.fabric;
 
-import com.google.common.collect.ImmutableSet;
-import com.mojang.serialization.Lifecycle;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.advancements.PFMCriteria;
 import com.unlikepaladin.pfm.advancements.fabric.CriteriaRegistryFabric;
 import com.unlikepaladin.pfm.blocks.BasicChairBlock;
-import com.unlikepaladin.pfm.blocks.SimpleBedBlock;
 import com.unlikepaladin.pfm.compat.cookingforblockheads.fabric.PFMCookingForBlockHeadsCompat;
 import com.unlikepaladin.pfm.config.PaladinFurnitureModConfig;
 import com.unlikepaladin.pfm.config.option.AbstractConfigOption;
@@ -15,39 +12,28 @@ import com.unlikepaladin.pfm.data.materials.WoodVariantRegistry;
 import com.unlikepaladin.pfm.registry.*;
 import com.unlikepaladin.pfm.registry.dynamic.LateBlockRegistry;
 import com.unlikepaladin.pfm.registry.fabric.*;
-import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
-import net.fabricmc.fabric.impl.itemgroup.FabricItemGroupBuilderImpl;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.Registry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayNetworkHandler;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
-import net.minecraft.registry.MutableRegistry;
-import net.minecraft.util.Pair;
-import net.minecraft.registry.Registry;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.world.poi.PointOfInterestType;
-import net.minecraft.world.poi.PointOfInterestTypes;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
 import java.util.Collection;
-import java.util.ArrayList;
 
 public class PaladinFurnitureModFabric extends PaladinFurnitureMod implements ModInitializer, DedicatedServerModInitializer {
 

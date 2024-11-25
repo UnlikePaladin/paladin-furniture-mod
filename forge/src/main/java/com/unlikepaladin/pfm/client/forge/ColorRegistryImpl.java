@@ -7,6 +7,7 @@ import net.minecraft.client.color.item.ItemColorProvider;
 import net.minecraft.client.color.item.ItemColors;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.Item;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,13 +36,13 @@ public class ColorRegistryImpl {
         if (BLOCK_COLOR_PROVIDER_MAP.containsKey(block)) {
             return BLOCK_COLOR_PROVIDER_MAP.get(block);
         }
-        return ((BlockColorsExtension) blockColors).getColorMap().get(block.getRegistryEntry());
+        return ((BlockColorsExtension) blockColors).getColorMap().get(ForgeRegistries.BLOCKS.getDelegateOrThrow(block));
     }
 
     public static ItemColorProvider getItemColor(Item item) {
         if (ITEM_COLOR_PROVIDER_MAP.containsKey(item)) {
             return ITEM_COLOR_PROVIDER_MAP.get(item);
         }
-        return ((ItemColorsExtension) itemColors).getColorMap().get(item.getRegistryEntry());
+        return ((ItemColorsExtension) itemColors).getColorMap().get(ForgeRegistries.ITEMS.getDelegateOrThrow(item));
     }
 }
