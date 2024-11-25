@@ -225,7 +225,7 @@
 			"from": [14, 14, 0],
 			"to": [16, 16, 16],
 			"faces": {
-				"north": {"uv": [14, 0, 16, 2], "texture": "#legs", "cullface": "north"},
+				"north": {"uv": [14, 0, 16, 2], "texture": "#legs", "cullface": "north", "tintindex": 0},
 				"east": {"uv": [0, 0, 16, 2], "texture": "#legs", "cullface": "east", "tintindex": 0},
 				"south": {"uv": [0, 0, 2, 2], "texture": "#legs", "cullface": "south", "tintindex": 0},
 				"up": {"uv": [14, 0, 16, 16], "texture": "#legs", "cullface": "up", "tintindex": 0},
