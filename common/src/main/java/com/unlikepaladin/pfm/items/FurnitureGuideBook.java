@@ -6,8 +6,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.text.Text;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -17,11 +17,11 @@ public class FurnitureGuideBook extends Item {
         super(settings);
     }
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity user, Hand hand) {
+    public ActionResult use(World world, PlayerEntity user, Hand hand) {
         return openBook(world, user, hand);
     }
     @ExpectPlatform
-    public static TypedActionResult<ItemStack> openBook(World world,PlayerEntity user, Hand hand) {
+    public static ActionResult openBook(World world,PlayerEntity user, Hand hand) {
         throw new AssertionError();
     }
 

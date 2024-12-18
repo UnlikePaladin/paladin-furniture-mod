@@ -13,9 +13,7 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 public class ClientPacketRegistry {
 
     public static void registerClientPackets() {
-        PayloadTypeRegistry.playS2C().register(NetworkIDs.MICROWAVE_UPDATE_PACKET_ID, MicrowaveUpdatePayload.PACKET_CODEC);
         ClientPlayNetworking.registerGlobalReceiver(NetworkIDs.MICROWAVE_UPDATE_PACKET_ID, (payload, context) -> { payload.handle(context.player(), context.client());});
-        PayloadTypeRegistry.playS2C().register(NetworkIDs.CONFIG_SYNC_ID, SyncConfigPayload.PACKET_CODEC);
         ClientPlayNetworking.registerGlobalReceiver(NetworkIDs.CONFIG_SYNC_ID,
                 (payload, context) -> {
                     context.client().execute(() -> {
@@ -27,6 +25,11 @@ public class ClientPacketRegistry {
                             }
                         });
                     });
+                }
+        );
+        ClientPlayNetworking.registerGlobalReceiver(NetworkIDs.SYNC_FURNITURE_RECIPES,
+                (payload, context) -> {
+                    payload.handle(context.player(), context.client());
                 }
         );
     }

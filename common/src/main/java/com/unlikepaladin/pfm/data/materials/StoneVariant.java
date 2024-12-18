@@ -149,7 +149,7 @@ public class StoneVariant extends VariantBase<StoneVariant> {
                     if (plank != d && log != d && plank != null && log != null) {
                         StoneVariant w = new StoneVariant(id, plank, log);
                         for (Map.Entry<String, Identifier> entry : childNames.entrySet()){
-                            Object child = Registries.BLOCK.getOrEmpty(entry.getValue()).isPresent() ? Registries.BLOCK.get(entry.getValue()) : Registries.ITEM.get(entry.getValue());
+                            Object child = Registries.BLOCK.getOptionalValue(entry.getValue()).isPresent() ? Registries.BLOCK.get(entry.getValue()) : Registries.ITEM.get(entry.getValue());
                             w.addChild(entry.getKey(), child);
                         }
                         return Optional.of(w);

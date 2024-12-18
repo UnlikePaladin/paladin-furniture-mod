@@ -1,15 +1,9 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "item": "minecraft:iron_ingot"
-    },
-    {
-      "item": "minecraft:book"
-    },
-    {
-      "item": "minecraft:orange_dye"
-    }
+    "minecraft:iron_ingot",
+    "minecraft:book",
+    "minecraft:orange_dye"
   ],
   "result": {
     "id": "pfm:furniture_book"

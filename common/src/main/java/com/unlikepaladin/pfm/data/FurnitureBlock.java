@@ -24,7 +24,7 @@ public class FurnitureBlock extends Material {
         if (block.getTranslationKey().contains("stripped")) {
             return getStrippedSecondMaterial();
         }
-        String secondMaterial = this.block.getLootTableKey().getValue().getPath();
+        String secondMaterial = this.block.getLootTableKey().get().getValue().getPath();
         if (secondMaterial.contains("raw")) {
             secondMaterial = secondMaterial.replace("raw_", "");
         }
@@ -102,7 +102,7 @@ public class FurnitureBlock extends Material {
         if (block.getTranslationKey().contains("stripped")) {
             return getStrippedBaseMaterial();
         }
-        String baseMaterial = this.block.getLootTableKey().getValue().getPath();
+        String baseMaterial = this.block.getLootTableKey().get().getValue().getPath();
         if(baseMaterial.contains("andesite")){
             baseMaterial = "stripped_oak_log";
         }
@@ -165,7 +165,7 @@ public class FurnitureBlock extends Material {
         return this.baseMaterial;
     }
     public Item getFroggyChairMaterial() {
-        String baseMaterial = this.block.getLootTableKey().getValue().getPath();
+        String baseMaterial = this.block.getLootTableKey().get().getValue().getPath();
         baseMaterial = baseMaterial.replace("blocks/", "").replace(furnitureName, "");
         if (baseMaterial.matches("froggy_chair")) {
             this.baseMaterial = Registries.ITEM.get(Identifier.of("minecraft:" + "lime_concrete"));
@@ -176,7 +176,7 @@ public class FurnitureBlock extends Material {
         return this.baseMaterial;
     }
     public Item getFridgeMaterial() {
-        String baseMaterial = this.block.getLootTableKey().getValue().getPath();
+        String baseMaterial = this.block.getLootTableKey().get().getValue().getPath();
         baseMaterial = baseMaterial.replace("blocks/", "").replace(furnitureName, "");
         if (baseMaterial.contains("iron")) {
             this.baseMaterial =  Registries.ITEM.get(Identifier.of("minecraft:" + "iron_ingot"));
@@ -191,7 +191,7 @@ public class FurnitureBlock extends Material {
         return this.baseMaterial;
     }
     public Block getSlab(){
-        String slabName = this.block.getLootTableKey().getValue().getPath().replace("blocks/", "").replace(furnitureName, "slab");
+        String slabName = this.block.getLootTableKey().get().getValue().getPath().replace("blocks/", "").replace(furnitureName, "slab");
         if (block.getTranslationKey().contains("stripped")) {
             slabName.replace("stripped_", "");
         }
@@ -201,7 +201,7 @@ public class FurnitureBlock extends Material {
 
 
     public Item getStrippedBaseMaterial() {
-        String secondMaterial = this.block.getLootTableKey().getValue().getPath().replace("blocks/", "");
+        String secondMaterial = this.block.getLootTableKey().get().getValue().getPath().replace("blocks/", "");
         if (secondMaterial.contains("raw_")) {
             secondMaterial = secondMaterial.replace("raw_", "");
         }
@@ -219,7 +219,7 @@ public class FurnitureBlock extends Material {
     }
 
     public Item getStrippedSecondMaterial() {
-        String baseMaterial = this.block.getLootTableKey().getValue().getPath().replace("blocks/", "");
+        String baseMaterial = this.block.getLootTableKey().get().getValue().getPath().replace("blocks/", "");
         if (baseMaterial.contains("log") || baseMaterial.contains("stem")) {
             baseMaterial = baseMaterial.replace("log", "");
             baseMaterial = baseMaterial.replace("stem", "");
@@ -233,7 +233,7 @@ public class FurnitureBlock extends Material {
     }
 
     public Item getArmChairMaterial() {
-        String baseMaterial = this.block.getLootTableKey().getValue().getPath();
+        String baseMaterial = this.block.getLootTableKey().get().getValue().getPath();
         baseMaterial = baseMaterial.replace("blocks/", "").replace(furnitureName, "");
         if (baseMaterial.contains("leather")) {
             this.baseMaterial = Registries.ITEM.get(Identifier.of("pfm:" + "leather_block"));
@@ -271,7 +271,7 @@ public class FurnitureBlock extends Material {
     }
 
     public Item getFence() {
-        String baseMaterial = this.block.getLootTableKey().getValue().getPath();
+        String baseMaterial = this.block.getLootTableKey().get().getValue().getPath();
             if (baseMaterial.contains("log") || baseMaterial.contains("stem")) {
                 baseMaterial = baseMaterial.replace("log", "");
                 baseMaterial = baseMaterial.replace("stem", "");
@@ -282,7 +282,7 @@ public class FurnitureBlock extends Material {
     }
 
     public Item getSecondaryStoneMaterial() {
-        String secondMaterial = this.block.getLootTableKey().getValue().getPath();
+        String secondMaterial = this.block.getLootTableKey().get().getValue().getPath();
         if(secondMaterial.contains("andesite")){
             secondMaterial = "andesite";
         }
@@ -329,7 +329,7 @@ public class FurnitureBlock extends Material {
     }
 
     public Item getBaseStoneMaterial() {
-        String baseMaterial = this.block.getLootTableKey().getValue().getPath();
+        String baseMaterial = this.block.getLootTableKey().get().getValue().getPath();
         if(baseMaterial.contains("andesite")){
             baseMaterial = "polished_andesite";
         }
@@ -382,7 +382,7 @@ public class FurnitureBlock extends Material {
     }
 
     public Item getPlateMaterial() {
-        String baseMaterial = this.block.getLootTableKey().getValue().getPath();
+        String baseMaterial = this.block.getLootTableKey().get().getValue().getPath();
         if (baseMaterial.contains("basic")) {
             baseMaterial = "white_concrete";
         }
@@ -394,7 +394,7 @@ public class FurnitureBlock extends Material {
     }
 
     public Item getPlateDecoration() {
-        String baseMaterial = this.block.getLootTableKey().getValue().getPath();
+        String baseMaterial = this.block.getLootTableKey().get().getValue().getPath();
         if (baseMaterial.contains("basic")) {
             baseMaterial = "white_concrete";
         }
@@ -406,7 +406,7 @@ public class FurnitureBlock extends Material {
     }
 
     public Item getCutleryMaterial() {
-        String baseMaterial = this.block.getLootTableKey().getValue().getPath();
+        String baseMaterial = this.block.getLootTableKey().get().getValue().getPath();
         if (baseMaterial.contains("basic")) {
             baseMaterial = "light_gray_concrete";
         }

@@ -3,21 +3,18 @@ package com.unlikepaladin.pfm.registry.fabric;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.blocks.AbstractSittableBlock;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
+import com.unlikepaladin.pfm.registry.dynamic.LateBlockRegistry;
 import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.registry.FlammableBlockRegistry;
-import net.fabricmc.fabric.api.registry.FuelRegistry;
+import net.fabricmc.fabric.api.registry.FuelRegistryEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.block.Block;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemGroups;
+import net.minecraft.item.*;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Pair;
 
-import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.function.Supplier;
 
@@ -35,10 +32,12 @@ public class BlockItemRegistryImpl {
 
     public static void registerBlockItemPlatformSpecific(String itemName, Block block, Pair<String, ItemGroup> group) {
         PaladinFurnitureModBlocksItems.BLOCKS.add(block);
-        registerItemPlatformSpecific(itemName, () -> new BlockItem(block, new Item.Settings()), group);
+        registerItemPlatformSpecific(itemName, () -> new BlockItem(block, new Item.Settings().registryKey(LateBlockRegistry.getItemRegistryKey(itemName)).useBlockPrefixedTranslationKey()), group);
         if (AbstractSittableBlock.isWoodBased(block.getDefaultState())) {
             FlammableBlockRegistry.getDefaultInstance().add(block, 20, 5);
-            FuelRegistry.INSTANCE.add(block, 300);
+            FuelRegistryEvents.BUILD.register((builder, context) -> {
+                builder.add(block, 300);
+            });
         }
     }
 

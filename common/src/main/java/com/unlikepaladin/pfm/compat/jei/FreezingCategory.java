@@ -82,10 +82,10 @@ public class FreezingCategory implements IRecipeCategory<FreezingRecipe>  {
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, FreezingRecipe recipe, IFocusGroup focuses) {
         builder.addSlot(INPUT, 1, 1)
-                .addIngredients(recipe.getIngredients().get(inputSlot));
+                .addIngredients(recipe.ingredient());
 
         builder.addSlot(OUTPUT, 61, 19)
-                .addItemStack(recipe.getResult(MinecraftClient.getInstance().world.getRegistryManager()));
+                .addItemStack(recipe.result());
     }
 
     protected IDrawableAnimated getArrow(FreezingRecipe recipe) {

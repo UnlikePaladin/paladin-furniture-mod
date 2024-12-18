@@ -8,7 +8,8 @@ import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.model.json.ModelTransformationMode;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.item.ModelTransformationMode;
 import net.minecraft.client.search.SearchManager;
 import net.minecraft.client.search.SearchProvider;
 import net.minecraft.client.sound.PositionedSoundInstance;
@@ -19,6 +20,8 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.text.Style;
@@ -134,7 +137,7 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
                 List<Item> items = new ArrayList<>();
                 searchable.findAll(string.toLowerCase(Locale.ROOT)).forEach(itemStack -> items.add(itemStack.getItem()));
                 this.handler.getSortedRecipes().forEach(furnitureRecipe -> {
-                    if (items.contains(furnitureRecipe.getResult(client.world.getRegistryManager()).getItem())) {
+                    if (items.contains(furnitureRecipe.result().getItem())) {
                         this.handler.getSearchableRecipes().add(furnitureRecipe);
                     }
                 });
@@ -156,7 +159,7 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
             predicate = (idx) -> idx.getNamespace().contains(string) && idx.getPath().contains(string2);
         }
 
-        Stream<TagKey<Item>> keyStream = Registries.ITEM.streamTags().filter((tagKey) -> predicate.test(tagKey.id()));
+        Stream<TagKey<Item>> keyStream = Registries.ITEM.streamTags().filter((tagKey) -> predicate.test(tagKey.getTag().id())).map(RegistryEntryList.Named::getTag);
         keyStream.forEach(this.searchResultTags::add);
     }
 
@@ -177,9 +180,9 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
     protected void drawBackground(DrawContext context, float delta, int mouseX, int mouseY) {
         int x = this.x;
         int y = this.y;
-        context.drawTexture(TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, x, y, 0, 0, this.backgroundWidth, this.backgroundHeight, 256, 256);
         int k = (int)(41.0f * this.scrollAmount);
-        context.drawTexture(TEXTURE, x + 119, y + 31 + k, 176 + (this.shouldScroll() ? 0 : 12), 0, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT);
+        context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, x + 119, y + 31 + k, 176 + (this.shouldScroll() ? 0 : 12), 0, SCROLLBAR_WIDTH, SCROLLBAR_HEIGHT, 256, 256);
         int xOffSetForIcons = this.x + RECIPE_LIST_OFFSET_X;
         int yOffsetForIcons = this.y + RECIPE_LIST_OFFSET_Y;
         int scrollOffsetForIcons = this.scrollOffset + 18;
@@ -204,15 +207,15 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
             if (this.handler.searching) {
                 iCopy = this.handler.getSortedRecipes().indexOf(this.handler.getSearchableRecipes().get(iCopy));
             }
-            tooltip.add(getTooltipFromItem(this.handler.getSortedRecipes().get(iCopy).getResult(client.world.getRegistryManager())).get(0));
+            tooltip.add(getTooltipFromItem(this.handler.getSortedRecipes().get(iCopy).result()).get(0));
             tooltip.add(Text.translatable("container.pfm.working_table.ingredient_required").setStyle(Style.EMPTY.withItalic(true)));
             HashMap<Item, Integer> itemStackCountMap = new HashMap<>();
             for (Ingredient ingredient : this.handler.getSortedRecipes().get(iCopy).getIngredients()) {
-                for (ItemStack stack : ingredient.getMatchingStacks()) {
-                    if (!itemStackCountMap.containsKey(stack.getItem())) {
-                        itemStackCountMap.put(stack.getItem(), 1);
+                for (RegistryEntry<Item> item : ingredient.getMatchingItems()) {
+                    if (!itemStackCountMap.containsKey(item.value())) {
+                        itemStackCountMap.put(item.value(), 1);
                     } else {
-                        itemStackCountMap.put(stack.getItem(), itemStackCountMap.get(stack.getItem()) + 1);
+                        itemStackCountMap.put(item.value(), itemStackCountMap.get(item.value()) + 1);
                     }
                 }
             }
@@ -252,7 +255,7 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
             } else if (mouseX >= k && mouseY >= m && mouseX < k + 16 && mouseY < m + 18) {
                 v += 36;
             }
-            context.drawTexture(TEXTURE, k, m - 1, 0, v, 16, 18);
+            context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, k, m - 1, 0, v, 16, 18, 256, 256);
         }
     }
 
@@ -266,7 +269,7 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
             if (this.handler.searching) {
                 iCopy = this.handler.getSortedRecipes().indexOf(this.handler.getSearchableRecipes().get(iCopy));
             }
-            context.drawItem(this.handler.getSortedRecipes().get(iCopy).getResult(client.world.getRegistryManager()), xOffset, yOffset);
+            context.drawItem(this.handler.getSortedRecipes().get(iCopy).result(), xOffset, yOffset);
         }
     }
 

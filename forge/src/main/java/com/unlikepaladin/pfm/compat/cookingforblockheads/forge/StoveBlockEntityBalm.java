@@ -42,6 +42,7 @@ import net.minecraft.recipe.input.SingleStackRecipeInput;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
@@ -288,12 +289,15 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
         return !ovenRecipeResult.isEmpty() ? ovenRecipeResult : this.getSmeltingResult(RecipeType.SMELTING, recipeInput);
     }
 
-    public <T extends RecipeInput> ItemStack getSmeltingResult(RecipeType<? extends Recipe<T>> recipeType, T container) {
-        RecipeEntry<?> recipe = this.world.getRecipeManager().getFirstMatch(recipeType, container, this.world).orElse(null);
-        if (recipe != null) {
-            ItemStack result = recipe.value().getResult(this.world.getRegistryManager());
-            if (!result.isEmpty() && result.contains(DataComponentTypes.FOOD)) {
-                return result;
+    public <T extends RecipeInput> ItemStack getSmeltingResult(RecipeType<? extends Recipe<T>> recipeType, T recipeInput) {
+        MinecraftServer server = this.world.getServer();
+        if (server != null) {
+            RecipeEntry<? extends Recipe<T>> recipe = server.getRecipeManager().getFirstMatch(recipeType, recipeInput, this.world).orElse(null);
+            if (recipe != null) {
+                ItemStack result = recipe.value().craft(recipeInput, this.world.getRegistryManager());
+                if (!result.isEmpty() && result.contains(DataComponentTypes.FOOD)) {
+                    return result;
+                }
             }
         }
 

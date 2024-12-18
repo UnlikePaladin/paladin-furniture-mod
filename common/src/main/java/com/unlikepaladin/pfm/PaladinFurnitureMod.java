@@ -75,7 +75,7 @@ public class PaladinFurnitureMod {
 		newBedStates.addAll(originalBedStates);
 		newBedStates.addAll(addedBedStates);
 		((PFMPointOfInterestTypeAccessor) (Object)homePOI).setBlockStates(ImmutableSet.copyOf(newBedStates));
-		addedBedStates.forEach(state -> PFMPointOfInterestTypesAccessor.getBlockStateToPointOfInterestType().put(state, Registries.POINT_OF_INTEREST_TYPE.entryOf(PointOfInterestTypes.HOME)));
+		addedBedStates.forEach(state -> PFMPointOfInterestTypesAccessor.getBlockStateToPointOfInterestType().put(state, Registries.POINT_OF_INTEREST_TYPE.getOrThrow(PointOfInterestTypes.HOME)));
 	}
 
 	@ExpectPlatform

@@ -82,7 +82,7 @@ public class FabricBedModel extends PFMFabricBakedModel implements BedInterface 
     public void emitItemQuads(ItemStack stack, Supplier<Random> randomSupplier, RenderContext context) {
         List<Sprite> spriteList = getSpriteList(stack);
         pushTextureTransform(context, ModelHelper.getOakBedSprites(), spriteList);
-        int classicOffset = stack.getTranslationKey().contains("classic") ? 12 : 0;
+        int classicOffset = stack.getItem().getTranslationKey().contains("classic") ? 12 : 0;
         ((FabricBakedModel) getTemplateBakedModels().get((classicOffset+11))).emitItemQuads(stack, randomSupplier, context);
         context.popTransform();
 

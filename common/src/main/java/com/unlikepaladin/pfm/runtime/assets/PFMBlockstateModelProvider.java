@@ -111,6 +111,7 @@ public class PFMBlockstateModelProvider extends PFMProvider {
         return root.resolve("assets/" + id.getNamespace() + "/models/" + id.getPath() + ".json");
     }
 
+    private static final Identifier replaceable = Identifier.of("block/stone");
 
     private <T> void writeJsons(Path root, Map<T, ? extends Supplier<JsonElement>> jsons, BiFunction<Path, T, Path> locator) {
         jsons.forEach((object, supplier) -> {
@@ -315,6 +316,7 @@ public class PFMBlockstateModelProvider extends PFMProvider {
                     ids.add(id);
                     this.blockStateCollector.accept(stateSupplierBiFunction.apply(block, ids));
                     generatedStates.add(Registries.BLOCK.getId(block));
+                    PFMBlockstateModelProvider.modelPathMap.put(block, replaceable);
                 }
             });
         }
@@ -330,6 +332,7 @@ public class PFMBlockstateModelProvider extends PFMProvider {
                     ids.add(id);
                     this.blockStateCollector.accept(stateSupplierBiFunction.apply(block, ids));
                     generatedStates.add(Registries.BLOCK.getId(block));
+                    PFMBlockstateModelProvider.modelPathMap.put(block, replaceable);
                 }});
             });
 

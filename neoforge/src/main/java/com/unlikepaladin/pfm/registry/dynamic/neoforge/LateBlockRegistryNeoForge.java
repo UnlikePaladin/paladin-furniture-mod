@@ -31,7 +31,7 @@ public class LateBlockRegistryNeoForge {
                     Registry<?> registry = registerEvent.getRegistry();
                     if (registry instanceof SimpleRegistry<?> fr) {
                         boolean frozen = ((SimpleRegistryAccessor)fr).isFrozen();
-                        fr.unfreeze();
+                        fr.unfreeze(false);
                         LateBlockRegistryImpl.registerBlocks((Registry<Block>) registry);
                         if (frozen) fr.freeze();
                     }

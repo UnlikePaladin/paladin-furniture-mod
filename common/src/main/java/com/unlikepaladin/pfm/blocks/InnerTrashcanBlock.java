@@ -12,7 +12,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
-import net.minecraft.state.property.DirectionProperty;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.*;
 import net.minecraft.util.hit.BlockHitResult;
@@ -22,6 +22,7 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.block.WireOrientation;
 import org.jetbrains.annotations.Nullable;
 
 import static com.unlikepaladin.pfm.blocks.SimpleStoolBlock.rotateShape;
@@ -38,7 +39,7 @@ public class InnerTrashcanBlock extends BlockWithEntity {
         return CODEC;
     }
 
-    public static final DirectionProperty FACING = Properties.HORIZONTAL_FACING;
+    public static final EnumProperty<Direction> FACING = Properties.HORIZONTAL_FACING;
     protected static final BooleanProperty POWERED = Properties.POWERED;
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
@@ -104,7 +105,7 @@ public class InnerTrashcanBlock extends BlockWithEntity {
     }
 
     @Override
-    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean notify) {
+    protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation wireOrientation, boolean notify) {
         boolean bl = world.isReceivingRedstonePower(pos);
         if (bl != state.get(POWERED)) {
             if (bl) {
@@ -115,6 +116,7 @@ public class InnerTrashcanBlock extends BlockWithEntity {
             }
             world.setBlockState(pos, state.with(POWERED, bl), 3);
         }
+        super.neighborUpdate(state, world, pos, sourceBlock, wireOrientation, notify);
     }
 
     @Override

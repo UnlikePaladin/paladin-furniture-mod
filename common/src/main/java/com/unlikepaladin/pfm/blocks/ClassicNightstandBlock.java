@@ -12,6 +12,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.EnumProperty;
@@ -87,10 +88,10 @@ public class ClassicNightstandBlock extends HorizontalFacingBlockWithEntity {
             return ActionResult.CONSUME;
         }
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockEntity instanceof GenericStorageBlockEntity9x3) {
+        if (world instanceof ServerWorld && blockEntity instanceof GenericStorageBlockEntity9x3) {
             player.openHandledScreen((GenericStorageBlockEntity9x3)blockEntity);
             player.incrementStat(Statistics.CABINET_SEARCHED);
-            PiglinBrain.onGuardedBlockInteracted(player, true);
+            PiglinBrain.onGuardedBlockInteracted((ServerWorld) world, player, true);
         }
         return ActionResult.SUCCESS;
     }
@@ -99,11 +100,6 @@ public class ClassicNightstandBlock extends HorizontalFacingBlockWithEntity {
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         return this.getDefaultState().with(FACING, ctx.getHorizontalPlayerFacing().getOpposite());
     }
-
-    @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
-            return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
-        }
 
     @Override
     public void onStateReplaced(BlockState state, World world, BlockPos pos, BlockState newState, boolean moved) {

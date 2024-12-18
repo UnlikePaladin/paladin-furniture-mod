@@ -77,7 +77,7 @@ public class DyeKit extends Item {
                     stack.decrement(1);
                 }
 
-                return ActionResult.success(user.getWorld().isClient);
+                return ActionResult.SUCCESS;
             }
         }
         return ActionResult.PASS;

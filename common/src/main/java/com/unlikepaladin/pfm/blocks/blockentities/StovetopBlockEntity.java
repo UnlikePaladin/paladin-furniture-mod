@@ -9,6 +9,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.entity.CampfireBlockEntity;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
@@ -17,9 +18,11 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.recipe.CampfireCookingRecipe;
 import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.recipe.RecipePropertySet;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.recipe.input.SingleStackRecipeInput;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Clearable;
 import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.collection.DefaultedList;
@@ -28,6 +31,8 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
+import net.minecraft.world.event.GameEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -40,8 +45,9 @@ public class StovetopBlockEntity extends BlockEntity implements Clearable {
     public StovetopBlockEntity( BlockPos pos, BlockState state) {
         super(BlockEntities.STOVE_TOP_BLOCK_ENTITY, pos, state);
     }
-    public static void litServerTick(World world, BlockPos pos, BlockState state, StovetopBlockEntity stovetopBlockEntity) {
+    public static void litServerTick(World world1, BlockPos pos, BlockState state, StovetopBlockEntity stovetopBlockEntity) {
         boolean bl = false;
+        ServerWorld world = (ServerWorld) world1;
         for (int i = 0; i < stovetopBlockEntity.itemsBeingCooked.size(); ++i) {
             ItemStack itemStack = stovetopBlockEntity.itemsBeingCooked.get(i);
             if (itemStack.isEmpty()) continue;
@@ -84,7 +90,7 @@ public class StovetopBlockEntity extends BlockEntity implements Clearable {
         i = state.get(KitchenStovetopBlock.FACING).rotateYClockwise().getHorizontal();
         for (int j = 0; j < stovetopBlockEntity.itemsBeingCooked.size(); ++j) {
             ItemStack stack = stovetopBlockEntity.itemsBeingCooked.get(j);
-            if (stack.isEmpty() || !(random.nextFloat() < 0.2f) || world.getRecipeManager().getFirstMatch(RecipeType.CAMPFIRE_COOKING, new SingleStackRecipeInput(stack), world).isEmpty()) continue;
+            if (stack.isEmpty() || !(random.nextFloat() < 0.2f) || !world.getRecipeManager().getPropertySet(RecipePropertySet.CAMPFIRE_INPUT).canUse(stack)) continue;
             Direction direction = Direction.fromHorizontal(Math.floorMod(j + i, 4));
             float f = 0.2125f;
             double x = pos.getX() + 0.5 - ((direction.getOffsetX() * f) + (direction.rotateYClockwise().getOffsetX() * f));
@@ -145,23 +151,25 @@ public class StovetopBlockEntity extends BlockEntity implements Clearable {
         return stack;
     }
 
-    public Optional<RecipeEntry<CampfireCookingRecipe>> getRecipeFor(ItemStack item) {
-        if (this.itemsBeingCooked.stream().noneMatch(ItemStack::isEmpty)) {
-            return Optional.empty();
-        }
-        return this.world.getRecipeManager().getFirstMatch(RecipeType.CAMPFIRE_COOKING, new SingleStackRecipeInput(item), this.world);
-    }
-
-    public boolean addItem(ItemStack item, int integer) {
-        for (int i = 0; i < this.itemsBeingCooked.size(); ++i) {
+    public boolean addItem(ServerWorld world, @Nullable LivingEntity entity, ItemStack stack) {
+        for (int i = 0; i < this.itemsBeingCooked.size(); i++) {
             ItemStack itemStack = this.itemsBeingCooked.get(i);
-            if (!itemStack.isEmpty()) continue;
-            this.cookingTotalTimes[i] = integer;
-            this.cookingTimes[i] = 0;
-            this.itemsBeingCooked.set(i, item.split(1));
-            this.updateListeners();
-            return true;
+            if (itemStack.isEmpty()) {
+                Optional<RecipeEntry<CampfireCookingRecipe>> optional = world.getRecipeManager()
+                        .getFirstMatch(RecipeType.CAMPFIRE_COOKING, new SingleStackRecipeInput(stack), world);
+                if (optional.isEmpty()) {
+                    return false;
+                }
+
+                this.cookingTotalTimes[i] = ((CampfireCookingRecipe)((RecipeEntry<?>)optional.get()).value()).getCookingTime();
+                this.cookingTimes[i] = 0;
+                this.itemsBeingCooked.set(i, stack.splitUnlessCreative(1, entity));
+                world.emitGameEvent(GameEvent.BLOCK_CHANGE, this.getPos(), GameEvent.Emitter.of(entity, this.getCachedState()));
+                this.updateListeners();
+                return true;
+            }
         }
+
         return false;
     }
 

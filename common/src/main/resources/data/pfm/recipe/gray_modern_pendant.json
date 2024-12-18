@@ -2,22 +2,12 @@
   "type": "pfm:furniture",
   "group": "lighting",
   "ingredients": [
-      {
-        "item": "pfm:simple_light"
-      },
-      {
-        "item": "minecraft:light_gray_concrete"
-      },
-      {
-        "item": "minecraft:light_gray_concrete"
-      },
-      {
-        "item": "minecraft:gray_concrete"
-      },
-      {
-        "item": "minecraft:gray_concrete"
-      }
-    ],  
+    "pfm:simple_light",
+    "minecraft:light_gray_concrete",
+    "minecraft:light_gray_concrete",
+    "minecraft:gray_concrete",
+    "minecraft:gray_concrete"
+  ],
   "result": {
     "id": "pfm:gray_modern_pendant",
     "count": 1

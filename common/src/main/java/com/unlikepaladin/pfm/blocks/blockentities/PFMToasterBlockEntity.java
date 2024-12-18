@@ -161,7 +161,7 @@ public class PFMToasterBlockEntity extends BlockEntity implements SidedInventory
     public boolean hasMetalInside() {
         if (PaladinFurnitureMod.getModList().contains("sandwichable"))
             return isMetal(items.get(0)) || isMetal(items.get(1));
-        return items.get(0).getTranslationKey().contains("iron") || items.get(1).getTranslationKey().contains("iron");
+        return items.get(0).getItem().getTranslationKey().contains("iron") || items.get(1).getItem().getTranslationKey().contains("iron");
     }
 
     @ExpectPlatform
@@ -169,7 +169,7 @@ public class PFMToasterBlockEntity extends BlockEntity implements SidedInventory
 
     }
 
-    private void toastItems() {
+    private void toastItems(ServerWorld world) {
         if (PaladinFurnitureMod.getModList().contains("sandwichable")) {
             sandwichableToast(this);
         }
@@ -179,7 +179,7 @@ public class PFMToasterBlockEntity extends BlockEntity implements SidedInventory
 
                 boolean changed = false;
                 if(match.isPresent()) {
-                    items.set(i, match.get().value().getResult(world.getRegistryManager()).copy());
+                    items.set(i, match.get().value().result().copy());
                     changed = true;
                 } else {
                     if(items.get(i).contains(DataComponentTypes.FOOD)) {
@@ -251,9 +251,9 @@ public class PFMToasterBlockEntity extends BlockEntity implements SidedInventory
                 blockEntity.explode();
             }
         }
-        if(blockEntity.toastProgress == toastTime) {
+        if(blockEntity.toastProgress == toastTime && world instanceof ServerWorld serverWorld) {
             blockEntity.stopToasting(null);
-            blockEntity.toastItems();
+            blockEntity.toastItems(serverWorld);
             blockEntity.smoking = true;
         }
         if(blockEntity.smoking) {

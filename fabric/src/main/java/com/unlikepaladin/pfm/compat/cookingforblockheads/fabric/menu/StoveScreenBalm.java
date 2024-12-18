@@ -6,6 +6,7 @@ import net.blay09.mods.balm.api.energy.EnergyStorage;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -52,22 +53,22 @@ public class StoveScreenBalm extends HandledScreen<StoveScreenHandlerBalm> {
     }
 
     protected void drawBackground(DrawContext drawContext, float partialTicks, int mouseX, int mouseY) {
-        drawContext.drawTexture(texture, this.x + 22, this.y, 0, 0, this.backgroundWidth - 22, this.backgroundHeight);
-        drawContext.drawTexture(texture, this.x, this.y + 10, 176, 30, 25, 87);
+        drawContext.drawTexture(RenderLayer::getGuiTextured, texture, this.x + 22, this.y, 0, 0, this.backgroundWidth - 22, this.backgroundHeight, this.backgroundWidth - 22, this.backgroundHeight);
+        drawContext.drawTexture(RenderLayer::getGuiTextured, texture, this.x, this.y + 10, 176, 30, 25, 87, 25, 87);
         StoveBlockEntityBalm tileEntity = this.handler.getTileEntity();
         int offsetX = tileEntity.hasPowerUpgrade() ? -5 : 0;
-        drawContext.drawTexture(texture, this.x + 22 + 61 + offsetX, this.y + 18, 176, 117, 76, 76);
-        drawContext.drawTexture(texture, this.x + 22 + 38 + offsetX, this.y + 43, 205, 84, 18, 33);
+        drawContext.drawTexture(RenderLayer::getGuiTextured, texture, this.x + 22 + 61 + offsetX, this.y + 18, 176, 117, 76, 76, 76, 76);
+        drawContext.drawTexture(RenderLayer::getGuiTextured, texture, this.x + 22 + 38 + offsetX, this.y + 43, 205, 84, 18, 33, 18, 33);
         if (tileEntity.isBurning()) {
             int burnTime = (int)(12.0F * tileEntity.getBurnTimeProgress());
-            drawContext.drawTexture(texture, this.x + 22 + 40 + offsetX, this.y + 43 + 12 - burnTime, 176, 12 - burnTime, 14, burnTime + 1);
+            drawContext.drawTexture(RenderLayer::getGuiTextured, texture, this.x + 22 + 40 + offsetX, this.y + 43 + 12 - burnTime, 176, 12 - burnTime, 14, burnTime + 1, 12 - burnTime, 14, burnTime + 1);
         }
 
         if (tileEntity.hasPowerUpgrade()) {
-            drawContext.drawTexture(texture, this.x + this.backgroundWidth - 25, this.y + 22, 205, 0, 18, 72);
+            drawContext.drawTexture(RenderLayer::getGuiTextured, texture, this.x + this.backgroundWidth - 25, this.y + 22, 205, 0, 18, 72, 18, 72);
             EnergyStorage energyStorage = tileEntity.getEnergyStorage();
             float energyPercentage = (float)energyStorage.getEnergy() / (float)energyStorage.getCapacity();
-            drawContext.drawTexture(texture, this.x + this.backgroundWidth - 25 + 1, this.y + 22 + 1 + 70 - (int)(energyPercentage * 70.0F), 223, 0, 16, (int)(energyPercentage * 70.0F));
+            drawContext.drawTexture(RenderLayer::getGuiTextured, texture, this.x + this.backgroundWidth - 25 + 1, this.y + 22 + 1 + 70 - (int)(energyPercentage * 70.0F), 223, 0, 16, (int)(energyPercentage * 70.0F), 16, (int)(energyPercentage * 70.0F));
         }
 
     }

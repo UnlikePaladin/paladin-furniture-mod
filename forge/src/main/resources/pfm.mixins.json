@@ -7,7 +7,7 @@
     "BlockColorsAccessor",
     "ItemColorsAccessor",
     "ItemRendererMixin",
-    "PFMModelLoaderMixin",
+    "PFMReferencedModelsCollectorMixin",
     "PFMRenderLayersForgeMixin"
   ],
   "mixins": [

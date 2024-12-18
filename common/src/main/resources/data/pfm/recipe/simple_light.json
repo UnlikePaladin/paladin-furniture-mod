@@ -2,24 +2,12 @@
   "type": "pfm:furniture",
   "group": "lighting",
   "ingredients": [
-    {
-      "item": "minecraft:redstone_lamp"
-    },
-    {
-      "item": "minecraft:light_gray_concrete"
-    },
-    {
-      "item": "minecraft:light_gray_concrete"
-    },
-    {
-      "item": "minecraft:glass"
-    },
-    {
-      "item": "minecraft:glass"
-    },
-    {
-      "item": "minecraft:glass"
-    }
+    "minecraft:redstone_lamp",
+    "minecraft:light_gray_concrete",
+    "minecraft:light_gray_concrete",
+    "minecraft:glass",
+    "minecraft:glass",
+    "minecraft:glass"
   ],
   "result": {
     "id": "pfm:simple_light",

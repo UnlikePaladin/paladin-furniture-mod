@@ -3,6 +3,7 @@
   "package": "com.unlikepaladin.pfm.mixin.fabric",
   "compatibilityLevel": "JAVA_16",
   "client": [
+    "PFMBlockDustParticleMixin",
     "PFMBlockModelsMixin",
     "PFMCrackParticleMixin",
     "PFMTitleScreenMixin"
@@ -11,9 +12,9 @@
     "PFMAbstractTagProvider$ObjectBuilderMixin",
     "PFMCookingPotBlockEntityMixin",
     "PFMMinecraftServerMixin",
+    "PFMModResourcePackCreatorMixin",
     "PFMReloadableResourceManagerImplMixin",
-    "PFMSaveLoaderMixin",
-    "PFMModResourcePackCreatorMixin"
+    "PFMSaveLoaderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

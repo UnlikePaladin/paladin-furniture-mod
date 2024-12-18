@@ -4,8 +4,11 @@ import com.unlikepaladin.pfm.blocks.blockentities.StovePacket;
 import com.unlikepaladin.pfm.compat.cookingforblockheads.fabric.StoveBlockEntityBalm;
 import com.unlikepaladin.pfm.compat.cookingforblockheads.fabric.menu.slot.StoveResultSlot;
 import com.unlikepaladin.pfm.menus.AbstractMicrowaveScreenHandler;
+import com.unlikepaladin.pfm.menus.StoveScreenHandler;
 import com.unlikepaladin.pfm.registry.ScreenHandlerIDs;
+import net.blay09.mods.cookingforblockheads.block.entity.OvenBlockEntity;
 import net.blay09.mods.cookingforblockheads.menu.IContainerWithDoor;
+import net.blay09.mods.cookingforblockheads.menu.OvenMenu;
 import net.blay09.mods.cookingforblockheads.menu.slot.SlotOven;
 import net.blay09.mods.cookingforblockheads.menu.slot.SlotOvenFuel;
 import net.blay09.mods.cookingforblockheads.menu.slot.SlotOvenTool;
@@ -35,7 +38,7 @@ public class StoveScreenHandlerBalm extends ScreenHandler implements IContainerW
             this.addSlot(new Slot(container, i, 84 + i * 18 + offsetX, 19));
         }
 
-        this.addSlot(new SlotOvenFuel(container, 3, 61 + offsetX, 59));
+        this.addSlot(new SlotOvenFuel(this, container, 3, 61 + offsetX, 59));
 
         for(i = 0; i < 3; ++i) {
             this.addSlot(new StoveResultSlot(playerInventory.player, oven, container, i + 4, 142 + offsetX, 41 + i * 18));
@@ -94,7 +97,7 @@ public class StoveScreenHandlerBalm extends ScreenHandler implements IContainerW
                 slot.onQuickTransfer(slotStack, itemStack);
             } else if (slotIndex >= 20) {
                 ItemStack smeltingResult = this.tileEntity.getSmeltingResult(slotStack);
-                if (StoveBlockEntityBalm.isItemFuel(slotStack)) {
+                if (StoveBlockEntityBalm.isItemFuel(tileEntity.getWorld(), slotStack)) {
                     if (!this.insertItem(slotStack, 3, 4, false)) {
                         return ItemStack.EMPTY;
                     }
@@ -135,5 +138,22 @@ public class StoveScreenHandlerBalm extends ScreenHandler implements IContainerW
 
     public boolean isTileEntity(BlockEntity blockEntity) {
         return this.tileEntity == blockEntity;
+    }
+
+    public boolean isFuel(ItemStack itemStack) {
+        return OvenBlockEntity.isItemFuel(this.tileEntity.getWorld(), itemStack);
+    }
+
+    public static class SlotOvenFuel extends Slot {
+        private final StoveScreenHandlerBalm menu;
+
+        public SlotOvenFuel(StoveScreenHandlerBalm menu, Inventory container, int i, int x, int y) {
+            super(container, i, x, y);
+            this.menu = menu;
+        }
+
+        public boolean canInsert(ItemStack itemStack) {
+            return this.menu.isFuel(itemStack);
+        }
     }
 }

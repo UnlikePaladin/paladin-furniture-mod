@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class WoodVariantRegistry extends VariantRegistryBase<WoodVariant> {
-    public static final WoodVariant OAK = new WoodVariant(Identifier.of("oak"), Blocks.OAK_PLANKS, Blocks.OAK_LOG, BoatEntity.Type.OAK);
+    public static final WoodVariant OAK = new WoodVariant(Identifier.of("oak"), Blocks.OAK_PLANKS, Blocks.OAK_LOG);
     public static final WoodVariantRegistry INSTANCE = new WoodVariantRegistry();
     public static Collection<String> getNamespaces() {
         return INSTANCE.variants.values().stream().map(VariantBase::getNamespace).collect(Collectors.toUnmodifiableList());
@@ -27,14 +27,6 @@ public class WoodVariantRegistry extends VariantRegistryBase<WoodVariant> {
         return INSTANCE.variants.getOrDefault(name, OAK);
     }
 
-    @Nullable
-    public static WoodVariant getVariantFromVanillaWoodType(BoatEntity.Type type) {
-        for (WoodVariant woodVariant : INSTANCE.variants.values()) {
-            if (woodVariant.getVanillaWoodType() == type)
-                return woodVariant;
-        }
-        return null;
-    }
     /**
      * Simplified Wood/Block detection based on MoonlightLib<a href="https://github.com/MehVahdJukaar/Moonlight/blob/multi-loader/common/src/main/java/net/mehvahdjukaar/moonlight/api/set/BlockTypeRegistry.java#L18">...</a>
      */
@@ -43,7 +35,7 @@ public class WoodVariantRegistry extends VariantRegistryBase<WoodVariant> {
         String path = blockId.getPath();
         if (blockId.getNamespace().equals("tfc")) {
             if (path.contains("wood/planks/")) {
-                Optional<Block> log = Registries.BLOCK.getOrEmpty(
+                Optional<Block> log = Registries.BLOCK.getOptionalValue(
                         Identifier.of(blockId.getNamespace(), path.replace("planks", "log")));
                 if (log.isPresent()) {
                     Identifier id = Identifier.of(blockId.getNamespace(), path.replace("wood/planks/", ""));

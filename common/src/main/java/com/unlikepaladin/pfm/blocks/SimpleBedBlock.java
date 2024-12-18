@@ -15,6 +15,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.text.Text;
 import net.minecraft.util.*;
@@ -22,14 +23,13 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
-import net.minecraft.world.BlockView;
-import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
-import net.minecraft.world.WorldEvents;
+import net.minecraft.world.*;
 import net.minecraft.world.event.GameEvent;
 import net.minecraft.world.explosion.Explosion;
+import net.minecraft.world.tick.ScheduledTickView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -110,7 +110,7 @@ public class SimpleBedBlock extends BedBlock implements DyeableFurnitureBlock, P
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+    protected BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
         if (direction == getDirectionTowardsOtherPart(state.get(PART), state.get(FACING))) {
             if (neighborState.getBlock() instanceof SimpleBedBlock && neighborState.get(PART) != state.get(PART)) {
                 return state.with(OCCUPIED, neighborState.get(OCCUPIED));
@@ -130,8 +130,8 @@ public class SimpleBedBlock extends BedBlock implements DyeableFurnitureBlock, P
             world.syncWorldEvent(player, WorldEvents.BLOCK_BROKEN, blockPos, Block.getRawIdFromState(blockState));
         }
         this.spawnBreakParticles(world, player, pos, state);
-        if (state.isIn(BlockTags.GUARDED_BY_PIGLINS)) {
-            PiglinBrain.onGuardedBlockInteracted(player, false);
+        if (world instanceof ServerWorld serverWorld && state.isIn(BlockTags.GUARDED_BY_PIGLINS)) {
+            PiglinBrain.onGuardedBlockInteracted(serverWorld, player, false);
         }
         world.emitGameEvent(player, GameEvent.BLOCK_DESTROY, pos);
         return super.onBreak(world, pos, state, player);

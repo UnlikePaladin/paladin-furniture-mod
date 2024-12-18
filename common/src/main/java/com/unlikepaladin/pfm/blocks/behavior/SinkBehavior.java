@@ -18,9 +18,10 @@ import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.stat.Stats;
-import net.minecraft.util.ItemActionResult;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraft.world.event.GameEvent;
@@ -34,41 +35,41 @@ public interface SinkBehavior extends CauldronBehavior {
     CauldronBehaviorMap WATER_SINK_BEHAVIOR = CauldronBehavior.createMap("sink");
     CauldronBehavior CLEAN_SHULKER_BOX = (state, world, pos, player, hand, stack) -> {
         if (state.get(KitchenSinkBlock.LEVEL_4) == 0) {
-            return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
         }
         Block block = Block.getBlockFromItem(stack.getItem());
         if (!(block instanceof ShulkerBoxBlock)) {
-            return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
         }
         if (!world.isClient) {
             player.setStackInHand(hand, stack.copyComponentsToNewStack(Blocks.SHULKER_BOX, 1));
             player.incrementStat(Stats.CLEAN_SHULKER_BOX);
             KitchenSinkBlock.decrementFluidLevel(state, world, pos);
         }
-        return ItemActionResult.success(world.isClient);
+        return ActionResult.SUCCESS;
     };
 
     CauldronBehavior CLEAN_DYEABLE_ITEM = (state, world, pos, player, hand, stack) -> {
        if (state.get(KitchenSinkBlock.LEVEL_4) == 0) {
-           return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+           return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
        }
         if (!stack.isIn(ItemTags.DYEABLE)) {
-            return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
         }
         if (!stack.contains(DataComponentTypes.DYED_COLOR)) {
-            return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
         }
         if (!world.isClient) {
             stack.remove(DataComponentTypes.DYED_COLOR);
             player.incrementStat(Stats.CLEAN_ARMOR);
             KitchenSinkBlock.decrementFluidLevel(state, world, pos);
         }
-        return ItemActionResult.success(world.isClient);
+        return ActionResult.SUCCESS;
 };
     CauldronBehavior CLEAN_BANNER = (state, world, pos, player, hand, stack) -> {
         BannerPatternsComponent bannerPatternsComponent = stack.getOrDefault(DataComponentTypes.BANNER_PATTERNS, BannerPatternsComponent.DEFAULT);
         if (bannerPatternsComponent.layers().isEmpty() || state.get(KitchenSinkBlock.LEVEL_4) == 0) {
-            return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
         }
         if (!world.isClient) {
             ItemStack itemStack = stack.copyWithCount(1);
@@ -86,10 +87,10 @@ public interface SinkBehavior extends CauldronBehavior {
             player.incrementStat(Stats.CLEAN_BANNER);
             KitchenSinkBlock.decrementFluidLevel(state, world, pos);
         }
-        return ItemActionResult.success(world.isClient);
+        return ActionResult.SUCCESS;
     };
 
-    static ItemActionResult fillCauldron(World world, BlockPos pos, PlayerEntity player, Hand hand, ItemStack stack, BlockState state, SoundEvent soundEvent) {
+    static ActionResult fillCauldron(World world, BlockPos pos, PlayerEntity player, Hand hand, ItemStack stack, BlockState state, SoundEvent soundEvent) {
         if (!world.isClient) {
             Item item = stack.getItem();
             player.setStackInHand(hand, ItemUsage.exchangeStack(stack, player, new ItemStack(Items.BUCKET)));
@@ -99,12 +100,12 @@ public interface SinkBehavior extends CauldronBehavior {
             world.playSound(null, pos, soundEvent, SoundCategory.BLOCKS, 1.0f, 1.0f);
             world.emitGameEvent(null, GameEvent.FLUID_PLACE, pos);
         }
-        return ItemActionResult.success(world.isClient);
+        return ActionResult.SUCCESS;
     }
 
-    static ItemActionResult emptyCauldron(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, ItemStack stack, ItemStack output, Predicate<BlockState> predicate, SoundEvent soundEvent) {
+    static ActionResult emptyCauldron(BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, ItemStack stack, ItemStack output, Predicate<BlockState> predicate, SoundEvent soundEvent) {
         if (!predicate.test(state)) {
-            return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
         }
         if (!world.isClient) {
             Item item = stack.getItem();
@@ -115,7 +116,7 @@ public interface SinkBehavior extends CauldronBehavior {
             world.playSound(null, pos, soundEvent, SoundCategory.BLOCKS, 1.0f, 1.0f);
             world.emitGameEvent(null, GameEvent.FLUID_PICKUP, pos);
         }
-        return ItemActionResult.success(world.isClient);
+        return ActionResult.SUCCESS;
     }
 
     static void registerBucketBehavior(Map<Item, CauldronBehavior> behavior) {
@@ -125,7 +126,7 @@ public interface SinkBehavior extends CauldronBehavior {
         WATER_SINK_BEHAVIOR.map().put(Items.POTION, (state, world, pos, player, hand, stack) -> {
             PotionContentsComponent potionContentsComponent = stack.get(DataComponentTypes.POTION_CONTENTS);
             if (potionContentsComponent != null && !potionContentsComponent.matches(Potions.WATER)) {
-                return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+                return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
             }
             if (!world.isClient) {
                 Item item = stack.getItem();
@@ -136,7 +137,7 @@ public interface SinkBehavior extends CauldronBehavior {
                 world.playSound(null, pos, SoundEvents.ITEM_BOTTLE_EMPTY, SoundCategory.BLOCKS, 1.0f, 1.0f);
                 world.emitGameEvent(null, GameEvent.FLUID_PLACE, pos);
             }
-            return ItemActionResult.success(world.isClient);
+            return ActionResult.SUCCESS;
         });
 
 
@@ -146,7 +147,7 @@ public interface SinkBehavior extends CauldronBehavior {
         WATER_SINK_BEHAVIOR.map().put(Items.GLASS_BOTTLE, (state, world, pos, player, hand, stack) -> {
             if (!world.isClient) {
                 if (state.get(KitchenSinkBlock.LEVEL_4) == 0) {
-                    return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+                    return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
                 }
                 Item item = stack.getItem();
                 player.setStackInHand(hand, ItemUsage.exchangeStack(stack, player, PotionContentsComponent.createStack(Items.POTION, Potions.WATER)));
@@ -156,12 +157,12 @@ public interface SinkBehavior extends CauldronBehavior {
                 world.playSound(null, pos, SoundEvents.ITEM_BOTTLE_FILL, SoundCategory.BLOCKS, 1.0f, 1.0f);
                 world.emitGameEvent(null, GameEvent.FLUID_PICKUP, pos);
             }
-            return ItemActionResult.success(world.isClient);
+            return ActionResult.SUCCESS;
         });
         WATER_SINK_BEHAVIOR.map().put(Items.POTION, (state, world, pos, player, hand, stack) -> {
             PotionContentsComponent potionContentsComponent = stack.get(DataComponentTypes.POTION_CONTENTS);
             if (state.get(KitchenSinkBlock.LEVEL_4) == 3 || potionContentsComponent != null && !potionContentsComponent.matches(Potions.WATER)) {
-                return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+                return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
             }
             if (!world.isClient) {
                 player.setStackInHand(hand, ItemUsage.exchangeStack(stack, player, new ItemStack(Items.GLASS_BOTTLE)));
@@ -171,7 +172,7 @@ public interface SinkBehavior extends CauldronBehavior {
                 world.playSound(null, pos, SoundEvents.ITEM_BOTTLE_EMPTY, SoundCategory.BLOCKS, 1.0f, 1.0f);
                 world.emitGameEvent(null, GameEvent.FLUID_PLACE, pos);
             }
-            return ItemActionResult.success(world.isClient);
+            return ActionResult.SUCCESS;
         });
         WATER_SINK_BEHAVIOR.map().put(Items.LEATHER_BOOTS, CLEAN_DYEABLE_ITEM);
         WATER_SINK_BEHAVIOR.map().put(Items.LEATHER_LEGGINGS, CLEAN_DYEABLE_ITEM);

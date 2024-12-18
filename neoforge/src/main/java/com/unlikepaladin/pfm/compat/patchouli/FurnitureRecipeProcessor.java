@@ -14,7 +14,16 @@ import vazkii.patchouli.api.IVariable;
 import vazkii.patchouli.api.IVariableProvider;
 
 public class FurnitureRecipeProcessor implements IComponentProcessor {
-    private Recipe<?> recipe;
+    @Override
+    public void setup(World level, IVariableProvider variables) {
+
+    }
+
+    @Override
+    public IVariable process(World level, String key) {
+        return null;
+    }
+    /*private Recipe<?> recipe;
     @Override
     public void setup(World level, IVariableProvider variables) {
         String recipeId = variables.get("recipe", level.getRegistryManager()).asString();
@@ -55,5 +64,5 @@ public class FurnitureRecipeProcessor implements IComponentProcessor {
     @Override
     public void refresh(Screen parent, int left, int top) {
         IComponentProcessor.super.refresh(parent, left, top);
-    }
+    }*/
 }

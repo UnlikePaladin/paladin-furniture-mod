@@ -1,30 +1,33 @@
 package com.unlikepaladin.pfm.menus;
 
 import com.google.common.collect.Lists;
+import com.unlikepaladin.pfm.mixin.ServerRecipeManagerAccessor;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
 import com.unlikepaladin.pfm.registry.ScreenHandlerIDs;
-import net.minecraft.block.Blocks;
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeEntry;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.world.World;
-import java.util.List;
+
+import java.util.*;
 
 public class WorkbenchScreenHandler extends ScreenHandler {
     private final ScreenHandlerContext context;
     private final List<FurnitureRecipe> availableRecipes = Lists.newArrayList();
-    private static final List<FurnitureRecipe> allRecipes = Lists.newArrayList();
+    private static ArrayList<FurnitureRecipe> allRecipes = Lists.newArrayList();
     private final List<FurnitureRecipe> sortedRecipes = Lists.newArrayList();
     private final List<FurnitureRecipe> searchableRecipes = Lists.newArrayList();
 
@@ -81,10 +84,22 @@ public class WorkbenchScreenHandler extends ScreenHandler {
             this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 156));
         }
         this.addProperty(this.selectedRecipe);
-        if (allRecipes.isEmpty())
-            allRecipes.addAll(world.getRecipeManager().listAllOfType(RecipeTypes.FURNITURE_RECIPE).stream().map(RecipeEntry::value).sorted().toList());
+        if (world instanceof ServerWorld) {
+            if (allRecipes.isEmpty())
+                allRecipes.addAll(((ServerRecipeManagerAccessor)((ServerWorld)world).getRecipeManager()).getPreparedRecipes().getAll(RecipeTypes.FURNITURE_RECIPE).stream().map(RecipeEntry::value).filter(furnitureRecipe -> furnitureRecipe.enabled(world)).sorted().toList());
+            sendSyncRecipesPayload(playerInventory.player, world, allRecipes);
+        }
         this.updateInput();
         selectedRecipe.set(-1);
+    }
+
+    @ExpectPlatform
+    public static void sendSyncRecipesPayload(PlayerEntity player, World world, ArrayList<FurnitureRecipe> recipes) {
+        throw new AssertionError();
+    }
+
+    public void setAllRecipes(List<FurnitureRecipe> recipes) {
+        allRecipes = new ArrayList<>(recipes);
     }
 
     boolean craft() {
@@ -92,21 +107,45 @@ public class WorkbenchScreenHandler extends ScreenHandler {
             FurnitureRecipe furnitureRecipe = this.sortedRecipes.get(this.selectedRecipe.get());
             FurnitureRecipe.FurnitureRecipeInput furnitureRecipeInput = new FurnitureRecipe.FurnitureRecipeInput(playerInventory);
             if (furnitureRecipe.matches(furnitureRecipeInput, playerInventory.player.getWorld())) {
-                List<Ingredient> ingredients = furnitureRecipe.getIngredients();
-                for (Ingredient ingredient : ingredients) {
-                    for (ItemStack stack : ingredient.getMatchingStacks()) {
-                        if (FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, stack) != -1) {
-                            int indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, stack);
-                            if (playerInventory.getStack(indexOfStack).getCount() >= stack.getCount()) {
-                                ItemStack stack1 = playerInventory.getStack(indexOfStack);
-                                stack1.decrement(stack.getCount());
-                                playerInventory.setStack(indexOfStack, stack1);
-                                playerInventory.markDirty();
-                                break;
+                Map<Item, Integer> ingredientCounts = furnitureRecipe.getItemCounts();
+
+                for (Map.Entry<Item, Integer> entry : ingredientCounts.entrySet()) {
+                    Item item = entry.getKey();
+                    int count = entry.getValue();
+
+                    int indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, item);
+                    if (indexOfStack != -1) {
+                        if (playerInventory.getStack(indexOfStack).getCount() >= count) {
+                            ItemStack stack1 = playerInventory.getStack(indexOfStack);
+                            stack1.decrement(count);
+                            playerInventory.setStack(indexOfStack, stack1);
+                            playerInventory.markDirty();
+                        } else {
+                            int remainingCount = count - playerInventory.getStack(indexOfStack).getCount();
+                            playerInventory.setStack(indexOfStack, ItemStack.EMPTY);
+
+                            while (remainingCount > 0 && indexOfStack != -1) {
+                                indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, item);
+                                if (indexOfStack != -1) {
+                                    ItemStack stack1 = playerInventory.getStack(indexOfStack);
+                                    if (stack1.getCount() >= remainingCount) {
+                                        int stackSize = stack1.getCount();
+                                        stack1.decrement(remainingCount);
+                                        remainingCount = Math.max(remainingCount-stackSize, 0);
+
+                                        playerInventory.setStack(indexOfStack, stack1);
+                                    } else {
+                                        int stackSize = stack1.getCount();
+                                        remainingCount = Math.max(remainingCount-stackSize, 0);
+                                        playerInventory.setStack(indexOfStack, ItemStack.EMPTY);
+                                    }
+                                }
                             }
+                            playerInventory.markDirty();
                         }
                     }
                 }
+
                 return true;
             }
         }

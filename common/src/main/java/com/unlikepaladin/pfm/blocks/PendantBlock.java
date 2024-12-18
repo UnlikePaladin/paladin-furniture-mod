@@ -20,6 +20,8 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
+import net.minecraft.world.block.WireOrientation;
+import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -68,7 +70,7 @@ public class PendantBlock extends PowerableBlock implements DynamicRenderLayerIn
         return false;
     }
 
-    public static BlockState canConnect(BlockState state, WorldAccess world, BlockPos pos) {
+    public static BlockState canConnect(BlockState state, WorldView world, BlockPos pos) {
         boolean up = world.getBlockState(pos.up()).getBlock() instanceof PendantBlock;
         boolean down = world.getBlockState(pos.down()).getBlock() instanceof PendantBlock;
         if (up) {
@@ -80,23 +82,16 @@ public class PendantBlock extends PowerableBlock implements DynamicRenderLayerIn
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+    protected BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
         if (!state.canPlaceAt(world, pos)) {
             return Blocks.AIR.getDefaultState();
         }
-        return direction.getAxis().isVertical() ? canConnect(state, world, pos) : super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+        return direction.getAxis().isVertical() ? canConnect(state, world, pos) : super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
     public FluidState getFluidState(BlockState state) {
         return super.getFluidState(state);
-    }
-
-    @Override
-    public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
-        if (!state.isOf(state.getBlock())) {
-            oldState.neighborUpdate(world, pos, Blocks.AIR, pos, false);
-        }
     }
 
     private static final VoxelShape single = VoxelShapes.union(createCuboidShape(4, 0, 4,12, 7, 12),createCuboidShape(5, 5, 5,11, 9, 11),createCuboidShape(7.5, 9, 7.5,8.5, 15.5, 8.5),createCuboidShape(6.5, 15.5, 6.5,9.5, 16, 9.5));
@@ -124,8 +119,9 @@ public class PendantBlock extends PowerableBlock implements DynamicRenderLayerIn
         BlockState state = this.getDefaultState().with(LIT, powered);
         return canConnect(state, ctx.getWorld(), ctx.getBlockPos());
     }
+
     @Override
-    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos fromPos, boolean notify) {
+    protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation wireOrientation, boolean notify) {
         if (world.isClient) {
             return;
         }
@@ -142,6 +138,7 @@ public class PendantBlock extends PowerableBlock implements DynamicRenderLayerIn
             }
         }
     }
+
     @Override
     public boolean canPlaceAt(BlockState state, WorldView world, BlockPos pos) {
         Direction direction = Direction.UP;

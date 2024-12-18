@@ -79,7 +79,7 @@ public class ForgeBedModel extends PFMForgeBakedModel implements BedInterface {
 
     @Override
     public List<BakedQuad> getQuads(ItemStack stack, @Nullable BlockState state, @Nullable Direction face, Random random) {
-        int classicOffset = stack.getTranslationKey().contains("classic") ? 12 : 0;
+        int classicOffset = stack.getItem().getTranslationKey().contains("classic") ? 12 : 0;
         List<Sprite> spriteList = getSpriteList(stack);
         return getQuadsWithTexture((getTemplateBakedModels().get((classicOffset+11))).getQuads(state, face, random), ModelHelper.getOakBedSprites(), spriteList);
     }

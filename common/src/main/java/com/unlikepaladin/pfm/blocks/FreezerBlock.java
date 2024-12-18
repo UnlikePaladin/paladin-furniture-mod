@@ -19,6 +19,7 @@ import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.registry.Registries;
 import net.minecraft.screen.NamedScreenHandlerFactory;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.Properties;
@@ -30,10 +31,12 @@ import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.*;
 import net.minecraft.world.dimension.DimensionOptions;
+import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -47,17 +50,13 @@ import static com.unlikepaladin.pfm.blocks.KitchenDrawerBlock.rotateShape;
 
 public class FreezerBlock extends HorizontalFacingBlockWithEntity {
     public static final BooleanProperty OPEN = Properties.OPEN;
-    private final Block baseBlock;
-    private final BlockState baseBlockState;
     private Supplier<FridgeBlock> fridge;
     private static final List<FurnitureBlock> FREEZERS = new ArrayList<>();
   //  public static final MapCodec<FreezerBlock> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(createSettingsCodec(), ).apply(instance, FreezerBlock::new));
     public FreezerBlock(Settings settings, Supplier<FridgeBlock> fridge) {
         super(settings);
         setDefaultState(this.getStateManager().getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(OPEN, false));
-        this.baseBlockState = this.getDefaultState();
         this.fridge = fridge;
-        this.baseBlock = baseBlockState.getBlock();
         FREEZERS.add(new FurnitureBlock(this, "freezer"));
     }
 
@@ -72,7 +71,7 @@ public class FreezerBlock extends HorizontalFacingBlockWithEntity {
                 if (screenHandlerFactory != null) {
                     player.incrementStat(Statistics.FREEZER_OPENED);
                     player.openHandledScreen(screenHandlerFactory);
-                    PiglinBrain.onGuardedBlockInteracted(player, true);
+                    PiglinBrain.onGuardedBlockInteracted((ServerWorld) world, player, true);
                 }
             }
             return ActionResult.SUCCESS;
@@ -106,9 +105,8 @@ public class FreezerBlock extends HorizontalFacingBlockWithEntity {
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
-        return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
-
+    protected BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
+        return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
     }
 
     protected void onBreakInCreative(World world, BlockPos pos, BlockState state, PlayerEntity player) {

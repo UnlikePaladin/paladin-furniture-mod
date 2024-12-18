@@ -23,61 +23,66 @@ package com.unlikepaladin.pfm.compat.rei;
  * SOFTWARE.
  */
 
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
-import me.shedaniel.rei.api.common.display.SimpleGridMenuDisplay;
-import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
+import me.shedaniel.rei.api.common.display.DisplaySerializer;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
-import me.shedaniel.rei.api.common.entry.EntryStack;
-import me.shedaniel.rei.api.common.entry.InputIngredient;
-import me.shedaniel.rei.api.common.entry.type.VanillaEntryTypes;
-import me.shedaniel.rei.api.common.registry.RecipeManagerContext;
-import me.shedaniel.rei.api.common.util.CollectionUtils;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
+import net.minecraft.network.codec.PacketCodec;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeEntry;
-import net.minecraft.screen.ScreenHandler;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class FurnitureDisplay implements Display {
-    protected RecipeEntry<FurnitureRecipe> recipe;
     public static final CategoryIdentifier<FurnitureDisplay> IDENTIFIER = CategoryIdentifier.of(Identifier.of(PaladinFurnitureMod.MOD_ID, "furniture"));
     public List<EntryIngredient> input;
     public List<EntryIngredient> output;
+    public Optional<Identifier> location;
     public FurnitureDisplay(RecipeEntry<FurnitureRecipe> recipe) {
-        this.recipe = recipe;
-        output = Collections.singletonList(EntryIngredients.of(recipe.value().getResult(MinecraftClient.getInstance().world.getRegistryManager())));
-    }
-
-    @Override
-    public List<EntryIngredient> getInputEntries() {
+        this.output = Collections.singletonList(EntryIngredients.of(recipe.value().result()));
+        this.location = Optional.of(recipe.id().getValue());
         List<Ingredient> ingredients = recipe.value().getIngredients();
         HashMap<Item, Integer> containedItems = new HashMap<>();
         for (Ingredient ingredient : ingredients) {
-            for (ItemStack stack : ingredient.getMatchingStacks()) {
-                if (!containedItems.containsKey(stack.getItem())) {
-                    containedItems.put(stack.getItem(), 1);
+            for (RegistryEntry<Item> item : ingredient.getMatchingItems()) {
+                if (!containedItems.containsKey(item.value())) {
+                    containedItems.put(item.value(), 1);
                 } else {
-                    containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + 1);
+                    containedItems.put(item.value(), containedItems.get(item.value()) + 1);
                 }
             }
         }
         List<Ingredient> finalList = new ArrayList<>();
         for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            finalList.add(Ingredient.ofStacks(new ItemStack(entry.getKey(), entry.getValue())));
+            for (int i = 0; i < entry.getValue(); i++) {
+                finalList.add(Ingredient.ofItem(entry.getKey()));
+            }
         }
-        finalList.sort(Comparator.comparing(o -> o.getMatchingStacks()[0].getItem().toString()));
-        return EntryIngredients.ofIngredients(finalList);
+        finalList.sort(Comparator.comparing(o -> o.getMatchingItems().getFirst().toString()));
+        this.input = EntryIngredients.ofIngredients(finalList);
+    }
+
+
+    public FurnitureDisplay(List<EntryIngredient> input, List<EntryIngredient> output, Optional<Identifier> location) {
+        this.input = input;
+        this.output = output;
+        this.location = location;
+    }
+
+
+    @Override
+    public List<EntryIngredient> getInputEntries() {
+        return input;
     }
 
     @Override
@@ -92,6 +97,27 @@ public class FurnitureDisplay implements Display {
 
     @Override
     public Optional<Identifier> getDisplayLocation() {
-        return Optional.of(recipe.id());
+        return location;
     }
+
+    @Override
+    public @Nullable DisplaySerializer<? extends Display> getSerializer() {
+        return SERIALIZER;
+    }
+
+    public static final DisplaySerializer<FurnitureDisplay> SERIALIZER = DisplaySerializer.of(
+            RecordCodecBuilder.mapCodec(instance -> instance.group(
+                    EntryIngredient.codec().listOf().fieldOf("inputs").forGetter(FurnitureDisplay::getInputEntries),
+                    EntryIngredient.codec().listOf().fieldOf("outputs").forGetter(FurnitureDisplay::getOutputEntries),
+                    Identifier.CODEC.optionalFieldOf("location").forGetter(FurnitureDisplay::getDisplayLocation)
+            ).apply(instance, FurnitureDisplay::new)),
+            PacketCodec.tuple(
+                    EntryIngredient.streamCodec().collect(PacketCodecs.toList()),
+                    FurnitureDisplay::getInputEntries,
+                    EntryIngredient.streamCodec().collect(PacketCodecs.toList()),
+                    FurnitureDisplay::getOutputEntries,
+                    PacketCodecs.optional(Identifier.PACKET_CODEC),
+                    FurnitureDisplay::getDisplayLocation,
+                    FurnitureDisplay::new
+            ));
 }

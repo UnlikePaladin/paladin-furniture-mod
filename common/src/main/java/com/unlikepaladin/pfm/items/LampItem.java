@@ -23,7 +23,7 @@ public class LampItem extends BlockItem {
     }
 
     @Override
-    public String getTranslationKey(ItemStack stack) {
+    public Text getName(ItemStack stack) {
         DyeColor color = DyeColor.WHITE;
         WoodVariant variant = WoodVariantRegistry.OAK;
 
@@ -33,7 +33,7 @@ public class LampItem extends BlockItem {
         if (stack.contains(PFMComponents.VARIANT_COMPONENT)) {
             variant = WoodVariantRegistry.getVariant(stack.get(PFMComponents.VARIANT_COMPONENT));
         }
-        return String.format("block.pfm.basic_%s_%s_lamp", color.asString(), variant.asString());
+        return Text.translatable(String.format("block.pfm.basic_%s_%s_lamp", color.asString(), variant.asString()));
     }
 
     public void appendStacks(ItemGroup group, DefaultedList<ItemStack> stacks) {

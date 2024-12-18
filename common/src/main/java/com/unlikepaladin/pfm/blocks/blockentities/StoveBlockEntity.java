@@ -10,6 +10,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityType;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.SimpleInventory;
@@ -23,6 +24,7 @@ import net.minecraft.recipe.RecipeType;
 import net.minecraft.recipe.input.SingleStackRecipeInput;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
@@ -36,6 +38,8 @@ import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3i;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.World;
+import net.minecraft.world.event.GameEvent;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -113,7 +117,7 @@ public class StoveBlockEntity extends AbstractFurnaceBlockEntity {
         if (this.itemsBeingCooked.stream().noneMatch(ItemStack::isEmpty)) {
             return Optional.empty();
         }
-        return this.world.getRecipeManager().getFirstMatch(RecipeType.CAMPFIRE_COOKING, new SingleStackRecipeInput(item), this.world);
+        return ((ServerWorld)this.world).getRecipeManager().getFirstMatch(RecipeType.CAMPFIRE_COOKING, new SingleStackRecipeInput(item), this.world);
     }
 
     @Override
@@ -152,7 +156,7 @@ public class StoveBlockEntity extends AbstractFurnaceBlockEntity {
             if (itemStack.isEmpty()) continue;
             NbtCompound nbtCompound = new NbtCompound();
             nbtCompound.putByte("Slot", (byte)i);
-            nbtList.add(itemStack.encode(registryLookup, nbtCompound));
+            nbtList.add(itemStack.toNbt(registryLookup, nbtCompound));
         }
         if (!nbtList.isEmpty() || setIfEmpty) {
             nbt.put("CookTopItems", nbtList);
@@ -188,7 +192,8 @@ public class StoveBlockEntity extends AbstractFurnaceBlockEntity {
         this.getWorld().updateListeners(this.getPos(), this.getCachedState(), this.getCachedState(), Block.NOTIFY_ALL);
     }
 
-    public static void litServerTick(World world, BlockPos pos, BlockState state, BlockEntity blockEntity) {
+    public static void litServerTick(World worldd, BlockPos pos, BlockState state, BlockEntity blockEntity) {
+        ServerWorld world = (ServerWorld) worldd;
         if (blockEntity instanceof StoveBlockEntity) {
             StoveBlockEntity stoveBlockEntity = (StoveBlockEntity) blockEntity;
             boolean bl = false;
@@ -219,7 +224,7 @@ public class StoveBlockEntity extends AbstractFurnaceBlockEntity {
         }
     }
 
-    public static void unlitServerTick(World world, BlockPos pos, BlockState state, StoveBlockEntity stoveBlockEntity) {
+    public static void unlitServerTick(ServerWorld world, BlockPos pos, BlockState state, StoveBlockEntity stoveBlockEntity) {
         boolean bl = false;
         for (int i = 0; i < stoveBlockEntity.itemsBeingCooked.size(); ++i) {
             if (stoveBlockEntity.cookingTimes[i] <= 0) continue;
@@ -240,7 +245,7 @@ public class StoveBlockEntity extends AbstractFurnaceBlockEntity {
             i = state.get(StoveBlock.FACING).rotateYClockwise().getHorizontal();
             for (int j = 0; j < stoveBlockEntity.itemsBeingCooked.size(); ++j) {
                 ItemStack stack = stoveBlockEntity.itemsBeingCooked.get(j);
-                if (stack.isEmpty() || !(random.nextFloat() < 0.2f) || world.getRecipeManager().getFirstMatch(RecipeType.CAMPFIRE_COOKING, new SingleStackRecipeInput(stack), world).isEmpty()) continue;
+                if (stack.isEmpty() || !(random.nextFloat() < 0.2f)) continue;
                 Direction direction = Direction.fromHorizontal(Math.floorMod(j + i, 4));
                 float f = 0.2125f;
                 double x = pos.getX() + 0.5 - ((direction.getOffsetX() * f) + (direction.rotateYClockwise().getOffsetX() * f));
@@ -254,16 +259,25 @@ public class StoveBlockEntity extends AbstractFurnaceBlockEntity {
         }
     }
 
-    public boolean addItem(ItemStack item, int integer) {
-        for (int i = 0; i < this.itemsBeingCooked.size(); ++i) {
+    public boolean addItem(ServerWorld world, @Nullable LivingEntity entity, ItemStack stack) {
+        for (int i = 0; i < this.itemsBeingCooked.size(); i++) {
             ItemStack itemStack = this.itemsBeingCooked.get(i);
-            if (!itemStack.isEmpty()) continue;
-            this.cookingTotalTimes[i] = integer;
-            this.cookingTimes[i] = 0;
-            this.itemsBeingCooked.set(i, item.split(1));
-            this.updateListeners();
-            return true;
+            if (itemStack.isEmpty()) {
+                Optional<RecipeEntry<CampfireCookingRecipe>> optional = world.getRecipeManager()
+                        .getFirstMatch(RecipeType.CAMPFIRE_COOKING, new SingleStackRecipeInput(stack), world);
+                if (optional.isEmpty()) {
+                    return false;
+                }
+
+                this.cookingTotalTimes[i] = ((CampfireCookingRecipe)((RecipeEntry<?>)optional.get()).value()).getCookingTime();
+                this.cookingTimes[i] = 0;
+                this.itemsBeingCooked.set(i, stack.splitUnlessCreative(1, entity));
+                world.emitGameEvent(GameEvent.BLOCK_CHANGE, this.getPos(), GameEvent.Emitter.of(entity, this.getCachedState()));
+                this.updateListeners();
+                return true;
+            }
         }
+
         return false;
     }
 

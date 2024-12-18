@@ -2,21 +2,11 @@
   "type": "pfm:furniture",
   "group": "lighting",
   "ingredients": [
-      {
-        "item": "pfm:simple_light"
-      },
-      {
-        "item": "minecraft:light_gray_concrete"
-      },
-      {
-        "item": "minecraft:light_gray_concrete"
-      },
-      {
-        "item": "minecraft:white_concrete"
-      },
-      {
-        "item": "minecraft:white_concrete"
-      }
+    "pfm:simple_light",
+    "minecraft:light_gray_concrete",
+    "minecraft:light_gray_concrete",
+    "minecraft:white_concrete",
+    "minecraft:white_concrete"
     ], 
   "result": {
     "id": "pfm:glass_modern_pendant",

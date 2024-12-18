@@ -7,6 +7,7 @@ import com.unlikepaladin.pfm.compat.imm_ptl.fabric.shape.BlockPortalShape;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.property.Properties;
@@ -22,7 +23,7 @@ import qouteall.q_misc_util.Helper;
 import qouteall.q_misc_util.my_util.IntBox;
 
 import java.util.stream.Stream;
-
+/*
 public class PFMMirrorEntity extends Mirror {
     @Nullable
     public IntBox wallArea;
@@ -149,7 +150,7 @@ public class PFMMirrorEntity extends Mirror {
             return null;
         }
 
-        PFMMirrorEntity pfmMirrorEntity = PFMImmersivePortalsImpl.MIRROR.create(world);
+        PFMMirrorEntity pfmMirrorEntity = PFMImmersivePortalsImpl.MIRROR.create(world, SpawnReason.TRIGGERED);
         double distanceToCenter = -0.452;
 
         Box wallBox = getWallBox(world, shape.area.stream());
@@ -191,4 +192,4 @@ public class PFMMirrorEntity extends Mirror {
             return collisionShape.getBoundingBox().offset(Vec3d.of(blockPos));
         }).filter(b -> b != null).reduce(Box::union).orElse(null);
     }
-}
+}*/

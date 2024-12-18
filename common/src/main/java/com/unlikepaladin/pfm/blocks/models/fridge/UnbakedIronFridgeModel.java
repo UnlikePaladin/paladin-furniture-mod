@@ -44,16 +44,6 @@ public class UnbakedIronFridgeModel implements UnbakedModel {
     private static final Identifier PARENT = Identifier.of("block/block");
     private final SpriteIdentifier frameTex;
 
-    @Override
-    public Collection<Identifier> getModelDependencies() {
-        return List.of(PARENT);
-    }
-
-    @Override
-    public void setParents(Function<Identifier, UnbakedModel> modelLoader) {
-
-    }
-
     public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
         return List.of(frameTex);
     }
@@ -78,5 +68,11 @@ public class UnbakedIronFridgeModel implements UnbakedModel {
     @ExpectPlatform
     public static BakedModel getBakedModel(Sprite frame, ModelBakeSettings settings, Map<String,BakedModel> bakedModels, List<String> MODEL_PARTS) {
         throw new RuntimeException("Method wasn't replaced correctly");
+    }
+
+    @Override
+    public void resolve(Resolver resolver) {
+        for (Identifier c : ALL_MODEL_IDS)
+            resolver.resolve(c);
     }
 }

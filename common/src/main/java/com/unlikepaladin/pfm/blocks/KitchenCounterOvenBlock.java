@@ -92,11 +92,6 @@ public class KitchenCounterOvenBlock extends SmokerBlock implements DynamicRende
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
-        return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
-    }
-
-    @Override
     @Nullable
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(World world, BlockState state, BlockEntityType<T> type) {
         return validateTicker(world, type, BlockEntities.KITCHEN_COUNTER_OVEN_BLOCK_ENTITY);

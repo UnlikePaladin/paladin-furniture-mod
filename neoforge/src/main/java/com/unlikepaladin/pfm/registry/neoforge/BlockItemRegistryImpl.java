@@ -3,6 +3,7 @@ package com.unlikepaladin.pfm.registry.neoforge;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.blocks.AbstractSittableBlock;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
+import com.unlikepaladin.pfm.registry.dynamic.LateBlockRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.item.*;
 import net.minecraft.recipe.RecipeType;
@@ -35,14 +36,14 @@ public class BlockItemRegistryImpl {
 
     public static void registerBlockItemPlatformSpecific(String itemName, Block block, Pair<String, ItemGroup> group) {
         if (AbstractSittableBlock.isWoodBased(block.getDefaultState())) {
-            registerItemPlatformSpecific(itemName, () -> new BlockItem(block, new Item.Settings()) {
+            registerItemPlatformSpecific(itemName, () -> new BlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey().registryKey(LateBlockRegistry.getItemRegistryKey(itemName))) {
                 @Override
-                public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType) {
+                public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType, FuelRegistry fuelValues) {
                     return 300;
                 }
             }, group);
         }
-        registerItemPlatformSpecific(itemName, () -> new BlockItem(block, new Item.Settings()), group);
+        registerItemPlatformSpecific(itemName, () -> new BlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey().registryKey(LateBlockRegistry.getItemRegistryKey(itemName))), group);
     }
 
     public static boolean isModLoaded(String modId) {

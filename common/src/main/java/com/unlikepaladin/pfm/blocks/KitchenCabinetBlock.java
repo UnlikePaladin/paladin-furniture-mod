@@ -14,6 +14,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.State;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
@@ -305,17 +306,6 @@ public class KitchenCabinetBlock extends HorizontalFacingBlock implements BlockE
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
-        return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
-    }
-    @Override
-    public void onBlockAdded(BlockState state, World world, BlockPos pos, BlockState oldState, boolean notify) {
-        if (!state.isOf(state.getBlock())) {
-            oldState.neighborUpdate(world, pos, Blocks.AIR, pos, false);
-        }
-    }
-
-    @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         return this.getDefaultState().with(FACING, ctx.getHorizontalPlayerFacing());
     }
@@ -326,10 +316,10 @@ public class KitchenCabinetBlock extends HorizontalFacingBlock implements BlockE
             return ActionResult.SUCCESS;
         }
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockEntity instanceof GenericStorageBlockEntity9x3) {
+        if (world instanceof ServerWorld serverWorld && blockEntity instanceof GenericStorageBlockEntity9x3) {
             player.openHandledScreen((GenericStorageBlockEntity9x3)blockEntity);
             player.incrementStat(Statistics.CABINET_SEARCHED);
-            PiglinBrain.onGuardedBlockInteracted(player, true);
+            PiglinBrain.onGuardedBlockInteracted(serverWorld, player, true);
         }
         return ActionResult.CONSUME;
     }

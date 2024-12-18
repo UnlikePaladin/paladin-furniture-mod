@@ -12,3 +12,5 @@ accessible field net/minecraft/resource/featuretoggle/FeatureSet featuresMask J
 mutable field net/minecraft/resource/featuretoggle/FeatureFlag mask J
 accessible field net/minecraft/resource/featuretoggle/FeatureFlag mask J
 accessible class net/minecraft/data/server/tag/TagProvider$ProvidedTagBuilder
+accessible	method	net/minecraft/recipe/SingleStackRecipe	result ()Lnet/minecraft/item/ItemStack;
+accessible method net/minecraft/block/entity/BlockEntityType <init> (Lnet/minecraft/block/entity/BlockEntityType$BlockEntityFactory;Ljava/util/Set;)V

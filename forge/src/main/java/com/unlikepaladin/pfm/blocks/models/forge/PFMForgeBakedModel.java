@@ -150,7 +150,7 @@ public abstract class PFMForgeBakedModel extends AbstractBakedModel implements P
                     uv[vertexIndx][1] = sprite.getFrameV(frameV);
                     packUV(uv[vertexIndx], vertexData, vertexIndx);
                 }
-                BakedQuad transformedQuad = new BakedQuad(vertexData, quad.getColorIndex(), quad.getFace(), quad.getSprite(), quad.hasShade());
+                BakedQuad transformedQuad = new BakedQuad(vertexData, quad.getColorIndex(), quad.getFace(), quad.getSprite(), quad.hasShade(), quad.getLightEmission());
                 quadToTransformedQuad.put(quadKey, transformedQuad);
                 transformedQuads.add(transformedQuad);
             }

@@ -6,12 +6,8 @@
     "XXX"
 ],
    "key": {
-    "X": {
-      "tag": "minecraft:planks"
-    },
-    "Y": {
-      "item": "minecraft:iron_ingot"
-    }
+    "X": "#minecraft:planks",
+    "Y": "minecraft:iron_ingot"
   },
   "result": {
     "id": "pfm:working_table",

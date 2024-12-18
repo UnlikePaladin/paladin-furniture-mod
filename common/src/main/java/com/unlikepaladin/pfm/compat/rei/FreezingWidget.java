@@ -1,6 +1,5 @@
 package com.unlikepaladin.pfm.compat.rei;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import me.shedaniel.clothconfig2.api.animator.NumberAnimator;
 import me.shedaniel.clothconfig2.api.animator.ValueAnimator;
@@ -9,7 +8,7 @@ import me.shedaniel.rei.api.client.REIRuntime;
 import me.shedaniel.rei.api.client.gui.widgets.BurningFire;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.MathHelper;
 
@@ -57,11 +56,11 @@ public class FreezingWidget extends BurningFire {
         if (getAnimationDuration() > 0) {
             int height = 14 - MathHelper.ceil((System.currentTimeMillis() / (animationDuration / 14) % 14d));
             //drawTexture(matrices, getX(), getY(), 1, 74, 14, 14 - height);
-            context.drawTexture(background, getX(), getY() +2, 56, 36,14, 14);
-            context.drawTexture(background, getX(), getY() + 14 - height, 176, 12 - height, 14, height);
+            context.drawTexture(RenderLayer::getGuiTextured, background, getX(), getY() +2, 56, 36,14, 14, 256, 256);
+            context.drawTexture(RenderLayer::getGuiTextured, background, getX(), getY() + 14 - height, 176, 12 - height, 14, height, 256, 256);
 
         } else {
-            context.drawTexture(background, getX(), getY(), 1, 74, 14, 14);
+            context.drawTexture(RenderLayer::getGuiTextured, background, getX(), getY(), 1, 74, 14, 14, 256, 256);
         }
     }
 

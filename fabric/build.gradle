@@ -143,7 +143,7 @@ if (rootProject.lazy_dfu_enabled == "true"){
 }
 if (rootProject.jei_compatibility == "true") {
     dependencies {
-        modRuntimeOnly("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}")
+        modRuntimeOnly("mezz.jei:jei-1.21.1-fabric:${rootProject.jei_version}")
     }
 }
 
@@ -165,13 +165,13 @@ dependencies {
     modCompileOnly("maven.modrinth:iris:${rootProject.iris_version}")
 
     modCompileOnly("curse.maven:farmers-delight-fabric-993166:${rootProject.farmers_delight_version_fabric}")
-    modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}") {
+    modCompileOnlyApi("mezz.jei:jei-1.21.1-fabric:${rootProject.jei_version}") {
         exclude group: "mezz.jei"
     }
 
 
     modCompileOnly "curse.maven:balm-fabric-500525:${rootProject.balm_version_fabric}"
-    modCompileOnly "curse.maven:cooking-for-blockheads-fabric-634546:${rootProject.cookingforblockheads_version_fabric}"
+    modCompileOnly "curse.maven:cooking-for-blockheads-fabric-231484:${rootProject.cookingforblockheads_version_fabric}"
 
     modCompileOnly("com.github.iPortalTeam:ImmersivePortalsMod:${rootProject.immersive_portals_version_fabric}"){
         exclude(group: "net.fabricmc.fabric-api")

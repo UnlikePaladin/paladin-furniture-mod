@@ -17,6 +17,7 @@ import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.block.enums.BedPart;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.pathing.NavigationType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.fluid.Fluids;
@@ -32,19 +33,19 @@ import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
 import net.minecraft.util.function.BooleanBiFunction;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldAccess;
 import net.minecraft.world.WorldView;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -170,7 +171,7 @@ public class BasicBathtubBlock extends BedBlock {
     public float height;
 
     @Override
-    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         BlockPos sourcePos = pos.down().down();
         ItemStack itemStack = player.getStackInHand(hand);
         BathtubBehavior sinkBehavior = this.behaviorMap.get(itemStack.getItem());
@@ -180,7 +181,7 @@ public class BasicBathtubBlock extends BedBlock {
         if (state.get(LEVEL_8) > 0 && player.isSneaking() && player.getStackInHand(hand).isEmpty()) {
             world.playSound(null, pos, SoundEvents.ITEM_BUCKET_EMPTY, SoundCategory.BLOCKS, 1.0f, 1.0f);
             decrementFluidLevel(state, world, pos);
-            return ItemActionResult.SUCCESS;
+            return ActionResult.SUCCESS;
         }
         if (state.get(LEVEL_8) < 8) {
             BlockState sourceState = world.getBlockState(sourcePos);
@@ -200,7 +201,7 @@ public class BasicBathtubBlock extends BedBlock {
                     blockEntity.setFilling(true);
                 }
                 BathtubBehavior.fillTub(world, pos, player, hand, player.getStackInHand(hand), state, SoundEvents.BLOCK_WATER_AMBIENT, false);
-                return ItemActionResult.SUCCESS;
+                return ActionResult.SUCCESS;
             }
         }
         return super.onUseWithItem(stack, state, world, pos, player, hand, hit);
@@ -234,7 +235,7 @@ public class BasicBathtubBlock extends BedBlock {
             if (state.get(PART) == BedPart.FOOT) {
                 yaw = state.get(FACING).asRotation();
             }
-            ChairEntity entity = Entities.CHAIR.create(world);
+            ChairEntity entity = Entities.CHAIR.create(world, SpawnReason.EVENT);
             entity.refreshPositionAndAngles(px, py, pz, yaw, 0);
             entity.setNoGravity(true);
             entity.setSilent(true);
@@ -253,11 +254,11 @@ public class BasicBathtubBlock extends BedBlock {
             }
             return ActionResult.CONSUME;
         }
-        return ActionResult.PASS;
+        return ActionResult.SUCCESS;
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+    protected BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
         BedPart tubPart = state.get(PART);
         if (direction == BasicBathtubBlock.getDirectionTowardsOtherPart(tubPart, state.get(FACING))) {
             if (neighborState.isOf(this) && neighborState.get(PART) != tubPart) {
@@ -265,7 +266,7 @@ public class BasicBathtubBlock extends BedBlock {
             }
             return Blocks.AIR.getDefaultState();
         }
-        return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+        return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
     }
 
     private static Direction getDirectionTowardsOtherPart(BedPart part, Direction direction) {

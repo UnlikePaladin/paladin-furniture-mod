@@ -28,9 +28,10 @@ import java.util.List;
 
 public class ColorRegistry {
     public static void registerBlockColors(){
-        List<Block> sinks = new ArrayList<>();
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_TOILET, addToiletColor());
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_BATHTUB, addWaterColor());
+        registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_SINK, addWaterColor());
+
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_LAMP, (state, world, pos, tintIndex) -> {
             BlockEntity entity = world.getBlockEntity(pos);
             if (entity != null && tintIndex == 1) {

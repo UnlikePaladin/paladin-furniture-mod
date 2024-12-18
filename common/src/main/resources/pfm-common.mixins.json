@@ -9,7 +9,8 @@
     "PFMPlayerInventoryMixin",
     "PFMPointOfInterestTypeAccessor",
     "PFMPointOfInterestTypesAccessor",
-    "PFMTextureKeyFactory"
+    "PFMTextureKeyFactory",
+    "ServerRecipeManagerAccessor"
   ],
   "server": [
     "PFMMixinDedicatedServer"
@@ -19,8 +20,8 @@
     "PFMItemRendererMixin",
     "PFMLanguageManagerAccessor",
     "PFMMixinClientPacketListener",
-    "PFMRenderLayersMixin",
-    "PFMReloadableResourceManagerImplMixin"
+    "PFMReloadableResourceManagerImplMixin",
+    "PFMRenderLayersMixin"
   ],
   "injectors": {
     "defaultRequire": 1

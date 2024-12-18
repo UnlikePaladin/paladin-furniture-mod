@@ -9,6 +9,7 @@ import net.minecraft.block.*;
 import net.minecraft.block.enums.NoteBlockInstrument;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.pathing.NavigationType;
 import net.minecraft.entity.passive.IronGolemEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -24,9 +25,12 @@ import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
+import net.minecraft.world.tick.ScheduledTickView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -68,12 +72,12 @@ public abstract class AbstractSittableBlock extends HorizontalFacingBlock {
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+    protected BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
         if (state.contains(Properties.WATERLOGGED)) {
             if (state.get(Properties.WATERLOGGED))
-                world.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
+                tickView.scheduleFluidTick(pos, Fluids.WATER, Fluids.WATER.getTickRate(world));
         }
-        return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+        return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
     }
 
     public float height;
@@ -145,7 +149,7 @@ public abstract class AbstractSittableBlock extends HorizontalFacingBlock {
         }
         double py = pos.getY() + this.height;
         float yaw = state.get(FACING).getOpposite().asRotation();
-        ChairEntity chairEntity = Entities.CHAIR.create(world);
+        ChairEntity chairEntity = Entities.CHAIR.create(world, SpawnReason.TRIGGERED);
         chairEntity.refreshPositionAndAngles(px, py, pz, yaw, 0);
         chairEntity.setNoGravity(true);
         chairEntity.setSilent(true);

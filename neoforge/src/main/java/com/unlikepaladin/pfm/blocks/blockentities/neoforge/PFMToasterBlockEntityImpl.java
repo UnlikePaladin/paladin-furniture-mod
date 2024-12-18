@@ -19,7 +19,7 @@ public class PFMToasterBlockEntityImpl extends PFMToasterBlockEntity{
     }
 
     public static boolean isMetal(ItemStack stack) {
-        return stack.getTranslationKey().contains("iron");
+        return stack.getItem().getTranslationKey().contains("iron");
     }
 
     public static void sandwichableToast(PFMToasterBlockEntity pfmToasterBlockEntity) {

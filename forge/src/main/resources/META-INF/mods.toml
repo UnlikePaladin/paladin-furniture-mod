@@ -25,7 +25,7 @@ side = "BOTH"
 [[dependencies.pfm]]
 modId = "minecraft"
 mandatory = true
-versionRange = "[1.21,1.21.2)"
+versionRange = "[1.21.2,1.21.4)"
 ordering = "NONE"
 side = "BOTH"
 

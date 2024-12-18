@@ -36,6 +36,7 @@ import com.unlikepaladin.pfm.blocks.models.simpleStool.UnbakedSimpleStoolModel;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelResolver;
 import net.minecraft.client.render.model.UnbakedModel;
+import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,12 +45,16 @@ import java.util.List;
 
 public class PFMModelLoadingPlugin implements ModelLoadingPlugin {
     @Override
-    public void onInitializeModelLoader(Context pluginContext) {
+    public void initialize(Context pluginContext) {
         pluginContext.resolveModel().register(context -> loadModelResource(context.id()));
         pluginContext.addModels(provideExtraModels());
     }
 
-    public @Nullable UnbakedModel loadModelResource(Identifier resourceId) {
+    public @Nullable UnbakedModel loadModelResource(Identifier id) {
+        Identifier resourceId = id;
+        if (id.getPath().contains("item")) {
+            resourceId = id;
+        }
         if (ModelHelper.containsIdentifier(UnbakedMirrorModel.MIRROR_MODEL_IDS, resourceId)){
             return new UnbakedMirrorModel(UnbakedMirrorModel.DEFAULT_TEXTURES[2], ModelHelper.getVanillaConcreteColor(resourceId), UnbakedMirrorModel.DEFAULT_TEXTURES[1], new ArrayList<>(), ModelHelper.getColor(resourceId));
         } else if (UnbakedBedModel.BED_MODEL_IDS.contains(resourceId)){
@@ -239,4 +244,5 @@ public class PFMModelLoadingPlugin implements ModelLoadingPlugin {
         out.addAll(UnbakedBasicLampModel.ALL_MODEL_IDS);
         return out;
     }
+
 }

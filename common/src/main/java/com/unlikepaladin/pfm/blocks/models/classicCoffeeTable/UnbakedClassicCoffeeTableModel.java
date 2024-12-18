@@ -48,16 +48,6 @@ public class UnbakedClassicCoffeeTableModel implements UnbakedModel {
         }
     };
 
-    @Override
-    public Collection<Identifier> getModelDependencies() {
-        return List.of(PARENT);
-    }
-
-    @Override
-    public void setParents(Function<Identifier, UnbakedModel> modelLoader) {
-
-    }
-
     @Nullable
     @Override
     public BakedModel bake(Baker loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer) {
@@ -79,5 +69,11 @@ public class UnbakedClassicCoffeeTableModel implements UnbakedModel {
     @ExpectPlatform
     public static BakedModel getBakedModel(Identifier modelId, ModelBakeSettings settings, List<BakedModel> modelParts) {
         throw new RuntimeException("Method wasn't replaced correctly");
+    }
+
+    @Override
+    public void resolve(Resolver resolver) {
+        for (Identifier c : CLASSIC_MODEL_PARTS_BASE)
+            resolver.resolve(c);
     }
 }

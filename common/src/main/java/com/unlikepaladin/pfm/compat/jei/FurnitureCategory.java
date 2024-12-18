@@ -15,6 +15,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
@@ -62,30 +63,30 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
         List<Ingredient> ingredientsList = recipe.getIngredients();
         HashMap<Item, Integer> containedItems = new LinkedHashMap<>();
         for (Ingredient ingredient : ingredientsList) {
-            for (ItemStack stack : ingredient.getMatchingStacks()) {
-                if (!containedItems.containsKey(stack.getItem())) {
-                    containedItems.put(stack.getItem(), 1);
+            for (RegistryEntry<Item> itemRegistryEntry : ingredient.getMatchingItems()) {
+                if (!containedItems.containsKey(itemRegistryEntry.value())) {
+                    containedItems.put(itemRegistryEntry.value(), 1);
                 } else {
-                    containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + 1);
+                    containedItems.put(itemRegistryEntry.value(), containedItems.get(itemRegistryEntry.value()) + 1);
                 }
             }
         }
         List<Ingredient> finalList = new ArrayList<>();
         for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            finalList.add(Ingredient.ofStacks(new ItemStack(entry.getKey(), entry.getValue())));
+            finalList.add(Ingredient.ofItem(entry.getKey()));
         }
-        finalList.sort(Comparator.comparing(o -> o.getMatchingStacks()[0].getItem().toString()));
+        finalList.sort(Comparator.comparing(o -> o.getMatchingItems().get(0).toString()));
         List<List<ItemStack>> inputLists = new ArrayList<>();
         for (Ingredient input : finalList) {
-            ItemStack[] stacks = input.getMatchingStacks();
-            List<ItemStack> expandedInput = List.of(stacks);
-            inputLists.add(expandedInput);
+            List<RegistryEntry<Item>> stacks = input.getMatchingItems();
+          //  List<ItemStack> expandedInput = List.of(stacks);
+         //   inputLists.add(expandedInput);
         }
-        ItemStack resultItem = recipe.getResult(MinecraftClient.getInstance().world.getRegistryManager());
+       //ItemStack resultItem = recipe.getResult(MinecraftClient.getInstance().world.getRegistryManager());
 
         int width = getSize(inputLists.size());
         int height = width;
-        craftingGridHelper.createAndSetOutputs(builder, VanillaTypes.ITEM_STACK, List.of(resultItem));
+      //  craftingGridHelper.createAndSetOutputs(builder, VanillaTypes.ITEM_STACK, List.of(resultItem));
         craftingGridHelper.createAndSetInputs(builder, VanillaTypes.ITEM_STACK, inputLists, width, height);
     }
 

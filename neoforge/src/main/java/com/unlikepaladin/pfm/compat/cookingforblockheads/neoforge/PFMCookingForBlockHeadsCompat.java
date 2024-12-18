@@ -30,8 +30,8 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.ItemActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -76,10 +76,10 @@ public class PFMCookingForBlockHeadsCompat {
         }
     }
 
-    public static ItemActionResult onUseStove(BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    public static ActionResult onUseStove(BlockState state, World level, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         ItemStack heldItem = player.getStackInHand(hand);
         if (heldItem.getItem() == ModItems.heatingUnit) {
-            return ItemActionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+            return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
         } else if (hit.getSide() == Direction.UP && heldItem.isIn(ModItemTags.UTENSILS)) {
             Direction stateFacing = state.get(StoveBlock.FACING);
             double hx =  (hit.getPos().x - hit.getBlockPos().getX());
@@ -114,29 +114,29 @@ public class PFMCookingForBlockHeadsCompat {
                     tileOven.setToolItem(index, toolItem);
                 }
             }
-            return ItemActionResult.SUCCESS;
+            return ActionResult.SUCCESS;
         } else {
             StoveBlockEntityBalm oven = (StoveBlockEntityBalm)level.getBlockEntity(pos);
             if (hit.getSide() == state.get(Properties.HORIZONTAL_FACING) && oven != null) {
                 if (player.isSneaking()) {
-                    return ItemActionResult.SUCCESS;
+                    return ActionResult.SUCCESS;
                 }
 
                 if (!heldItem.isEmpty() && oven.getSmeltingResult(heldItem) != ItemStack.EMPTY) {
                     heldItem = ContainerUtils.insertItemStacked(oven.getInputContainer(), heldItem, false);
                     player.setStackInHand(hand, heldItem);
 
-                    return ItemActionResult.SUCCESS;
-                } else if (!heldItem.isEmpty() && StoveBlockEntityBalm.isItemFuel(heldItem)) {
+                    return ActionResult.SUCCESS;
+                } else if (!heldItem.isEmpty() && StoveBlockEntityBalm.isItemFuel(level, heldItem)) {
                     heldItem = ContainerUtils.insertItemStacked(oven.getFuelContainer(), heldItem, false);
                     player.setStackInHand(hand, heldItem);
-                    return ItemActionResult.SUCCESS;
+                    return ActionResult.SUCCESS;
                 }
             }
             if (!level.isClient) {
                 Balm.getNetworking().openGui(player, oven);
             }
-            return ItemActionResult.SUCCESS;
+            return ActionResult.SUCCESS;
         }
     }
 

@@ -2,7 +2,6 @@ package com.unlikepaladin.pfm.runtime.data;
 
 import com.google.common.collect.Sets;
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonWriter;
 import com.mojang.serialization.JsonOps;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
@@ -14,10 +13,8 @@ import com.unlikepaladin.pfm.data.materials.WoodVariant;
 import com.unlikepaladin.pfm.data.materials.WoodVariantRegistry;
 import com.unlikepaladin.pfm.items.PFMComponents;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
-import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
-import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementCriterion;
@@ -26,24 +23,18 @@ import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.advancement.criterion.InventoryChangedCriterion;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.data.DataProvider;
 import net.minecraft.data.DataWriter;
 import net.minecraft.data.server.recipe.CraftingRecipeJsonBuilder;
 import net.minecraft.data.server.recipe.RecipeExporter;
-import net.minecraft.data.server.recipe.RecipeProvider;
 import net.minecraft.data.server.recipe.ShapedRecipeJsonBuilder;
 import net.minecraft.item.*;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.predicate.NumberRange;
 import net.minecraft.predicate.item.ItemPredicate;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.registry.BuiltinRegistries;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.registry.*;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.*;
 import org.jetbrains.annotations.Nullable;
@@ -66,12 +57,11 @@ public class PFMRecipeProvider extends PFMProvider {
 
     public CompletableFuture<?> run(DataWriter writer) {
         Path path = getParent().getOutput();
-        Set<Identifier> set = Sets.newHashSet();
+        Set<RegistryKey<Recipe<?>>> set = Sets.newHashSet();
         RegistryWrapper.WrapperLookup lookup = BuiltinRegistries.createWrapperLookup();
         generateRecipes(new RecipeExporter() {
-
             @Override
-            public void accept(Identifier recipeId, Recipe<?> recipe, @Nullable AdvancementEntry advancementEntry) {
+            public void accept(RegistryKey<Recipe<?>> recipeId, Recipe<?> recipe, @Nullable AdvancementEntry advancementEntry) {
                 if (!set.add(recipeId)) {
                     getParent().getLogger().error("Duplicate recipe " + recipeId);
                     throw new IllegalStateException("Duplicate recipe " + recipeId);
@@ -81,9 +71,9 @@ public class PFMRecipeProvider extends PFMProvider {
                     throw new IllegalStateException("Recipe Json Provider is null");
                 } else {
                     RegistryOps<JsonElement> ops = lookup.getOps(JsonOps.INSTANCE);
-                    saveRecipe(Recipe.CODEC.encodeStart(ops, recipe).getOrThrow(IllegalStateException::new), path.resolve("data/" + recipeId.getNamespace() + "/recipe/" + recipeId.getPath() + ".json"));
+                    saveRecipe(Recipe.CODEC.encodeStart(ops, recipe).getOrThrow(IllegalStateException::new), path.resolve("data/" + recipeId.getValue().getNamespace() + "/recipe/" + recipeId.getValue().getPath() + ".json"));
                     if (advancementEntry != null) {
-                        saveRecipeAdvancement(Advancement.CODEC.encodeStart(ops, advancementEntry.value()).getOrThrow(IllegalStateException::new), path.resolve("data/" + recipeId.getNamespace() + "/advancement/" + advancementEntry.id().getPath() + ".json"));
+                        saveRecipeAdvancement(Advancement.CODEC.encodeStart(ops, advancementEntry.value()).getOrThrow(IllegalStateException::new), path.resolve("data/" + recipeId.getValue().getNamespace() + "/advancement/" + advancementEntry.id().getPath() + ".json"));
                     }
                 }
             }
@@ -92,6 +82,11 @@ public class PFMRecipeProvider extends PFMProvider {
             @SuppressWarnings("Deprecated")
             public Advancement.Builder getAdvancementBuilder() {
                 return Advancement.Builder.createUntelemetered().parent(CraftingRecipeJsonBuilder.ROOT);
+            }
+
+            @Override
+            public void addRootAdvancement() {
+
             }
         });
         return CompletableFuture.allOf();
@@ -103,7 +98,7 @@ public class PFMRecipeProvider extends PFMProvider {
 
     private void saveRecipe(JsonElement json, Path path) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (JsonWriter jsonWriter = new JsonWriter(new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8));){
+        try (JsonWriter jsonWriter = new JsonWriter(new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8))){
             Files.createDirectories(path.getParent());
             Files.createFile(path);
             jsonWriter.setSerializeNulls(false);
@@ -120,7 +115,7 @@ public class PFMRecipeProvider extends PFMProvider {
 
     private void saveRecipeAdvancement(JsonElement json, Path path) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (JsonWriter jsonWriter = new JsonWriter(new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8));){
+        try (JsonWriter jsonWriter = new JsonWriter(new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8))){
             Files.createDirectories(path.getParent());
             Files.createFile(path);
             jsonWriter.setSerializeNulls(false);
@@ -686,24 +681,30 @@ public class PFMRecipeProvider extends PFMProvider {
         Block counterTop = variantBase.getSecondaryBlock();
         Block counterBase = variantBase.getBaseBlock();
 
-        if (variantBase.identifier.getPath().equals("granite")) {
-            counterTop = Blocks.POLISHED_GRANITE;
-            counterBase = Blocks.WHITE_TERRACOTTA;
-        } else if (variantBase.identifier.getPath().equals("calcite") || variantBase.identifier.getPath().equals("netherite")) {
-            Block temp = counterBase;
-            counterBase = counterTop;
-            counterTop  = temp;
-        } else if (variantBase.identifier.getPath().equals("andesite")) {
-            counterTop = Blocks.POLISHED_ANDESITE;
-            counterBase = Blocks.STRIPPED_OAK_LOG;
-        } else if (variantBase.identifier.getPath().equals("deepslate")) {
-            counterTop = Blocks.POLISHED_DEEPSLATE;
-            counterBase = Blocks.DARK_OAK_PLANKS;
-        } else if (variantBase.identifier.getPath().equals("blackstone")) {
-            counterTop = Blocks.POLISHED_BLACKSTONE;
-            counterBase = Blocks.CRIMSON_PLANKS;
+        switch (variantBase.identifier.getPath()) {
+            case "granite" -> {
+                counterTop = Blocks.POLISHED_GRANITE;
+                counterBase = Blocks.WHITE_TERRACOTTA;
+            }
+            case "calcite", "netherite" -> {
+                Block temp = counterBase;
+                counterBase = counterTop;
+                counterTop = temp;
+            }
+            case "andesite" -> {
+                counterTop = Blocks.POLISHED_ANDESITE;
+                counterBase = Blocks.STRIPPED_OAK_LOG;
+            }
+            case "deepslate" -> {
+                counterTop = Blocks.POLISHED_DEEPSLATE;
+                counterBase = Blocks.DARK_OAK_PLANKS;
+            }
+            case "blackstone" -> {
+                counterTop = Blocks.POLISHED_BLACKSTONE;
+                counterBase = Blocks.CRIMSON_PLANKS;
+            }
         }
-        return new Pair<>(counterBase,counterTop);
+        return new Pair<>(counterBase, counterTop);
     }
     public Block getVanillaBed(Block block) {
         if (block instanceof SimpleBedBlock){
@@ -765,7 +766,7 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     public static void offerHerringbonePlanks(ItemConvertible output, Item baseMaterial, RecipeExporter exporter) {
-        ShapedRecipeJsonBuilder.create(RecipeCategory.BUILDING_BLOCKS, output, 4).input('X', baseMaterial).pattern("XX").pattern("XX").criterion("has_wood_slabs", conditionsFromItem(baseMaterial)).offerTo(exporter, Identifier.of("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        ShapedRecipeJsonBuilder.create(BuiltinRegistries.createWrapperLookup().getOrThrow(RegistryKeys.ITEM), RecipeCategory.BUILDING_BLOCKS, output, 4).input('X', baseMaterial).pattern("XX").pattern("XX").criterion("has_wood_slabs", conditionsFromItem(baseMaterial)).offerTo(exporter, RegistryKey.of(RegistryKeys.RECIPE ,Identifier.of("pfm", output.asItem().getTranslationKey().replace("block.pfm.", ""))));
     }
 
     public static void offerDinnerTableRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
@@ -917,26 +918,26 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     private static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromItem(NumberRange.IntRange count, ItemConvertible item) {
-        return conditionsFromItemPredicates(ItemPredicate.Builder.create().items(item).count(count).build());
+        return conditionsFromItemPredicates(ItemPredicate.Builder.create().items(BuiltinRegistries.createWrapperLookup().getOrThrow(RegistryKeys.ITEM), item).count(count).build());
     }
 
     public static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromItem(ItemConvertible item) {
-        return conditionsFromItemPredicates(ItemPredicate.Builder.create().items(item).build());
+        return conditionsFromItemPredicates(ItemPredicate.Builder.create().items(BuiltinRegistries.createWrapperLookup().getOrThrow(RegistryKeys.ITEM), item).build());
     }
 
     public static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromIngredient(Ingredient item) {
         List<Item> items = new ArrayList<>();
-        for (ItemStack item1:
-                item.getMatchingStacks()) {
-            if (items.contains(item1.getItem()))
+        for (RegistryEntry<Item> item1:
+                item.getMatchingItems()) {
+            if (items.contains(item1.value()))
                 continue;
-            items.add(item1.getItem());
+            items.add(item1.value());
         }
-        return conditionsFromItemPredicates(ItemPredicate.Builder.create().items(items.toArray(new Item[0])).build());
+        return conditionsFromItemPredicates(ItemPredicate.Builder.create().items(null, items.toArray(new Item[0])).build());
     }
 
     private static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromTag(TagKey<Item> tag) {
-        return conditionsFromItemPredicates(ItemPredicate.Builder.create().tag(tag).build());
+        return conditionsFromItemPredicates(ItemPredicate.Builder.create().tag(BuiltinRegistries.createWrapperLookup().getOrThrow(RegistryKeys.ITEM), tag).build());
     }
 
     public static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromPredicates(ItemPredicate.Builder... predicates) {
@@ -948,9 +949,9 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     private static String getItemPath(Ingredient item) {
-        ItemStack[] n = item.getMatchingStacks();
-        if (n.length > 0) {
-            return Registries.ITEM.getId(n[0].getItem()).getPath();
+        List<RegistryEntry<Item>> n = item.getMatchingItems();
+        if (!n.isEmpty()) {
+            return Registries.ITEM.getId(n.getFirst().value()).getPath();
         } else {
             return item.toString();
         }

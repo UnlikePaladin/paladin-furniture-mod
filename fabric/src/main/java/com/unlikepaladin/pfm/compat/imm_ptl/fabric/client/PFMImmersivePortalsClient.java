@@ -17,6 +17,6 @@ public class PFMImmersivePortalsClient implements PFMClientModCompatibility {
 
     @Override
     public void registerEntityRenderer() {
-        EntityRenderRegistry.registerEntityRender(PFMImmersivePortalsImpl.MIRROR, PFMMirrorEntityRenderer::new);
+        //EntityRenderRegistry.registerEntityRender(PFMImmersivePortalsImpl.MIRROR, PFMMirrorEntityRenderer::new);
     }
 }

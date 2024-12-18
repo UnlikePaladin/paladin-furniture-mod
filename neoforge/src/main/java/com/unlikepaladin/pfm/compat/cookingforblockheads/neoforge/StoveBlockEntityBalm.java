@@ -44,6 +44,7 @@ import net.minecraft.recipe.input.SingleStackRecipeInput;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvent;
@@ -67,7 +68,7 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
             if (slot < 3) {
                 return !StoveBlockEntityBalm.this.getSmeltingResult(itemStack).isEmpty();
             } else {
-                return slot == 3 ? StoveBlockEntityBalm.isItemFuel(itemStack) : true;
+                return slot == 3 ? StoveBlockEntityBalm.isItemFuel(StoveBlockEntityBalm.this.world, itemStack) : true;
             }
         }
 
@@ -197,7 +198,7 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
                 for(firstEmptySlot = 0; firstEmptySlot < this.fuelContainer.size(); ++firstEmptySlot) {
                     ItemStack fuelItem = this.fuelContainer.getStack(firstEmptySlot);
                     if (!fuelItem.isEmpty()) {
-                        this.currentItemBurnTime = this.furnaceBurnTime = (int)Math.max(1.0, (double)((float)getBurnTime(fuelItem)) * CookingForBlockheadsConfig.getActive().ovenFuelTimeMultiplier);
+                        this.currentItemBurnTime = this.furnaceBurnTime = (int)Math.max(1.0, (double)((float)getBurnTime(level, fuelItem)) * CookingForBlockheadsConfig.getActive().ovenFuelTimeMultiplier);
                         if (this.furnaceBurnTime != 0) {
                             containerItem = Balm.getHooks().getCraftingRemainingItem(fuelItem);
                             fuelItem.decrement(1);
@@ -287,31 +288,34 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
         return !ovenRecipeResult.isEmpty() ? ovenRecipeResult : this.getSmeltingResult(RecipeType.SMELTING, recipeInput);
     }
 
-    public <T extends RecipeInput> ItemStack getSmeltingResult(RecipeType<? extends Recipe<T>> recipeType, T container) {
-        RecipeEntry<?> recipe = this.world.getRecipeManager().getFirstMatch(recipeType, container, this.world).orElse(null);
-        if (recipe != null) {
-            ItemStack result = recipe.value().getResult(this.world.getRegistryManager());
-            if (!result.isEmpty() && result.contains(DataComponentTypes.FOOD)) {
-                return result;
+    public <T extends RecipeInput> ItemStack getSmeltingResult(RecipeType<? extends Recipe<T>> recipeType, T recipeInput) {
+        MinecraftServer server = this.world.getServer();
+        if (server != null) {
+            RecipeEntry<? extends Recipe<T>> recipe = server.getRecipeManager().getFirstMatch(recipeType, recipeInput, this.world).orElse(null);
+            if (recipe != null) {
+                ItemStack result = recipe.value().craft(recipeInput, this.world.getRegistryManager());
+                if (!result.isEmpty() && result.contains(DataComponentTypes.FOOD)) {
+                    return result;
+                }
             }
         }
 
         return ItemStack.EMPTY;
     }
 
-    public static boolean isItemFuel(ItemStack itemStack) {
+    public static boolean isItemFuel(World world, ItemStack itemStack) {
         if (CookingForBlockheadsConfig.getActive().ovenRequiresCookingOil) {
             return itemStack.isIn(BalmItemTags.COOKING_OIL);
         } else {
-            return getBurnTime(itemStack) > 0;
+            return getBurnTime(world, itemStack) > 0;
         }
     }
 
-    protected static int getBurnTime(ItemStack itemStack) {
+    protected static int getBurnTime(World world, ItemStack itemStack) {
         if (itemStack.isEmpty()) {
             return 0;
         } else {
-            return CookingForBlockheadsConfig.getActive().ovenRequiresCookingOil && itemStack.isIn(BalmItemTags.COOKING_OIL) ? 800 : Balm.getHooks().getBurnTime(itemStack);
+            return CookingForBlockheadsConfig.getActive().ovenRequiresCookingOil && itemStack.isIn(BalmItemTags.COOKING_OIL) ? 800 : Balm.getHooks().getBurnTime(world, itemStack);
         }
     }
 

@@ -1,4 +1,4 @@
-package com.unlikepaladin.pfm.mixin.neoforge;
+package com.unlikepaladin.pfm.mixin.forge;
 
 
 import com.unlikepaladin.pfm.blocks.models.basicCoffeeTable.UnbakedCoffeeBasicTableModel;
@@ -35,41 +35,31 @@ import com.unlikepaladin.pfm.blocks.models.modernCoffeeTable.UnbakedModernCoffee
 import com.unlikepaladin.pfm.blocks.models.modernDinnerTable.UnbakedModernDinnerTableModel;
 import com.unlikepaladin.pfm.blocks.models.modernStool.UnbakedModernStoolModel;
 import com.unlikepaladin.pfm.blocks.models.simpleStool.UnbakedSimpleStoolModel;
-import net.minecraft.client.render.model.ModelLoader;
+import com.unlikepaladin.pfm.client.forge.PaladinFurnitureModClientForge;
+import net.minecraft.client.render.model.BlockStatesLoader;
+import net.minecraft.client.render.model.ReferencedModelsCollector;
 import net.minecraft.client.render.model.UnbakedModel;
-import net.minecraft.client.render.model.json.JsonUnbakedModel;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.util.Identifier;
 import org.spongepowered.asm.mixin.*;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyVariable;
-import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
-import java.util.Objects;
 
-@Mixin(ModelLoader.class)
-public abstract class PFMModelLoaderMixin {
-    @Shadow
-    @Final private Map<Identifier, UnbakedModel> unbakedModels;
+@Mixin(ReferencedModelsCollector.class)
+public abstract class PFMReferencedModelsCollectorMixin {
 
-    @Shadow @Final private Map<Identifier, UnbakedModel> modelsToBake;
+    @Shadow protected abstract void addTopLevelModel(ModelIdentifier modelId, UnbakedModel model);
 
-    @Shadow protected abstract JsonUnbakedModel loadModelFromJson(Identifier id) throws IOException;
+    @Shadow abstract UnbakedModel computeResolvedModel(Identifier id);
 
-    @Unique
-    Identifier pfm$localId;
-    @Redirect(method = "getOrLoadModel", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/render/model/ModelLoader;loadModelFromJson(Lnet/minecraft/util/Identifier;)Lnet/minecraft/client/render/model/json/JsonUnbakedModel;"))
-    private JsonUnbakedModel pfm$wrapCall(ModelLoader instance, Identifier resourceId) {
-        pfm$localId = resourceId;
-        return null;
-    }
-
-    @ModifyVariable(method = "getOrLoadModel", at = @At(value = "STORE"))
+    @ModifyVariable(method = "getModel", at = @At(value = "STORE", ordinal = 0), ordinal = 0)
     private UnbakedModel pfm$loadModels(UnbakedModel olModel, Identifier olId) throws IOException {
-        Identifier resourceId = pfm$localId;
+        Identifier resourceId = olId;
         if (ModelHelper.containsIdentifier(UnbakedMirrorModel.MIRROR_MODEL_IDS, resourceId)){
             return new UnbakedMirrorModel(UnbakedMirrorModel.DEFAULT_TEXTURES[2], ModelHelper.getVanillaConcreteColor(resourceId), UnbakedMirrorModel.DEFAULT_TEXTURES[1], new ArrayList<>(), ModelHelper.getColor(resourceId));
         } else if (UnbakedBedModel.BED_MODEL_IDS.contains(resourceId)){
@@ -196,6 +186,14 @@ public abstract class PFMModelLoaderMixin {
             UnbakedModel model = new UnbakedClassicCoffeeTableModel();
             return model;
         }
-        return loadModelFromJson(resourceId);
+        return olModel;
+    }
+
+    @Inject(method = "addBlockStates", at = @At("RETURN"))
+    private void onAddStandardModels(BlockStatesLoader.BlockStateDefinition blockStateModels, CallbackInfo ci) {
+        PaladinFurnitureModClientForge.registerExtraModels(modelIdentifier -> {
+            UnbakedModel unbakedModel = computeResolvedModel(modelIdentifier.id());
+            addTopLevelModel(modelIdentifier, unbakedModel);
+        });
     }
 }

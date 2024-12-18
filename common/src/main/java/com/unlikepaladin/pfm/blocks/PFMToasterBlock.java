@@ -25,6 +25,7 @@ import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
+import net.minecraft.world.block.WireOrientation;
 import org.jetbrains.annotations.Nullable;
 
 import static com.unlikepaladin.pfm.blocks.LogTableBlock.rotateShape;
@@ -93,13 +94,12 @@ public class PFMToasterBlock extends HorizontalFacingBlockWithEntity {
     }
 
     @Override
-    public void neighborUpdate(BlockState state, World world, BlockPos pos, Block block, BlockPos neighborPos, boolean moved) {
-        super.neighborUpdate(state, world, pos, block, neighborPos, moved);
+    protected void neighborUpdate(BlockState state, World world, BlockPos pos, Block sourceBlock, @Nullable WireOrientation wireOrientation, boolean notify) {
+        super.neighborUpdate(state, world, pos, sourceBlock, wireOrientation, notify);
         if (world.getBlockEntity(pos) instanceof PFMToasterBlockEntity) {
             boolean toasting = ((PFMToasterBlockEntity)world.getBlockEntity(pos)).isToasting();
             world.setBlockState(pos, world.getBlockState(pos).with(ON, toasting));
         }
-
     }
 
     @Override
@@ -132,7 +132,7 @@ public class PFMToasterBlock extends HorizontalFacingBlockWithEntity {
     }
 
     @Override
-    protected ItemActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
+    protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (world.getBlockEntity(pos) instanceof PFMToasterBlockEntity) {
             PFMToasterBlockEntity blockEntity = (PFMToasterBlockEntity) world.getBlockEntity(pos);
             if (!player.isSneaking()) {
@@ -156,7 +156,7 @@ public class PFMToasterBlock extends HorizontalFacingBlockWithEntity {
             }
         }
 
-        return ItemActionResult.success(world.isClient());
+        return ActionResult.SUCCESS;
     }
 
     @ExpectPlatform

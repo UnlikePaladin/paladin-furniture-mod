@@ -10,6 +10,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Overlay;
 import net.minecraft.client.gui.screen.SplashOverlay;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.resource.metadata.TextureResourceMetadata;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.ResourceTexture;
@@ -41,7 +42,7 @@ public class PFMGeneratingOverlay extends Overlay {
     private final MinecraftClient client;
     private final Overlay parent;
     private int textureWidth, textureHeight;
-    private static final int PFM_ORANGE = ColorHelper.Argb.getArgb(255, 231, 95, 9);
+    private static final int PFM_ORANGE = ColorHelper.getArgb(255, 231, 95, 9);
 
     public PFMGeneratingOverlay(Overlay parent, PFMResourceProgress resourceProgress, MinecraftClient client, boolean reloading) {
         this.reloading = reloading;
@@ -64,15 +65,7 @@ public class PFMGeneratingOverlay extends Overlay {
         for (int x = 0; x < bufferedImage.getWidth(); x++) {
             for (int y = 0; y < bufferedImage.getHeight(); y++) {
                 int argb = bufferedImage.getRGB(x, y);
-
-                // Convert ARGB to ABGR format
-                int alpha = (argb >> 24) & 0xFF;
-                int red = (argb >> 16) & 0xFF;
-                int green = (argb >> 8) & 0xFF;
-                int blue = argb & 0xFF;
-                int abgr = (alpha << 24) | (blue << 16) | (green << 8) | red;
-
-                nativeImage.setColor(x, y, abgr);
+                nativeImage.setColorArgb(x, y, argb);
             }
         }
 
@@ -89,7 +82,7 @@ public class PFMGeneratingOverlay extends Overlay {
         float g = (float)(PFM_ORANGE >> 8 & 0xFF) / 255.0f;
         float b = (float)(PFM_ORANGE & 0xFF) / 255.0f;
         GlStateManager._clearColor(r, g, b, 1.0f);
-        GlStateManager._clear(16384, MinecraftClient.IS_SYSTEM_MAC);
+        GlStateManager._clear(16384);
 
         float timeProgress = this.reloadCompleteTime > -1L ? (float)(l - this.reloadCompleteTime) / 1000.0f : -1.0f;
 
@@ -118,7 +111,7 @@ public class PFMGeneratingOverlay extends Overlay {
         int x = (width - logoWidth) / 2;
         int y = (height - logoHeight) / 2;
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        context.drawTexture(pfmLogo, x, y, 0, 0, logoWidth, logoHeight, logoWidth, logoHeight);
+        context.drawTexture(identifier -> RenderLayer.getMojangLogo(), pfmLogo, x, y, 0, 0, logoWidth, logoHeight, logoWidth, logoHeight);
 
         if (timeProgress < 1.0f) {
             this.renderProgressBar(context, width / 2 - barWidth, barHeight - 5, width / 2 + barWidth, barHeight + 5, 1.0f - MathHelper.clamp(timeProgress, 0.0f, 1.0f));
@@ -132,7 +125,7 @@ public class PFMGeneratingOverlay extends Overlay {
     private void renderProgressBar(DrawContext context, int minX, int minY, int maxX, int maxY, float opacity) {
         int i = MathHelper.ceil((float)(maxX - minX - 2) * this.progress);
         int j = Math.round(opacity * 255.0f);
-        int k = ColorHelper.Argb.getArgb(j, 255, 255, 255);
+        int k = ColorHelper.getArgb(j, 255, 255, 255);
         context.fill(minX + 2, minY + 2, minX + i, maxY - 2, k);
         context.fill(minX + 1, minY, maxX - 1, minY + 1, k);
         context.fill(minX + 1, maxY, maxX - 1, maxY - 1, k);

@@ -12,7 +12,7 @@ public class BlockEntityRegistryImpl {
     public static Map<Identifier, BlockEntityType<?>> blockEntityTypes = new LinkedHashMap<>();
 
     public static <T extends BlockEntity>BlockEntityType<T> registerBlockEntity(String blockEntityId, Block[] block, BlockEntityType.BlockEntityFactory<T> factory) {
-        BlockEntityType<T> blockEntityType = BlockEntityType.Builder.create(factory, block).build(null);
+        BlockEntityType<T> blockEntityType = new BlockEntityType<>(factory, Set.of(block));
         blockEntityTypes.put(Identifier.of(PaladinFurnitureMod.MOD_ID, blockEntityId), blockEntityType);
         return blockEntityType;
     }

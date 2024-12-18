@@ -6,12 +6,8 @@
     "YYY"
 ],
    "key": {
-    "X": {
-      "item": "minecraft:gravel"
-    },
-    "Y": {
-      "item": "minecraft:sand"
-    }
+    "X": "minecraft:gravel",
+    "Y": "minecraft:sand"
   },
   "result": {
     "id": "pfm:raw_concrete_powder",

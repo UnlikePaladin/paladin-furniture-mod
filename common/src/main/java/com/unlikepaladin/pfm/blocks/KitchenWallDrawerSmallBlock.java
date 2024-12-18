@@ -10,6 +10,7 @@ import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.mob.PiglinBrain;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -85,11 +86,6 @@ public class KitchenWallDrawerSmallBlock extends KitchenWallDrawerBlock {
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
-        return state;
-    }
-
-    @Override
     public BlockState getPlacementState(ItemPlacementContext ctx) {
         return this.getDefaultState().with(FACING, ctx.getHorizontalPlayerFacing());
     }
@@ -105,10 +101,10 @@ public class KitchenWallDrawerSmallBlock extends KitchenWallDrawerBlock {
             return ActionResult.SUCCESS;
         }
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockEntity instanceof GenericStorageBlockEntity3x3) {
+        if (world instanceof ServerWorld && blockEntity instanceof GenericStorageBlockEntity3x3) {
             player.openHandledScreen((GenericStorageBlockEntity3x3)blockEntity);
             player.incrementStat(Statistics.DRAWER_SEARCHED);
-            PiglinBrain.onGuardedBlockInteracted(player, true);
+            PiglinBrain.onGuardedBlockInteracted((ServerWorld) world, player, true);
         }
         return ActionResult.CONSUME;
     }

@@ -95,23 +95,6 @@ public class FurnitureEntry<T extends Block> {
         return Optional.empty();
     }
 
-    public T getFromVanillaWoodType(BoatEntity.Type woodType, boolean base){
-        if (base) {
-            for (VariantBase<?> variant : variantToBlockMap.keySet()){
-                if (variant.getBaseBlock().equals(woodType.getBaseBlock())) {
-                    return variantToBlockMap.get(variant);
-                }
-            }
-        } else {
-            for (VariantBase<?> variant : variantToBlockMapNonBase.keySet()){
-                if (variant.getBaseBlock().equals(woodType.getBaseBlock())) {
-                    return variantToBlockMapNonBase.get(variant);
-                }
-            }
-        }
-        return null;
-    }
-
     public HashMap<VariantBase<?>, Set<T>> getVariantToBlockMapList() {
         return variantToBlockMapList;
     }

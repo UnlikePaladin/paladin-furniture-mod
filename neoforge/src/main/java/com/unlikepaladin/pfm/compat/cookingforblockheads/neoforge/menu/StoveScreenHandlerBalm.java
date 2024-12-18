@@ -1,23 +1,19 @@
 package com.unlikepaladin.pfm.compat.cookingforblockheads.neoforge.menu;
 
-import com.unlikepaladin.pfm.blocks.blockentities.StovePacket;
 import com.unlikepaladin.pfm.compat.cookingforblockheads.neoforge.StoveBlockEntityBalm;
 import com.unlikepaladin.pfm.compat.cookingforblockheads.neoforge.menu.slot.StoveResultSlot;
 import com.unlikepaladin.pfm.registry.ScreenHandlerIDs;
+import net.blay09.mods.cookingforblockheads.block.entity.OvenBlockEntity;
 import net.blay09.mods.cookingforblockheads.menu.IContainerWithDoor;
 import net.blay09.mods.cookingforblockheads.menu.slot.SlotOven;
-import net.blay09.mods.cookingforblockheads.menu.slot.SlotOvenFuel;
 import net.blay09.mods.cookingforblockheads.menu.slot.SlotOvenTool;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
-import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.screen.slot.Slot;
-import net.minecraft.util.math.BlockPos;
 
 public class StoveScreenHandlerBalm extends ScreenHandler implements IContainerWithDoor {
     private final StoveBlockEntityBalm tileEntity;
@@ -34,7 +30,7 @@ public class StoveScreenHandlerBalm extends ScreenHandler implements IContainerW
             this.addSlot(new Slot(container, i, 84 + i * 18 + offsetX, 19));
         }
 
-        this.addSlot(new SlotOvenFuel(container, 3, 61 + offsetX, 59));
+        this.addSlot(new SlotOvenFuel(this, container, 3, 61 + offsetX, 59));
 
         for(i = 0; i < 3; ++i) {
             this.addSlot(new StoveResultSlot(playerInventory.player, oven, container, i + 4, 142 + offsetX, 41 + i * 18));
@@ -87,7 +83,7 @@ public class StoveScreenHandlerBalm extends ScreenHandler implements IContainerW
                 slot.onQuickTransfer(slotStack, itemStack);
             } else if (slotIndex >= 20) {
                 ItemStack smeltingResult = this.tileEntity.getSmeltingResult(slotStack);
-                if (StoveBlockEntityBalm.isItemFuel(slotStack)) {
+                if (StoveBlockEntityBalm.isItemFuel(player.getWorld(), slotStack)) {
                     if (!this.insertItem(slotStack, 3, 4, false)) {
                         return ItemStack.EMPTY;
                     }
@@ -134,5 +130,22 @@ public class StoveScreenHandlerBalm extends ScreenHandler implements IContainerW
     public void onClosed(PlayerEntity player){
         super.onClosed(player);
         this.tileEntity.onClose(player);
+    }
+
+    public boolean isFuel(ItemStack itemStack) {
+        return OvenBlockEntity.isItemFuel(this.tileEntity.getWorld(), itemStack);
+    }
+
+    public static class SlotOvenFuel extends Slot {
+        private final StoveScreenHandlerBalm menu;
+
+        public SlotOvenFuel(StoveScreenHandlerBalm menu, Inventory container, int i, int x, int y) {
+            super(container, i, x, y);
+            this.menu = menu;
+        }
+
+        public boolean canInsert(ItemStack itemStack) {
+            return this.menu.isFuel(itemStack);
+        }
     }
 }

@@ -42,16 +42,6 @@ public class UnbakedDinnerTableModel implements UnbakedModel {
         }
     };
 
-    @Override
-    public Collection<Identifier> getModelDependencies() {
-        return List.of(PARENT);
-    }
-
-    @Override
-    public void setParents(Function<Identifier, UnbakedModel> modelLoader) {
-
-    }
-
     public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<com.mojang.datafixers.util.Pair<String, String>> unresolvedTextureReferences) {
         return Collections.emptyList();
     }
@@ -77,5 +67,11 @@ public class UnbakedDinnerTableModel implements UnbakedModel {
     @ExpectPlatform
     public static BakedModel getBakedModel(Identifier modelId, ModelBakeSettings settings, List<BakedModel> modelParts) {
         throw new RuntimeException("Method wasn't replaced correctly");
+    }
+
+    @Override
+    public void resolve(Resolver resolver) {
+        for (Identifier c : DINNER_MODEL_PARTS_BASE)
+            resolver.resolve(c);
     }
 }

@@ -12,10 +12,7 @@ import com.unlikepaladin.pfm.registry.neoforge.BlockItemRegistryImpl;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.enums.BedPart;
-import net.minecraft.item.BlockItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.ItemStack;
+import net.minecraft.item.*;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
@@ -57,14 +54,14 @@ public class LateBlockRegistryImpl {
 
     public static void registerBlockItemPlatformSpecific(String itemName, Block block, Pair<String, ItemGroup> group) {
         if (AbstractSittableBlock.isWoodBased(block.getDefaultState())) {
-            registerLateItem(itemName, () -> new BlockItem(block, new Item.Settings()) {
+            registerLateItem(itemName, () -> new BlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey().registryKey(LateBlockRegistry.getItemRegistryKey(itemName))) {
                 @Override
-                public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType) {
+                public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType, FuelRegistry fuelValues) {
                     return 300;
                 }
             }, group);
         }
-        registerLateItem(itemName, () -> new BlockItem(block, new Item.Settings()), group);
+        registerLateItem(itemName, () -> new BlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey().registryKey(LateBlockRegistry.getItemRegistryKey(itemName))), group);
     }
 
 

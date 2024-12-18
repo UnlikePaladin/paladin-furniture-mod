@@ -9,7 +9,7 @@ import net.minecraft.screen.slot.Slot;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-
+/*
 public class FurnitureRecipeHandler implements StandardRecipeHandler<WorkbenchScreenHandler> {
 
     @Override
@@ -37,3 +37,4 @@ public class FurnitureRecipeHandler implements StandardRecipeHandler<WorkbenchSc
         return recipe.getCategory() == PaladinFurnitureModEMIPlugin.FURNITURE && recipe.supportsRecipeTree();
     }
 }
+*/

@@ -35,9 +35,11 @@ import com.unlikepaladin.pfm.blocks.models.simpleStool.UnbakedSimpleStoolModel;
 import com.unlikepaladin.pfm.client.PaladinFurnitureModClient;
 import com.unlikepaladin.pfm.client.ScreenRegistry;
 import com.unlikepaladin.pfm.client.screens.*;
+import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.option.KeyBinding;
+import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.util.Identifier;
@@ -49,6 +51,8 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
+import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.lwjgl.glfw.GLFW;
 
@@ -172,5 +176,17 @@ public class PaladinFurnitureModClientNeoForge {
         UnbakedFridgeModel.ALL_MODEL_IDS.forEach(model -> event.register(ModelIdentifier.standalone(model)));
         UnbakedFreezerModel.ALL_MODEL_IDS.forEach(model -> event.register(ModelIdentifier.standalone(model)));
         UnbakedBasicLampModel.ALL_MODEL_IDS.forEach(model -> event.register(ModelIdentifier.standalone(model)));
+    }
+
+    @SubscribeEvent
+    public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
+        event.registerItem(new IClientItemExtensions() {
+               @Override
+               public BuiltinModelItemRenderer getCustomRenderer() {
+                   return PFMItemRenderer.INSTANCE;
+               }
+           },
+            PaladinFurnitureModBlocksItems.BASIC_LAMP_ITEM
+        );
     }
 }

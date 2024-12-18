@@ -39,11 +39,6 @@ public class UnbakedLadderModel implements UnbakedModel {
         return List.of(PARENT);
     }
 
-    @Override
-    public void setParents(Function<Identifier, UnbakedModel> modelLoader) {
-
-    }
-
     public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
         return Collections.emptyList();
     }
@@ -69,5 +64,11 @@ public class UnbakedLadderModel implements UnbakedModel {
     @ExpectPlatform
     public static BakedModel getBakedModel(Identifier modelId, ModelBakeSettings settings, List<BakedModel> modelParts) {
         throw new RuntimeException("Method wasn't replaced correctly");
+    }
+
+    @Override
+    public void resolve(Resolver resolver) {
+        for (Identifier c : LADDER_PARTS_BASE)
+            resolver.resolve(c);
     }
 }

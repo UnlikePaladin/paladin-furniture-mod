@@ -13,11 +13,14 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.world.WorldAccess;
+import net.minecraft.world.WorldView;
+import net.minecraft.world.tick.ScheduledTickView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +35,7 @@ public class BasicChairBlock extends AbstractSittableBlock {
     public BasicChairBlock(Settings settings) {
         super(settings);
         setDefaultState(this.getStateManager().getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(TUCKED, false));
-        this.height = 0.36f;
+        this.height = 0.6f;
         if(isWoodBased(this.getDefaultState()) && this.getClass().isAssignableFrom(BasicChairBlock.class)){
             WOOD_BASIC_CHAIRS.add(new FurnitureBlock(this, "chair"));
         }
@@ -118,12 +121,13 @@ public class BasicChairBlock extends AbstractSittableBlock {
         }
         return buffer[0];
     }
+
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+    protected BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
         if (!canTuck(world.getBlockState(pos.offset(state.get(FACING).getOpposite()))) && state.get(TUCKED)){
             return state.with(TUCKED, false);
         }
-        return super.getStateForNeighborUpdate(state, direction, neighborState, world, pos, neighborPos);
+        return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
     }
 
     public boolean canTuck(BlockState state) {

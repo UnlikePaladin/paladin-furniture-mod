@@ -1,12 +1,8 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "item": "minecraft:glass_bottle"
-    },
-    {
-      "item": "minecraft:orange_dye"
-    }
+    "minecraft:glass_bottle",
+    "minecraft:orange_dye"
   ],
   "result": {
     "id": "pfm:dye_kit_orange",

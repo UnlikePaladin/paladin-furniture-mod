@@ -7,6 +7,7 @@ import com.unlikepaladin.pfm.registry.BlockItemRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockSetType;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.block.BlockModels;
 import net.minecraft.entity.vehicle.BoatEntity;
@@ -25,25 +26,11 @@ import java.util.function.Supplier;
 public class WoodVariant extends VariantBase<WoodVariant> {
     private final Block plankBlock;
     private final Block logBlock;
-    @Nullable
-    private final BoatEntity.Type vanillaWoodType;
 
     WoodVariant(Identifier identifier, Block plankBlock, Block logBlock) {
         super(identifier);
         this.plankBlock = plankBlock;
         this.logBlock = logBlock;
-        this.vanillaWoodType = BoatEntity.Type.getType(identifier.getPath()) != BoatEntity.Type.OAK &&  BoatEntity.Type.getType(identifier.getPath()).getBaseBlock() == plankBlock ? BoatEntity.Type.getType(identifier.getPath()) : null;
-    }
-
-    WoodVariant(Identifier identifier, Block plankBlock, Block logBlock, BoatEntity.@Nullable Type vanillaWoodType) {
-        super(identifier);
-        this.plankBlock = plankBlock;
-        this.logBlock = logBlock;
-        this.vanillaWoodType = vanillaWoodType;
-    }
-
-    public BoatEntity.@Nullable Type getVanillaWoodType() {
-        return vanillaWoodType;
     }
 
     @Override
@@ -233,7 +220,7 @@ public class WoodVariant extends VariantBase<WoodVariant> {
                     if (plank != d && log != d && plank != null && log != null) {
                         WoodVariant w = new WoodVariant(id, plank, log);
                         for (Map.Entry<String, Identifier> entry : childNames.entrySet()){
-                            Object child = Registries.BLOCK.getOrEmpty(entry.getValue()).isPresent() ? Registries.BLOCK.get(entry.getValue()) : Registries.ITEM.get(entry.getValue());
+                            Object child = Registries.BLOCK.getOptionalValue(entry.getValue()).isPresent() ? Registries.BLOCK.get(entry.getValue()) : Registries.ITEM.get(entry.getValue());
                             w.addChild(entry.getKey(), child);
                         }
                         return Optional.of(w);

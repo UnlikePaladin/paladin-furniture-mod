@@ -47,10 +47,6 @@ public class UnbakedChairModel implements UnbakedModel {
         return List.of(PARENT);
     }
 
-    @Override
-    public void setParents(Function<Identifier, UnbakedModel> modelLoader) {
-
-    }
 
     public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
         return Collections.emptyList();
@@ -77,5 +73,11 @@ public class UnbakedChairModel implements UnbakedModel {
     @ExpectPlatform
     public static BakedModel getBakedModel(Identifier model, ModelBakeSettings settings, List<BakedModel> modelParts) {
         throw new RuntimeException("Method wasn't replaced correctly");
+    }
+
+    @Override
+    public void resolve(Resolver resolver) {
+        for (Identifier c : CHAIR_PARTS_BASE)
+            resolver.resolve(c);
     }
 }

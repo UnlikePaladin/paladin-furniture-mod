@@ -1,8 +1,6 @@
 {
   "type": "pfm:freezing",
-  "ingredient": {
-    "item": "minecraft:lava_bucket"
-  },
+  "ingredient": "minecraft:lava_bucket",
   "result": {
     "id": "minecraft:obsidian"
   }

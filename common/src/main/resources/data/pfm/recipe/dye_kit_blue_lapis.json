@@ -1,12 +1,8 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "item": "minecraft:glass_bottle"
-    },
-    {
-      "item": "minecraft:lapis_lazuli"
-    }
+    "minecraft:glass_bottle",
+    "minecraft:lapis_lazuli"
   ],
   "result": {
     "id": "pfm:dye_kit_blue",

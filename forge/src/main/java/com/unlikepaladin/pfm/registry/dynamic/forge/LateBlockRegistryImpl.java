@@ -55,14 +55,14 @@ public class LateBlockRegistryImpl {
 
     public static void registerBlockItemPlatformSpecific(String itemName, Block block, Pair<String, ItemGroup> group) {
         if (AbstractSittableBlock.isWoodBased(block.getDefaultState())) {
-            registerLateItem(itemName, () -> new BlockItem(block, new Item.Settings()) {
+            registerLateItem(itemName, () -> new BlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey().registryKey(LateBlockRegistry.getItemRegistryKey(itemName))) {
                 @Override
                 public int getBurnTime(ItemStack itemStack, @Nullable RecipeType<?> recipeType) {
                     return 300;
                 }
             }, group);
         }
-        registerLateItem(itemName, () -> new BlockItem(block, new Item.Settings()), group);
+        registerLateItem(itemName, () -> new BlockItem(block, new Item.Settings().useBlockPrefixedTranslationKey().registryKey(LateBlockRegistry.getItemRegistryKey(itemName))), group);
     }
 
 

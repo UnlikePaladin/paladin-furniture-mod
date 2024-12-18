@@ -21,9 +21,12 @@ import net.minecraft.nbt.*;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.*;
+import net.minecraft.recipe.book.RecipeBookCategories;
+import net.minecraft.recipe.book.RecipeBookCategory;
 import net.minecraft.recipe.input.RecipeInput;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
 import net.minecraft.util.collection.DefaultedList;
@@ -32,6 +35,7 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FurnitureRecipe implements Recipe<FurnitureRecipe.FurnitureRecipeInput>, Comparable<FurnitureRecipe> {
     final String group;
@@ -44,56 +48,48 @@ public class FurnitureRecipe implements Recipe<FurnitureRecipe.FurnitureRecipeIn
         this.input = input;
     }
 
-    @Override
-    public DefaultedList<Ingredient> getIngredients() {
-        return this.input;
+    public Map<Item, Integer> getItemCounts() {
+        Map<Item, Integer> ingredientCounts = new HashMap<>();
+        for (Ingredient ingredient : this.getIngredients()) {
+            for (RegistryEntry<Item> itemRegistryEntry : ingredient.getMatchingItems()) {
+                if (ingredientCounts.containsKey(itemRegistryEntry.value())) {
+                    ingredientCounts.put(itemRegistryEntry.value(), ingredientCounts.get(itemRegistryEntry.value())+1);
+                } else {
+                    ingredientCounts.put(itemRegistryEntry.value(), 1);
+                }
+            }
+        }
+        return ingredientCounts;
     }
 
     @Override
     public boolean matches(FurnitureRecipeInput playerInventory, World world) {
-        List<Ingredient> ingredients = this.getIngredients();
-        BitSet hasIngredients = new BitSet(ingredients.size());
-        HashMap<Item, Integer> containedItems = new HashMap<>();
-        for (int i = 0; i < ingredients.size(); i++) {
-            Ingredient ingredient = ingredients.get(i);
-            for (ItemStack stack : ingredient.getMatchingStacks()) {
-                int itemCount = 0;
-                for (ItemStack stack1 : playerInventory.playerInventory().main) {
-                    if (stack.isOf(stack1.getItem())) {
-                        itemCount += stack1.getCount();
-                    }
-                }
-                if (itemCount == 0)
-                    break;
+        Map<Item, Integer> ingredientCounts = getItemCounts();
 
-                if (getSlotWithStackIgnoreNBT(playerInventory.playerInventory, stack) != -1){
-                    if (!containedItems.containsKey(stack.getItem())) {
-                        if (itemCount >= stack.getCount()) {
-                            hasIngredients.set(i, true);
-                            containedItems.put(stack.getItem(), 1);
-                        }
-                    } else {
-                        if (itemCount >= (containedItems.get(stack.getItem()) + 1)) {
-                            hasIngredients.set(i, true);
-                            containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + 1);
-                        }
-                    }
+        for (Map.Entry<Item, Integer> entry : ingredientCounts.entrySet()) {
+            Item item = entry.getKey();
+            Integer count = entry.getValue();
+
+            int itemCount = 0;
+            ItemStack defaultStack = item.getDefaultStack();
+            for (ItemStack stack1 : playerInventory.playerInventory().main) {
+                if (defaultStack.isOf(stack1.getItem())) {
+                    itemCount += stack1.getCount();
                 }
             }
+            if (itemCount < count)
+                return false;
         }
-        boolean matches = true;
-        for (int i = 0; i < ingredients.size(); i++){
-            if (!hasIngredients.get(i)) {
-                matches = false;
-                break;
-            }
-        }
-        return matches;
+        return true;
     }
 
-    public static int getSlotWithStackIgnoreNBT(PlayerInventory inventory, ItemStack stack) {
+    public List<Ingredient> getIngredients() {
+        return input;
+    }
+
+    public static int getSlotWithStackIgnoreNBT(PlayerInventory inventory, Item item) {
         for(int i = 0; i < inventory.main.size(); ++i) {
-            if (!inventory.main.get(i).isEmpty() && stack.isOf(inventory.main.get(i).getItem())) {
+            if (!inventory.main.get(i).isEmpty() && item == inventory.main.get(i).getItem()) {
                 return i;
             }
         }
@@ -112,38 +108,51 @@ public class FurnitureRecipe implements Recipe<FurnitureRecipe.FurnitureRecipeIn
     }
 
     @Override
-    public boolean fits(int width, int height) {
-        return true;
-    }
-
-    @Override
-    public ItemStack getResult(RegistryWrapper.WrapperLookup registriesLookup) {
-        return this.output.copy();
-    }
-
-    @Override
     public String getGroup() {
         return this.group;
     }
 
-    @Override
-    public ItemStack createIcon() {
-        return PaladinFurnitureModBlocksItems.WORKING_TABLE.asItem().getDefaultStack();
-    }
+
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<? extends Recipe<FurnitureRecipeInput>> getSerializer() {
         return RecipeTypes.FURNITURE_SERIALIZER;
     }
 
     @Override
-    public RecipeType<?> getType() {
+    public RecipeType<? extends Recipe<FurnitureRecipeInput>> getType() {
         return RecipeTypes.FURNITURE_RECIPE;
+    }
+
+    @Override
+    public IngredientPlacement getIngredientPlacement() {
+        return IngredientPlacement.forMultipleSlots(input.stream().map(Optional::of).toList());
+    }
+
+    @Override
+    public RecipeBookCategory getRecipeBookCategory() {
+        return RecipeBookCategories.CRAFTING_MISC;
     }
 
     @Override
     public int compareTo(@NotNull FurnitureRecipe furnitureRecipe) {
         return this.output.toString().compareTo(furnitureRecipe.output.toString());
+    }
+
+    public ItemStack result() {
+        return output;
+    }
+
+    public boolean enabled(World world) {
+        if (!this.output.isItemEnabled(world.getEnabledFeatures()))
+            return false;
+        for (Ingredient ingredient : this.getIngredients()) {
+            for (RegistryEntry<Item> item : ingredient.getMatchingItems()) {
+                if (!item.value().isEnabled(world.getEnabledFeatures()))
+                    return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -156,11 +165,7 @@ public class FurnitureRecipe implements Recipe<FurnitureRecipe.FurnitureRecipeIn
 
         public static FurnitureRecipe read(RegistryByteBuf packetByteBuf) {
             String string = packetByteBuf.readString();
-            int i = packetByteBuf.readVarInt();
-            DefaultedList<Ingredient> defaultedList = DefaultedList.ofSize(i, Ingredient.EMPTY);
-            for (int j = 0; j < defaultedList.size(); ++j) {
-                defaultedList.set(j, Ingredient.PACKET_CODEC.decode(packetByteBuf));
-            }
+            DefaultedList<Ingredient> defaultedList = packetByteBuf.readCollection(DefaultedList::ofSize, buf1 -> Ingredient.PACKET_CODEC.decode((RegistryByteBuf) buf1));
             ItemStack itemStack = ItemStack.PACKET_CODEC.decode(packetByteBuf);
             return new FurnitureRecipe(string, itemStack, defaultedList);
         }
@@ -180,59 +185,25 @@ public class FurnitureRecipe implements Recipe<FurnitureRecipe.FurnitureRecipeIn
 
         public static void write(RegistryByteBuf packetByteBuf, FurnitureRecipe furnitureRecipe) {
             packetByteBuf.writeString(furnitureRecipe.group);
-            packetByteBuf.writeVarInt(furnitureRecipe.input.size());
-            for (Ingredient ingredient : furnitureRecipe.input) {
-                Ingredient.PACKET_CODEC.encode(packetByteBuf, ingredient);
-            }
+            packetByteBuf.writeCollection(furnitureRecipe.input, (buff, ingredient) -> Ingredient.PACKET_CODEC.encode((RegistryByteBuf) buff, ingredient));
             ItemStack.PACKET_CODEC.encode(packetByteBuf, furnitureRecipe.output);
         }
 
-        private static final MapCodec<FurnitureRecipe> CODEC = RecordCodecBuilder.mapCodec((instance) ->
+        public static final MapCodec<FurnitureRecipe> CODEC = RecordCodecBuilder.mapCodec((instance) ->
                 instance.group(
                         Codec.STRING.optionalFieldOf("group", "").forGetter(FurnitureRecipe::getGroup),
                         ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(recipe -> recipe.output),
-                        Ingredient.DISALLOW_EMPTY_CODEC.listOf().fieldOf("ingredients").flatXmap((ingredients) -> {
-            Ingredient[] ingredients2 = ingredients.stream().filter((ingredient) -> {
-                return !ingredient.isEmpty();
-            }).toArray(Ingredient[]::new);
-            if (ingredients2.length == 0) {
+                        Ingredient.CODEC.listOf().fieldOf("ingredients").flatXmap((ingredients) -> {
+            DefaultedList<Ingredient> defaultedList = DefaultedList.of();
+            defaultedList.addAll(ingredients);
+            if (defaultedList.isEmpty()) {
                 return DataResult.error(() -> "No ingredients for furniture recipe");
             } else {
-                return DataResult.success(DefaultedList.copyOf(Ingredient.EMPTY, ingredients2));
+                return DataResult.success(defaultedList);
             }
-        }, DataResult::success).forGetter(FurnitureRecipe::getIngredients))
+        }, DataResult::success).forGetter(furnitureRecipe -> furnitureRecipe.input))
                         .apply(instance, FurnitureRecipe::new));
     }
-
-    private static final Codec<NbtCompound> NBT_CODEC = Codec.xor(
-            Codec.STRING, NbtCompound.CODEC
-    ).flatXmap(either -> either.map(s -> {
-        try {
-            return DataResult.success(StringNbtReader.parse(s));
-        } catch (CommandSyntaxException e) {
-            return DataResult.success(new NbtCompound());
-        }
-    }, DataResult::success), nbtCompound -> DataResult.success(Either.left(nbtCompound.asString())));
-
-    public static final Codec<NbtCompound> OUTPUT_TAGS = Codec.unboundedMap(Codec.STRING, NBT_CODEC).comapFlatMap(stringNbtCompoundMap -> {
-        NbtCompound compound = new NbtCompound();
-        stringNbtCompoundMap.forEach(compound::put);
-        return DataResult.success(compound);
-    }, nbtCompound -> {
-        Map<String, NbtCompound> map = new HashMap<>();
-        Set<String> keys = nbtCompound.getKeys();
-        keys.forEach(s -> {
-            NbtCompound compound = new NbtCompound();
-            if (nbtCompound.get(s) instanceof NbtCompound) {
-                compound = nbtCompound.getCompound(s);
-            } else {
-                compound.put(s, nbtCompound.get(s));
-            }
-            map.put(s, compound);
-        });
-        return map;
-    });
-
     /*
     private static final Codec<Item> CRAFTING_RESULT_ITEM = Registries.ITEM.getCodec().validate((item) -> {
         return item == Items.AIR ? DataResult.error(() -> {
@@ -260,7 +231,7 @@ public class FurnitureRecipe implements Recipe<FurnitureRecipe.FurnitureRecipeIn
         }
 
         @Override
-        public int getSize() {
+        public int size() {
             return playerInventory.size();
         }
 

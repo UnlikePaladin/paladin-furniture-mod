@@ -51,16 +51,6 @@ public class UnbakedMirrorModel implements UnbakedModel {
         }
     };
 
-    @Override
-    public Collection<Identifier> getModelDependencies() {
-        return List.of(PARENT);
-    }
-
-    @Override
-    public void setParents(Function<Identifier, UnbakedModel> modelLoader) {
-
-    }
-
     public Collection<SpriteIdentifier> getTextureDependencies(Function<Identifier, UnbakedModel> unbakedModelGetter, Set<Pair<String, String>> unresolvedTextureReferences) {
         List<SpriteIdentifier> list = new ArrayList<>(2);
         list.add(glassTex);
@@ -82,5 +72,11 @@ public class UnbakedMirrorModel implements UnbakedModel {
     @ExpectPlatform
     public static BakedModel getBakedModel(Sprite frame, Sprite glassTex, Sprite reflectTex, ModelBakeSettings settings, Map<String,BakedModel> bakedModels, List<String> MODEL_PARTS) {
         throw new RuntimeException("Method wasn't replaced correctly");
+    }
+
+    @Override
+    public void resolve(Resolver resolver) {
+        for (String c : MODEL_PARTS)
+            resolver.resolve(Identifier.of(PaladinFurnitureMod.MOD_ID, c));
     }
 }

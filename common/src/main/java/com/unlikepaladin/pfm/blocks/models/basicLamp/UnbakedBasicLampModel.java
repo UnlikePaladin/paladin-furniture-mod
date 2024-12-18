@@ -64,16 +64,6 @@ public class UnbakedBasicLampModel implements UnbakedModel {
         return Collections.emptyList();
     }
 
-    @Override
-    public Collection<Identifier> getModelDependencies() {
-        return Collections.singleton(PARENT);
-    }
-
-    @Override
-    public void setParents(Function<Identifier, UnbakedModel> modelLoader) {
-
-    }
-
     @Nullable
     @Override
     public BakedModel bake(Baker loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer) {
@@ -95,5 +85,11 @@ public class UnbakedBasicLampModel implements UnbakedModel {
     @ExpectPlatform
     public static BakedModel getBakedModel(Identifier modelId, ModelBakeSettings settings, List<BakedModel> modelParts) {
         throw new RuntimeException("Method wasn't replaced correctly");
+    }
+
+    @Override
+    public void resolve(Resolver resolver) {
+        for (Identifier c : ALL_MODEL_IDS)
+            resolver.resolve(c);
     }
 }

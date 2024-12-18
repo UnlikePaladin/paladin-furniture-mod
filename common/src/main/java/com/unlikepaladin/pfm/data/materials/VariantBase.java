@@ -74,7 +74,7 @@ public abstract class VariantBase<T> implements StringIdentifiable {
     @Nullable
     protected <V> V findRelatedEntry(String append, String postPend, Registry<V> reg) {
         if (this.identifier.getNamespace().equals("tfc")) {
-            var o = reg.getOrEmpty(
+            var o = reg.getOptionalValue(
                     Identifier.of(identifier.getNamespace(), "wood/" + postPend + "/" + identifier.getPath()));
             if (o.isPresent()) return o.get();
         }

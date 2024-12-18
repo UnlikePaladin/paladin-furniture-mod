@@ -12,33 +12,35 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.*;
 import net.minecraft.recipe.book.RecipeBookCategory;
+import net.minecraft.recipe.book.RecipeBookType;
 import net.minecraft.recipe.input.SingleStackRecipeInput;
-import net.minecraft.screen.AbstractRecipeScreenHandler;
-import net.minecraft.screen.ArrayPropertyDelegate;
-import net.minecraft.screen.PropertyDelegate;
-import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+import java.util.List;
 import java.util.Optional;
 
-public abstract class AbstractMicrowaveScreenHandler extends AbstractRecipeScreenHandler<SingleStackRecipeInput, AbstractCookingRecipe> {
+public abstract class AbstractMicrowaveScreenHandler extends AbstractRecipeScreenHandler {
     private final Inventory inventory;
     private final PropertyDelegate propertyDelegate;
     protected final World world;
     private final RecipeType<? extends AbstractCookingRecipe> recipeType;
-    private final RecipeBookCategory category;
+    private final RecipeBookType category;
     public boolean isActive;
     public MicrowaveBlockEntity microwaveBlockEntity;
+    private final RecipePropertySet recipePropertySet;
+
     // Client Constructor
-    protected AbstractMicrowaveScreenHandler(ScreenHandlerType<?> type, RecipeType<? extends AbstractCookingRecipe> recipeType, RecipeBookCategory category, int syncId, PlayerInventory playerInventory, MicrowaveData packet) {
+    protected AbstractMicrowaveScreenHandler(ScreenHandlerType<?> type, RecipeType<? extends AbstractCookingRecipe> recipeType, RecipeBookType category, int syncId, PlayerInventory playerInventory, MicrowaveData packet) {
         this((MicrowaveBlockEntity) playerInventory.player.getWorld().getBlockEntity(packet.pos()), type, recipeType, category, syncId, playerInventory, new SimpleInventory(1), new ArrayPropertyDelegate(2));
         this.isActive = packet.isActive();
     }
 
     // Server Constructor
-    protected AbstractMicrowaveScreenHandler(MicrowaveBlockEntity microwaveBlockEntity, ScreenHandlerType<?> type, RecipeType<? extends AbstractCookingRecipe> recipeType, RecipeBookCategory category, int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate propertyDelegate) {
+    protected AbstractMicrowaveScreenHandler(MicrowaveBlockEntity microwaveBlockEntity, ScreenHandlerType<?> type, RecipeType<? extends AbstractCookingRecipe> recipeType, RecipeBookType category, int syncId, PlayerInventory playerInventory, Inventory inventory, PropertyDelegate propertyDelegate) {
         super(type, syncId);
         this.microwaveBlockEntity = microwaveBlockEntity;
         int i;
@@ -50,6 +52,7 @@ public abstract class AbstractMicrowaveScreenHandler extends AbstractRecipeScree
         inventory.onOpen(playerInventory.player);
         this.propertyDelegate = propertyDelegate;
         this.world = playerInventory.player.getEntityWorld();
+        this.recipePropertySet = this.world.getRecipeManager().getPropertySet(RecipePropertySet.CAMPFIRE_INPUT);
         this.addSlot(new SizeableSlot(playerInventory.player, inventory, 0, 78, 40));
 
         for (i = 0; i < 3; ++i) {
@@ -65,7 +68,7 @@ public abstract class AbstractMicrowaveScreenHandler extends AbstractRecipeScree
     }
 
     @Override
-    public void populateRecipeFinder(RecipeMatcher finder) {
+    public void populateRecipeFinder(RecipeFinder finder) {
         if (this.inventory instanceof RecipeInputProvider) {
             ((RecipeInputProvider) this.inventory).provideRecipeInputs(finder);
         }
@@ -78,36 +81,6 @@ public abstract class AbstractMicrowaveScreenHandler extends AbstractRecipeScree
     @ExpectPlatform
     public static void setActive(MicrowaveBlockEntity blockEntity, boolean isActive){
         blockEntity.isActive = isActive;
-    }
-
-    @Override
-    public void clearCraftingSlots() {
-        this.getSlot(0).setStack(ItemStack.EMPTY);
-    }
-
-    @Override
-    public boolean matches(RecipeEntry<AbstractCookingRecipe> recipe) {
-        return recipe != null && recipe.value() != null && recipe.value().matches(new SingleStackRecipeInput(this.inventory.getStack(0)), this.world);
-    }
-
-    @Override
-    public int getCraftingResultSlotIndex() {
-        return 1;
-    }
-
-    @Override
-    public int getCraftingWidth() {
-        return 1;
-    }
-
-    @Override
-    public int getCraftingHeight() {
-        return 1;
-    }
-
-    @Override
-    public int getCraftingSlotCount() {
-        return 1;
     }
 
     @Override
@@ -176,8 +149,7 @@ public abstract class AbstractMicrowaveScreenHandler extends AbstractRecipeScree
     }
 
     protected boolean isCookable(ItemStack itemStack) {
-        Optional<? extends RecipeEntry<? extends AbstractCookingRecipe>> optionalRecipeEntry = this.world.getRecipeManager().getFirstMatch(this.recipeType, new SingleStackRecipeInput(itemStack), this.world);
-        return optionalRecipeEntry != null && optionalRecipeEntry.isPresent() && optionalRecipeEntry.get().value() != null;
+        return this.recipePropertySet.canUse(itemStack);
     }
 
     public int getCookProgress() {
@@ -195,13 +167,8 @@ public abstract class AbstractMicrowaveScreenHandler extends AbstractRecipeScree
     }
 
     @Override
-    public RecipeBookCategory getCategory() {
+    public RecipeBookType getCategory() {
         return this.category;
-    }
-
-    @Override
-    public boolean canInsertIntoSlot(int index) {
-        return true;
     }
 
     @Override
@@ -219,6 +186,27 @@ public abstract class AbstractMicrowaveScreenHandler extends AbstractRecipeScree
             buf.writeBlockPos(pos);
             buf.writeBoolean(isActive);
         }
+    }
+
+    @Override
+    public PostFillAction fillInputSlots(boolean craftAll, boolean creative, RecipeEntry<?> recipe, ServerWorld world, PlayerInventory inventory) {
+        final List<Slot> list = List.of(this.getSlot(0));
+        return InputSlotFiller.fill(new InputSlotFiller.Handler<>() {
+            @Override
+            public void populateRecipeFinder(RecipeFinder finder) {
+                AbstractMicrowaveScreenHandler.this.populateRecipeFinder(finder);
+            }
+
+            @Override
+            public void clear() {
+                list.forEach(slot -> slot.setStackNoCallbacks(ItemStack.EMPTY));
+            }
+
+            @Override
+            public boolean matches(RecipeEntry<AbstractCookingRecipe> entry) {
+                return entry.value().matches(new SingleStackRecipeInput(AbstractMicrowaveScreenHandler.this.inventory.getStack(0)), world);
+            }
+        }, 1, 1, List.of(this.getSlot(0)), list, inventory, (RecipeEntry<AbstractCookingRecipe>)recipe, craftAll, creative);
     }
 }
 

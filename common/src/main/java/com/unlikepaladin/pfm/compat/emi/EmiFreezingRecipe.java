@@ -14,10 +14,10 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 import java.util.List;
-
+/*
 
 public class EmiFreezingRecipe implements EmiRecipe {
-    private final Identifier id;
+   private final Identifier id;
     private final EmiIngredient input;
     private final EmiStack output;
     private final AbstractCookingRecipe recipe;
@@ -79,4 +79,4 @@ public class EmiFreezingRecipe implements EmiRecipe {
         widgets.addSlot(input, 0, 4);
         widgets.addSlot(output, 56, 0).large(true).recipeContext(this);
     }
-}
+}*/

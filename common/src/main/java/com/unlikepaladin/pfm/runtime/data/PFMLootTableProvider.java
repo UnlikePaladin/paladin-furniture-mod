@@ -3,27 +3,21 @@ package com.unlikepaladin.pfm.runtime.data;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 import com.google.gson.stream.JsonWriter;
 import com.mojang.datafixers.util.Pair;
 import com.mojang.serialization.JsonOps;
 import com.unlikepaladin.pfm.blocks.BasicBathtubBlock;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
-import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
-import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.enums.BedPart;
-import net.minecraft.data.DataProvider;
 import net.minecraft.data.DataWriter;
-import net.minecraft.data.server.loottable.BlockLootTableGenerator;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.loot.*;
 import net.minecraft.loot.condition.BlockStatePropertyLootCondition;
 import net.minecraft.loot.condition.LootConditionConsumingBuilder;
-import net.minecraft.loot.context.LootContextType;
 import net.minecraft.loot.context.LootContextTypes;
 import net.minecraft.loot.entry.ItemEntry;
 import net.minecraft.loot.provider.number.ConstantLootNumberProvider;
@@ -33,12 +27,12 @@ import net.minecraft.state.property.Property;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
 import net.minecraft.util.StringIdentifiable;
+import net.minecraft.util.context.ContextType;
 
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
@@ -49,7 +43,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class PFMLootTableProvider extends PFMProvider {
-    private final List<Pair<Supplier<Consumer<BiConsumer<Identifier, LootTable.Builder>>>, LootContextType>> lootTypeGenerators = ImmutableList.of(Pair.of(PFMLootTableGenerator::new, LootContextTypes.BLOCK));
+    private final List<Pair<Supplier<Consumer<BiConsumer<Identifier, LootTable.Builder>>>, ContextType>> lootTypeGenerators = ImmutableList.of(Pair.of(PFMLootTableGenerator::new, LootContextTypes.BLOCK));
 
     public PFMLootTableProvider(PFMGenerator parent) {
         super(parent);
@@ -107,8 +101,10 @@ public class PFMLootTableProvider extends PFMProvider {
 
             HashSet<Identifier> set = Sets.newHashSet();
             for (Block block : pfmBlocks) {
-                Identifier identifier = block.getLootTableKey().getValue();
-                if (identifier == LootTables.EMPTY.getValue() || !set.add(identifier)) continue;
+                if (block.getLootTableKey().isEmpty()) continue;
+
+                Identifier identifier = block.getLootTableKey().get().getValue();
+                if (!set.add(identifier)) continue;
                 LootTable.Builder builder5 = this.lootTables.remove(identifier);
                 if (builder5 == null) {
                     throw new IllegalStateException(String.format("Missing loottable '%s' for '%s'", identifier, Registries.BLOCK.getId(block)));
@@ -137,7 +133,7 @@ public class PFMLootTableProvider extends PFMProvider {
         }
 
         public final void addDrop(Block block, LootTable.Builder lootTable) {
-            this.lootTables.put(block.getLootTableKey().getValue(), lootTable);
+            this.lootTables.put(block.getLootTableKey().get().getValue(), lootTable);
             this.pfmBlocks.add(block);
         }
 

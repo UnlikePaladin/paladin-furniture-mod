@@ -22,7 +22,7 @@ import java.util.Optional;
 public class PFMSandwichableCompat {
 
     public static void toastSandwich(PFMToasterBlockEntity pfmToasterBlockEntity) {
-        World world = pfmToasterBlockEntity.getWorld();
+       /* World world = pfmToasterBlockEntity.getWorld();
         List<ItemStack> items = pfmToasterBlockEntity.getItems();
         for (int i = 0; i < 2; i++) {
             SimpleInventory inv = new SimpleInventory(pfmToasterBlockEntity.getItems().get(i));
@@ -50,7 +50,7 @@ public class PFMSandwichableCompat {
                     }
                 });
             }
-        }
+        }*/
     }
 
     public static boolean isMetal(ItemStack stack) {

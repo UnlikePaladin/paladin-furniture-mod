@@ -21,8 +21,13 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.recipe.Ingredient;
+import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.registry.Registries;
+import net.minecraft.registry.RegistryKey;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
@@ -62,7 +67,7 @@ public class FurnitureRecipeJsonFactory implements CraftingRecipeJsonBuilder {
         return new FurnitureRecipeJsonFactory(output, 1);
     }
 
-    public FurnitureRecipeJsonFactory input(TagKey<Item> tag) {
+    public FurnitureRecipeJsonFactory input(RegistryEntryList<Item> tag) {
         return this.input(Ingredient.fromTag(tag));
     }
 
@@ -111,13 +116,21 @@ public class FurnitureRecipeJsonFactory implements CraftingRecipeJsonBuilder {
     }
 
     @Override
-    public void offerTo(RecipeExporter exporter, Identifier recipeId) {
-        Advancement.Builder advancement$builder = exporter.getAdvancementBuilder().criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId)).rewards(AdvancementRewards.Builder.recipe(recipeId)).criteriaMerger(AdvancementRequirements.CriterionMerger.OR);
+    public void offerTo(RecipeExporter exporter, RegistryKey<Recipe<?>> recipeKey) {
+        Advancement.Builder advancement$builder = exporter.getAdvancementBuilder().criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeKey)).rewards(AdvancementRewards.Builder.recipe(recipeKey)).criteriaMerger(AdvancementRequirements.CriterionMerger.OR);
         this.criteria.forEach(advancement$builder::criterion);
-        exporter.accept(recipeId, new FurnitureRecipe(this.group == null || this.group.isBlank() ? "" : this.group, stack, this.inputs), advancement$builder.build(recipeId.withPrefixedPath("recipes/furniture/")));
+        exporter.accept(recipeKey, new FurnitureRecipe(this.group == null || this.group.isBlank() ? "" : this.group, stack, this.inputs), advancement$builder.build(recipeKey.getValue().withPrefixedPath("recipes/furniture/")));
     }
 
-    private void validate(Identifier recipeId) {
+    public void offerTo(RecipeExporter exporter, Identifier recipeId) {
+        Recipe<?> recipe = new FurnitureRecipe(this.group == null || this.group.isBlank() ? "" : this.group, stack, this.inputs);
+        RegistryKey<Recipe<?>> recipeKey = RegistryKey.of(RegistryKeys.RECIPE, recipeId);
+        Advancement.Builder advancement$builder = exporter.getAdvancementBuilder().criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeKey)).rewards(AdvancementRewards.Builder.recipe(recipeKey)).criteriaMerger(AdvancementRequirements.CriterionMerger.OR);
+        this.criteria.forEach(advancement$builder::criterion);
+        exporter.accept(recipeKey, recipe, advancement$builder.build(recipeKey.getValue().withPrefixedPath("recipes/furniture/")));
+    }
+
+        private void validate(Identifier recipeId) {
         if (this.criteria.isEmpty()) {
             throw new IllegalStateException("No way of obtaining recipe " + recipeId);
         }

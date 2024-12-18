@@ -32,7 +32,7 @@ dependencies {
     modCompileOnly("me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_config_version}") {
         exclude(group: "net.fabricmc.fabric-api")
     }
-    modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}") {
+    modCompileOnlyApi("mezz.jei:jei-1.21.1-fabric:${rootProject.jei_version}") {
         exclude group: "mezz.jei"
     }
 

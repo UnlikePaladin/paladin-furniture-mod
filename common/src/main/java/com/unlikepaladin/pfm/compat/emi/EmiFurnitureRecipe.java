@@ -19,7 +19,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
 
 import java.util.*;
-
+/*
 public class EmiFurnitureRecipe extends EmiCraftingRecipe {
 
     public EmiFurnitureRecipe(RecipeEntry<FurnitureRecipe> entry) {
@@ -92,4 +92,4 @@ public class EmiFurnitureRecipe extends EmiCraftingRecipe {
         finalList.sort(Comparator.comparing(o -> o.getEmiStacks().get(0).getItemStack().getItem().toString()));
         return finalList;
     }
-}
+}*/

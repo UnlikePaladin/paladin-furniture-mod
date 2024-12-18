@@ -71,7 +71,7 @@ dependencies {
     shadowCommon(project(path: ":common", configuration: "transformProductionForge")) { transitive = false }
 
     modCompileOnly("vazkii.patchouli:Patchouli:${rootProject.patchouli_version_forge}")
-    modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-forge-api:${rootProject.jei_version}")
+    modCompileOnlyApi("mezz.jei:jei-1.21.1-forge-api:${rootProject.jei_version}")
     modCompileOnlyApi("me.shedaniel:RoughlyEnoughItems-api-neoforge:${rootProject.rei_version}") {
         transitive(false)
     }
@@ -89,7 +89,7 @@ dependencies {
 
 if(rootProject.jei_compatibility == "true") {
     dependencies {
-        modRuntimeOnly("mezz.jei:jei-${rootProject.minecraft_version}-forge:${rootProject.jei_version}")
+        modRuntimeOnly("mezz.jei:jei-1.21.1-forge:${rootProject.jei_version}")
     }
 }ﬁ
 if (rootProject.immersive_portals_compatibility_forge == "true"){

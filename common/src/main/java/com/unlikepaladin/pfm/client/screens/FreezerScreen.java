@@ -1,15 +1,11 @@
 package com.unlikepaladin.pfm.client.screens;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.menus.AbstractFreezerScreenHandler;
-import com.unlikepaladin.pfm.menus.FreezerScreenHandler;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.client.render.RenderLayer;
 import net.minecraft.entity.player.PlayerInventory;
-import net.minecraft.screen.ScreenHandler;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
@@ -43,13 +39,13 @@ public class FreezerScreen extends HandledScreen<AbstractFreezerScreenHandler> {
         int k;
         int i = this.x;
         int j = this.y;
-        context.drawTexture(this.background, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight);
+        context.drawTexture(RenderLayer::getGuiTextured, this.background, i, j, 0, 0, this.backgroundWidth, this.backgroundHeight,256, 256);
         if (this.handler.isActive()) {
             k = this.handler.getFuelProgress();
-            context.drawTexture(this.background, i + 56, j + 36 + 12 - k, 176, 12 - k, 14, k + 1);
+            context.drawTexture(RenderLayer::getGuiTextured, this.background, i + 56, j + 36 + 12 - k, 176, 12 - k, 14, k + 1, 256, 256);
         }
         k = this.handler.getFreezeProgress();
-        context.drawTexture(this.background, i + 79, j + 34, 176, 14, k + 1, 16);
+        context.drawTexture(RenderLayer::getGuiTextured, this.background, i + 79, j + 34, 176, 14, k + 1, 16, 256, 256);
     }
 
 }

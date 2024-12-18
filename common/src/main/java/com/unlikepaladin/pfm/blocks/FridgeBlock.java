@@ -15,6 +15,7 @@ import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.ScreenHandler;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.state.property.Properties;
@@ -24,9 +25,11 @@ import net.minecraft.util.ItemScatterer;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.random.Random;
 import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.util.shape.VoxelShapes;
 import net.minecraft.world.*;
+import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -80,7 +83,7 @@ public class FridgeBlock extends HorizontalFacingBlockWithEntity {
     }
 
     @Override
-    public boolean isTransparent(BlockState state, BlockView world, BlockPos pos) {
+    protected boolean isTransparent(BlockState state) {
         return true;
     }
 
@@ -98,7 +101,7 @@ public class FridgeBlock extends HorizontalFacingBlockWithEntity {
     }
 
     @Override
-    public BlockState getStateForNeighborUpdate(BlockState state, Direction direction, BlockState neighborState, WorldAccess world, BlockPos pos, BlockPos neighborPos) {
+    protected BlockState getStateForNeighborUpdate(BlockState state, WorldView world, ScheduledTickView tickView, BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, Random random) {
         return direction.getAxis().isVertical() && neighborState.getBlock() == this ? neighborState.get(FACING) == state.get(FACING) ? state.with(OPEN, neighborState.get(OPEN)) : state : state;
     }
 
@@ -113,10 +116,10 @@ public class FridgeBlock extends HorizontalFacingBlockWithEntity {
             return ActionResult.SUCCESS;
         }
         BlockEntity blockEntity = world.getBlockEntity(pos);
-        if (blockEntity instanceof FridgeBlockEntity) {
+        if (world instanceof ServerWorld serverWorld && blockEntity instanceof FridgeBlockEntity) {
             player.openHandledScreen((FridgeBlockEntity)blockEntity);
             player.incrementStat(Statistics.FRIDGE_OPENED);
-            PiglinBrain.onGuardedBlockInteracted(player, true);
+            PiglinBrain.onGuardedBlockInteracted(serverWorld, player, true);
         }
         return ActionResult.CONSUME;
     }

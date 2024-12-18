@@ -254,7 +254,7 @@ public class PFMLangProvider extends PFMProvider {
         String baseBlockName = translate(variant.getBaseBlock().getTranslationKey());
         List<String> common = findCommonWords(variantName.get(), baseBlockName);
         variantName.set("");
-        if (variant == WoodVariantRegistry.getVariantFromVanillaWoodType(BoatEntity.Type.BAMBOO)) {
+        if (variant.identifier.getPath().contains("bamboo")) {
             variantName.set(variantName.get().replace("Block of", ""));
         }
         variantName.set(String.join(" ", common));

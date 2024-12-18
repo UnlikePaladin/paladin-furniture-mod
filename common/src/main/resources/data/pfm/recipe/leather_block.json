@@ -6,12 +6,8 @@
     "XSX"
   ],
   "key": {
-    "X": {
-      "item": "minecraft:leather"
-    },
-    "S": {
-      "item": "minecraft:string"
-    }
+    "X": "minecraft:leather",
+    "S": "minecraft:string"
   },
   "result": {
     "id": "pfm:leather_block",

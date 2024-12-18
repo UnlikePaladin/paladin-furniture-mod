@@ -1,12 +1,8 @@
 {
   "type": "minecraft:crafting_shapeless",
   "ingredients": [
-    {
-      "item": "minecraft:glass_bottle"
-    },
-    {
-      "item": "minecraft:lime_dye"
-    }
+    "minecraft:glass_bottle",
+    "minecraft:lime_dye"
   ],
   "result": {
     "id": "pfm:dye_kit_lime",

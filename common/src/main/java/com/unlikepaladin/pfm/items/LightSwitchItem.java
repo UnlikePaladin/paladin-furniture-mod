@@ -19,7 +19,6 @@ import net.minecraft.nbt.NbtLong;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
-import net.minecraft.util.TypedActionResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
@@ -39,17 +38,17 @@ public class LightSwitchItem extends BlockItem {
     }
 
     @Override
-    public TypedActionResult<ItemStack> use(World world, PlayerEntity player, Hand hand) {
+    public ActionResult use(World world, PlayerEntity player, Hand hand) {
         ItemStack stack = player.getStackInHand(hand);
         if (world.isClient) {
-            return new TypedActionResult<>(ActionResult.FAIL, stack);
+            return ActionResult.FAIL;
         }
         if (player.isSneaking()) {
             stack.remove(DataComponentTypes.BLOCK_ENTITY_DATA);
             createTag(stack);
-            return new TypedActionResult<>(ActionResult.SUCCESS, stack);
+            return ActionResult.SUCCESS.withNewHandStack(stack);
         }
-        return new TypedActionResult<>(ActionResult.PASS, stack);
+        return ActionResult.PASS;
     }
 
 

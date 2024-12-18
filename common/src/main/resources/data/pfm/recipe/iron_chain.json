@@ -6,12 +6,8 @@
     "X"
 ],
    "key": {
-    "X": {
-      "item": "minecraft:iron_ingot"
-    },
-    "Y": {
-      "item": "minecraft:iron_nugget"
-    }
+    "X": "minecraft:iron_ingot",
+    "Y": "minecraft:iron_nugget"
   },
   "result": {
     "id": "pfm:iron_chain",
