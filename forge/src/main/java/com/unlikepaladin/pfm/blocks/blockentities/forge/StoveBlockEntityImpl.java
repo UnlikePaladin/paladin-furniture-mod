@@ -60,10 +60,4 @@ public class StoveBlockEntityImpl extends StoveBlockEntity {
     public static BlockEntityType.BlockEntityFactory<? extends BlockEntity> getFactory() {
         return PaladinFurnitureMod.getModList().contains("cookingforblockheads") ? StoveBlockEntityBalm::new :StoveBlockEntityImpl::new;
     }
-
-    @Nullable
-    @Override
-    public ScreenHandler createMenu(int i, PlayerInventory inventory, PlayerEntity arg2) {
-        return new StoveScreenHandler(i, inventory, new StoveScreenHandler.StoveData(this.pos));
-    }
 }
