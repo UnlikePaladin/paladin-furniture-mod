@@ -26,9 +26,9 @@ import java.util.List;
 
 public class ColorRegistry {
     public static void registerBlockColors(){
-        List<Block> sinks = new ArrayList<>();
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_TOILET, addToiletColor());
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_BATHTUB, addWaterColor());
+        registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_SINK, addWaterColor());
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_LAMP, (state, world, pos, tintIndex) -> {
             BlockEntity entity = world.getBlockEntity(pos);
             if (entity != null && tintIndex == 1) {
@@ -97,6 +97,7 @@ public class ColorRegistry {
 
     public static void registerItemColors() {
         registerItemColor(PaladinFurnitureModBlocksItems.BASIC_BATHTUB.asItem(), (stack, index) -> index == 1 ?  0x3c44a9 : 0xFFFFFF);
+        registerItemColor(PaladinFurnitureModBlocksItems.BASIC_SINK.asItem(), (stack, index) -> index == 1 ?  0x3c44a9 : 0xFFFFFF);
         registerItemColor(PaladinFurnitureModBlocksItems.BASIC_LAMP_ITEM, (stack, tintIndex) -> {
             if (stack.hasNbt() && tintIndex == 1) {
                 return DyeColor.byName(stack.getSubNbt("BlockEntityTag").getString("color"), DyeColor.WHITE).getMapColor().color;
