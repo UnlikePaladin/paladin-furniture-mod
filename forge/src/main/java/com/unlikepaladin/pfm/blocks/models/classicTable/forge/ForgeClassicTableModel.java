@@ -1,7 +1,6 @@
 package com.unlikepaladin.pfm.blocks.models.classicTable.forge;
 
 import com.unlikepaladin.pfm.blocks.ClassicTableBlock;
-import com.unlikepaladin.pfm.blocks.models.AbstractBakedModel;
 import com.unlikepaladin.pfm.blocks.models.forge.ModelBitSetProperty;
 import com.unlikepaladin.pfm.blocks.models.forge.PFMForgeBakedModel;
 import net.minecraft.block.BlockState;
@@ -10,7 +9,6 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.ModelBakeSettings;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockRenderView;
@@ -87,18 +85,18 @@ public class ForgeClassicTableModel extends PFMForgeBakedModel {
     }
 
     @Override
-    public List<BakedQuad> getQuads(ItemStack stack, @Nullable BlockState state, @Nullable Direction face, Random random) {
+    public List<BakedQuad> getQuads(@Nullable Direction face, Random random) {
         // base
-        List<BakedQuad> baseQuads = new ArrayList<>(getTemplateBakedModels().get(0).getQuads(state, face, random));
+        List<BakedQuad> baseQuads = new ArrayList<>(getTemplateBakedModels().get(0).getQuads(null, face, random));
 
         List<BakedQuad> secondaryQuads = new ArrayList<>();
         // legs
-        secondaryQuads.addAll(getTemplateBakedModels().get(1).getQuads(state, face, random));
-        secondaryQuads.addAll(getTemplateBakedModels().get(2).getQuads(state, face, random));
-        secondaryQuads.addAll(getTemplateBakedModels().get(3).getQuads(state, face, random));
-        secondaryQuads.addAll(getTemplateBakedModels().get(4).getQuads(state, face, random));
+        secondaryQuads.addAll(getTemplateBakedModels().get(1).getQuads(null, face, random));
+        secondaryQuads.addAll(getTemplateBakedModels().get(2).getQuads(null, face, random));
+        secondaryQuads.addAll(getTemplateBakedModels().get(3).getQuads(null, face, random));
+        secondaryQuads.addAll(getTemplateBakedModels().get(4).getQuads(null, face, random));
 
-        List<Sprite> spriteList = getSpriteList(stack);
+        List<Sprite> spriteList = getSpriteList(blockState);
         List<BakedQuad> quads = getQuadsWithTexture(baseQuads, new SpriteData(spriteList.get(0)));
         quads.addAll(getQuadsWithTexture(secondaryQuads, new SpriteData(spriteList.get(1))));
         return quads;

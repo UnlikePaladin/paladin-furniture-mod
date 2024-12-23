@@ -6,18 +6,15 @@ import net.minecraft.resource.ResourcePack;
 import net.minecraft.resource.ResourcePackInfo;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.resource.metadata.PackResourceMetadata;
-import net.minecraft.resource.metadata.ResourceMetadataReader;
+import net.minecraft.resource.metadata.ResourceMetadata;
+import net.minecraft.resource.metadata.ResourceMetadataSerializer;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class PathPackRPWrapper implements ResourcePack {
@@ -62,8 +59,8 @@ public class PathPackRPWrapper implements ResourcePack {
 
     @Nullable
     @Override
-    public <T> T parseMetadata(ResourceMetadataReader<T> metaReader) throws IOException {
-        if (metaReader.getKey().equals("pack")) {
+    public <T> T parseMetadata(ResourceMetadataSerializer<T> metaReader) throws IOException {
+        if (metaReader.name().equals("pack")) {
             return (T) packResourceMetadata;
         }
         if (PFMRuntimeResources.ready)

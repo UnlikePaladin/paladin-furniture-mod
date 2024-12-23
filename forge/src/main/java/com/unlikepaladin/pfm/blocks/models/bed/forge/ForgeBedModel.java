@@ -1,8 +1,6 @@
 package com.unlikepaladin.pfm.blocks.models.bed.forge;
 
-import com.unlikepaladin.pfm.blocks.ClassicBedBlock;
 import com.unlikepaladin.pfm.blocks.SimpleBedBlock;
-import com.unlikepaladin.pfm.blocks.models.AbstractBakedModel;
 import com.unlikepaladin.pfm.blocks.models.ModelHelper;
 import com.unlikepaladin.pfm.blocks.models.forge.ModelBitSetProperty;
 import com.unlikepaladin.pfm.blocks.models.bed.BedInterface;
@@ -15,7 +13,6 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.ModelBakeSettings;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockRenderView;
@@ -78,10 +75,10 @@ public class ForgeBedModel extends PFMForgeBakedModel implements BedInterface {
     }
 
     @Override
-    public List<BakedQuad> getQuads(ItemStack stack, @Nullable BlockState state, @Nullable Direction face, Random random) {
-        int classicOffset = stack.getItem().getTranslationKey().contains("classic") ? 12 : 0;
-        List<Sprite> spriteList = getSpriteList(stack);
-        return getQuadsWithTexture((getTemplateBakedModels().get((classicOffset+11))).getQuads(state, face, random), ModelHelper.getOakBedSprites(), spriteList);
+    public List<BakedQuad> getQuads(@Nullable Direction face, Random random) {
+        int classicOffset = blockState.getBlock().getTranslationKey().contains("classic") ? 12 : 0;
+        List<Sprite> spriteList = getSpriteList(blockState);
+        return getQuadsWithTexture((getTemplateBakedModels().get((classicOffset+11))).getQuads(null, face, random), ModelHelper.getOakBedSprites(), spriteList);
     }
 
     @NotNull

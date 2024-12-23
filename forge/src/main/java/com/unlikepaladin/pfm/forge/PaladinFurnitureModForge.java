@@ -4,6 +4,7 @@ import com.google.common.base.Suppliers;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.client.PathPackRPWrapper;
 import com.unlikepaladin.pfm.client.forge.ColorRegistryForge;
+import com.unlikepaladin.pfm.client.forge.ItemModelRegistry;
 import com.unlikepaladin.pfm.config.PaladinFurnitureModConfig;
 import com.unlikepaladin.pfm.data.forge.PFMTagsImpl;
 import com.unlikepaladin.pfm.items.forge.PFMComponentsImpl;
@@ -56,14 +57,17 @@ public class PaladinFurnitureModForge extends PaladinFurnitureMod {
         MinecraftForge.EVENT_BUS.register(SoundRegistryForge.class);
         MinecraftForge.EVENT_BUS.register(NetworkRegistryForge.class);
         MinecraftForge.EVENT_BUS.register(PFMComponentsImpl.class);
-        loadContext.getModEventBus().addListener(EventPriority.LOW, ColorRegistryForge::registerBlockColors);
-        loadContext.getModEventBus().addListener(EventPriority.LOWEST, ColorRegistryForge::registerItemColors);
         NetworkRegistryForge.registerPackets();
         LateBlockRegistryForge.addDynamicBlockRegistration(loadContext);
         PaladinFurnitureMod.isClient = FMLEnvironment.dist == Dist.CLIENT;
         loadContext.getModEventBus().addListener(ItemGroupRegistryForge::registerItemGroups);
         loadContext.getModEventBus().addListener(ItemGroupRegistryForge::addToVanillaItemGroups);
         loadContext.getModEventBus().addListener(PaladinFurnitureModForge::generateResources);
+        if (isClient) {
+            ItemModelRegistry.registerItemModelTypes();
+            loadContext.getModEventBus().addListener(EventPriority.LOW, ColorRegistryForge::registerBlockColors);
+            MinecraftForge.EVENT_BUS.addListener(ItemModelRegistry::registerSpecialModelRenderers);
+        }
     }
 
     @SubscribeEvent

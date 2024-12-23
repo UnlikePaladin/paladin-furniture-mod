@@ -16,10 +16,8 @@ import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.ModelBakeSettings;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.SpriteIdentifier;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.item.ItemStack;
-import net.minecraft.screen.PlayerScreenHandler;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -69,7 +67,7 @@ public class ForgeBasicLampModel extends PFMForgeBakedModel {
     static List<Sprite> getOakStrippedLogSprite() {
         if (!oakSprite.isEmpty())
             return oakSprite;
-        Sprite wood = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE,  Identifier.of("minecraft:block/stripped_oak_log")).getSprite();
+        Sprite wood = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE,  Identifier.of("minecraft:block/stripped_oak_log")).getSprite();
         oakSprite.add(wood);
         return oakSprite;
     }
@@ -79,7 +77,7 @@ public class ForgeBasicLampModel extends PFMForgeBakedModel {
         if (sprites.containsKey(variant))
             return sprites.get(variant);
 
-        Sprite wood = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, variant.getTexture(BlockType.STRIPPED_LOG)).getSprite();
+        Sprite wood = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, variant.getTexture(BlockType.STRIPPED_LOG)).getSprite();
         List<Sprite> spriteList = new ArrayList<>();
         spriteList.add(wood);
         sprites.put(variant, spriteList);
@@ -93,7 +91,6 @@ public class ForgeBasicLampModel extends PFMForgeBakedModel {
             List<BakedQuad> quads = new ArrayList<>();
             int onOffset = state.get(Properties.LIT) ? 1 : 0;
             WoodVariant variant = extraData.get(VARIANT);
-            Sprite sprite = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, variant.getTexture(BlockType.STRIPPED_LOG)).getSprite();
             BitSet set = extraData.get(CONNECTIONS).connections;
             if (set.get(0) && set.get(1)) {
                 quads.addAll(getTemplateBakedModels().get(1).getQuads(state, side, rand, extraData, renderType));
@@ -134,15 +131,15 @@ public class ForgeBasicLampModel extends PFMForgeBakedModel {
     }
 
     @Override
-    public List<BakedQuad> getQuads(ItemStack stack, @Nullable BlockState state, @Nullable Direction face, Random random) {
+    public List<BakedQuad> getQuads(@Nullable Direction face, Random random) {
         List<BakedQuad> quads = new ArrayList<>();
         WoodVariant variant = WoodVariantRegistry.OAK;
-        if (stack.contains(PFMComponents.VARIANT_COMPONENT)) {
-            variant = WoodVariantRegistry.getVariant(stack.get(PFMComponents.VARIANT_COMPONENT));
+        if (this.variant != null) {
+            variant = (WoodVariant) this.variant;
         }
-        quads.addAll(getTemplateBakedModels().get(4).getQuads(state, face, random));
-        quads.addAll(getTemplateBakedModels().get(2).getQuads(state, face, random));
-        quads.addAll(getTemplateBakedModels().get(5).getQuads(state, face, random));
+        quads.addAll(getTemplateBakedModels().get(4).getQuads(null, face, random));
+        quads.addAll(getTemplateBakedModels().get(2).getQuads(null, face, random));
+        quads.addAll(getTemplateBakedModels().get(5).getQuads(null, face, random));
         return getQuadsWithTexture(quads, getOakStrippedLogSprite(), getVariantStrippedLogSprite(variant));
     }
 }

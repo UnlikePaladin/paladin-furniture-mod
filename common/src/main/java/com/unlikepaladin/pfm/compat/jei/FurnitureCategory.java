@@ -63,7 +63,7 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
         List<Ingredient> ingredientsList = recipe.getIngredients();
         HashMap<Item, Integer> containedItems = new LinkedHashMap<>();
         for (Ingredient ingredient : ingredientsList) {
-            for (RegistryEntry<Item> itemRegistryEntry : ingredient.getMatchingItems()) {
+            for (RegistryEntry<Item> itemRegistryEntry : ingredient.getMatchingItems().toList()) {
                 if (!containedItems.containsKey(itemRegistryEntry.value())) {
                     containedItems.put(itemRegistryEntry.value(), 1);
                 } else {
@@ -75,10 +75,10 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
         for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
             finalList.add(Ingredient.ofItem(entry.getKey()));
         }
-        finalList.sort(Comparator.comparing(o -> o.getMatchingItems().get(0).toString()));
+        finalList.sort(Comparator.comparing(o -> o.getMatchingItems().toList().get(0).toString()));
         List<List<ItemStack>> inputLists = new ArrayList<>();
         for (Ingredient input : finalList) {
-            List<RegistryEntry<Item>> stacks = input.getMatchingItems();
+            List<RegistryEntry<Item>> stacks = input.getMatchingItems().toList();
           //  List<ItemStack> expandedInput = List.of(stacks);
          //   inputLists.add(expandedInput);
         }

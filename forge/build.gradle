@@ -85,6 +85,9 @@ dependencies {
     modCompileOnly "curse.maven:cooking-for-blockheads-forge-231484:${rootProject.cookingforblockheads_version_forge}"
     modCompileOnly "curse.maven:farmers-delight-forge-398521:${rootProject.farmers_delight_version_forge}"
     modCompileOnly(files("../libs/immersive-portals-2.5.4-mc1.19.3-forge.jar"))
+
+    compileOnly(annotationProcessor("io.github.llamalad7:mixinextras-common:0.3.6"))
+    implementation(include("io.github.llamalad7:mixinextras-forge:0.3.6"))
 }
 
 if(rootProject.jei_compatibility == "true") {

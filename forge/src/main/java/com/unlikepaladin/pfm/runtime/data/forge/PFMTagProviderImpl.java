@@ -1,14 +1,11 @@
 package com.unlikepaladin.pfm.runtime.data.forge;
 
 import com.unlikepaladin.pfm.data.PFMTag;
-import com.unlikepaladin.pfm.mixin.forge.PFMAbstractTagProvider$ObjectBuilderMixin;
-import net.minecraft.data.server.tag.TagProvider;
-import net.minecraft.data.server.tag.ValueLookupTagProvider;
+import net.minecraft.data.tag.TagProvider;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.tag.TagBuilder;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.tag.TagKey;
-import net.minecraft.util.Identifier;
 
 import java.util.function.Function;
 import java.util.stream.Stream;

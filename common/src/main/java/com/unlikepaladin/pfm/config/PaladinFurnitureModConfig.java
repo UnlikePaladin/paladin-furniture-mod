@@ -184,11 +184,11 @@ public class PaladinFurnitureModConfig {
             Type targetType;
 
             if (primitive.isString()) {
-                targetType = new TypeToken<T>() {}.getType();
+                targetType = String.class;
             } else if (primitive.isBoolean()) {
-                targetType = new TypeToken<T>() {}.getType();
+                targetType = Boolean.class;
             } else if (primitive.isNumber()) {
-                targetType = new TypeToken<T>() {}.getType();
+                targetType = Number.class;
             } else {
                 // Handle the case where the primitive type is not supported
                 return null;

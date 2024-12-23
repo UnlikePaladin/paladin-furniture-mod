@@ -36,10 +36,7 @@ import com.unlikepaladin.pfm.client.PaladinFurnitureModClient;
 import com.unlikepaladin.pfm.client.ScreenRegistry;
 import com.unlikepaladin.pfm.client.screens.*;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.util.Identifier;
@@ -47,7 +44,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.ModelEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
@@ -91,102 +87,90 @@ public class PaladinFurnitureModClientNeoForge {
     @SubscribeEvent
     public static void registerExtraModels(ModelEvent.RegisterAdditional event) {
         for (Identifier id : UnbakedBedModel.BED_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedBasicTableModel.BASIC_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedClassicTableModel.CLASSIC_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedLogTableModel.LOG_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedDinnerTableModel.DINNER_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedModernDinnerTableModel.MODERN_DINNER_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedClassicNightstandModel.NIGHTSTAND_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedChairModel.CHAIR_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedChairDinnerModel.CHAIR_DINNER_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedChairModernModel.CHAIR_MODERN_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedChairClassicModel.CHAIR_CLASSIC_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedSimpleStoolModel.SIMPLE_STOOL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedClassicStoolModel.CLASSIC_STOOL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedModernStoolModel.MODERN_STOOL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedLogStoolModel.LOG_STOOL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedKitchenCounterModel.COUNTER_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedKitchenDrawerModel.COUNTER_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedKitchenCabinetModel.CABINET_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedKitchenWallDrawerModel.COUNTER_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedKitchenWallCounterModel.COUNTER_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedKitchenCounterOvenModel.OVEN_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedKitchenSinkModel.SINK_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedKitchenWallDrawerSmallModel.DRAWER_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedLadderModel.LADDER_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedCoffeeBasicTableModel.BASIC_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedModernCoffeeTableModel.MODERN_COFFEE_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
         for (Identifier id : UnbakedClassicCoffeeTableModel.CLASSIC_MODEL_PARTS_BASE) {
-            event.register(ModelIdentifier.standalone(id));
+            event.register(id);
         }
-        UnbakedMirrorModel.ALL_MODEL_IDS.forEach(model -> event.register(ModelIdentifier.standalone(model)));
-        UnbakedIronFridgeModel.ALL_MODEL_IDS.forEach(model -> event.register(ModelIdentifier.standalone(model)));
-        UnbakedFridgeModel.ALL_MODEL_IDS.forEach(model -> event.register(ModelIdentifier.standalone(model)));
-        UnbakedFreezerModel.ALL_MODEL_IDS.forEach(model -> event.register(ModelIdentifier.standalone(model)));
-        UnbakedBasicLampModel.ALL_MODEL_IDS.forEach(model -> event.register(ModelIdentifier.standalone(model)));
-    }
-
-    @SubscribeEvent
-    public static void registerClientExtensions(RegisterClientExtensionsEvent event) {
-        event.registerItem(new IClientItemExtensions() {
-               @Override
-               public BuiltinModelItemRenderer getCustomRenderer() {
-                   return PFMItemRenderer.INSTANCE;
-               }
-           },
-            PaladinFurnitureModBlocksItems.BASIC_LAMP_ITEM
-        );
+        UnbakedMirrorModel.ALL_MODEL_IDS.forEach(event::register);
+        UnbakedIronFridgeModel.ALL_MODEL_IDS.forEach(event::register);
+        UnbakedFridgeModel.ALL_MODEL_IDS.forEach(event::register);
+        UnbakedFreezerModel.ALL_MODEL_IDS.forEach(event::register);
+        UnbakedBasicLampModel.ALL_MODEL_IDS.forEach(event::register);
     }
 }

@@ -1,6 +1,5 @@
 package com.unlikepaladin.pfm.blocks.models.kitchenWallDrawerSmall.forge;
 
-import com.unlikepaladin.pfm.blocks.KitchenSinkBlock;
 import com.unlikepaladin.pfm.blocks.KitchenWallDrawerSmallBlock;
 import com.unlikepaladin.pfm.blocks.models.ModelHelper;
 import com.unlikepaladin.pfm.blocks.models.forge.PFMForgeBakedModel;
@@ -10,7 +9,6 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.ModelBakeSettings;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockRenderView;
@@ -19,7 +17,6 @@ import net.minecraftforge.client.model.data.ModelProperty;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import net.minecraft.util.math.random.Random;
@@ -57,9 +54,9 @@ public class ForgeKitchenWallDrawerSmallModel extends PFMForgeBakedModel {
     }
 
     @Override
-    public List<BakedQuad> getQuads(ItemStack stack, @Nullable BlockState state, @Nullable Direction face, Random random) {
-        List<Sprite> spriteList = getSpriteList(stack);
-        List<BakedQuad> originalQuads = getTemplateBakedModels().get(0).getQuads(state, face, random);
+    public List<BakedQuad> getQuads(@Nullable Direction face, Random random) {
+        List<Sprite> spriteList = getSpriteList(blockState);
+        List<BakedQuad> originalQuads = getTemplateBakedModels().get(0).getQuads(null, face, random);
         return getQuadsWithTexture(originalQuads, ModelHelper.getOakPlankLogSprites(), spriteList);
     }
 }

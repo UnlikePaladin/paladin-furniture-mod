@@ -52,7 +52,6 @@ public class PaladinFurnitureModNeoForge extends PaladinFurnitureMod {
         modEventBus.register(SoundRegistryNeoForge.class);
         modEventBus.addListener(NetworkRegistryNeoForge::register);
         modEventBus.addListener(EventPriority.LOW, ColorRegistryNeoForge::registerBlockColors);
-        modEventBus.addListener(EventPriority.LOWEST, ColorRegistryNeoForge::registerItemColors);
         LateBlockRegistryNeoForge.addDynamicBlockRegistration(modEventBus);
         PaladinFurnitureMod.isClient = FMLEnvironment.dist == Dist.CLIENT;
         NeoForge.EVENT_BUS.addListener(NetworkRegistryNeoForge::onServerJoin);

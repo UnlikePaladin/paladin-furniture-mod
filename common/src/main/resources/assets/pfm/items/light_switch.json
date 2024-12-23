@@ -1,0 +1,6 @@
+{
+    "model": {
+        "type": "minecraft:model",
+        "model": "pfm:block/light_switch/light_switch"
+    }
+}

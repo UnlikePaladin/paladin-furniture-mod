@@ -49,10 +49,6 @@ import java.util.ArrayList;
 @Mixin(ReferencedModelsCollector.class)
 public abstract class PFMReferencedModelsCollectorMixin {
 
-    @Shadow protected abstract void addTopLevelModel(ModelIdentifier modelId, UnbakedModel model);
-
-    @Shadow abstract UnbakedModel computeResolvedModel(Identifier id);
-
     @ModifyVariable(method = "getModel", at = @At(value = "STORE", ordinal = 0), ordinal = 0)
     private UnbakedModel pfm$loadModels(UnbakedModel olModel, Identifier olId) {
         Identifier resourceId = olId;

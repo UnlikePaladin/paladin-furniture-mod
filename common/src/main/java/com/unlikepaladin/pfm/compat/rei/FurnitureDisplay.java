@@ -54,7 +54,7 @@ public class FurnitureDisplay implements Display {
         List<Ingredient> ingredients = recipe.value().getIngredients();
         HashMap<Item, Integer> containedItems = new HashMap<>();
         for (Ingredient ingredient : ingredients) {
-            for (RegistryEntry<Item> item : ingredient.getMatchingItems()) {
+            for (RegistryEntry<Item> item : ingredient.getMatchingItems().toList()) {
                 if (!containedItems.containsKey(item.value())) {
                     containedItems.put(item.value(), 1);
                 } else {
@@ -68,7 +68,7 @@ public class FurnitureDisplay implements Display {
                 finalList.add(Ingredient.ofItem(entry.getKey()));
             }
         }
-        finalList.sort(Comparator.comparing(o -> o.getMatchingItems().getFirst().toString()));
+        finalList.sort(Comparator.comparing(o -> o.getMatchingItems().toList().getFirst().toString()));
         this.input = EntryIngredients.ofIngredients(finalList);
     }
 

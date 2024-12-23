@@ -1,0 +1,6 @@
+{
+    "model": {
+        "type": "minecraft:model",
+        "model": "pfm:block/xbox_fridge/xbox_fridge_full"
+    }
+}

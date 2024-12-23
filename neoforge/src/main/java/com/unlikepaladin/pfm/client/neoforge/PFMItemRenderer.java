@@ -10,7 +10,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderLayers;
 import net.minecraft.client.render.VertexConsumer;
 import net.minecraft.client.render.VertexConsumerProvider;
-import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.util.ModelIdentifier;
@@ -26,10 +25,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PFMItemRenderer extends BuiltinModelItemRenderer {
+public class PFMItemRenderer {
     public static final PFMItemRenderer INSTANCE = new PFMItemRenderer();
     public PFMItemRenderer() {
-        super(MinecraftClient.getInstance().getBlockEntityRenderDispatcher(), MinecraftClient.getInstance().getEntityModelLoader());
     }
 
     static Map<WoodVariant, Map<String, BakedModel>> bakedModels = new LinkedHashMap<>();
@@ -45,13 +43,12 @@ public class PFMItemRenderer extends BuiltinModelItemRenderer {
         for (WoodVariant woodVariant : WoodVariantRegistry.getVariants()) {
             bakedModels.put(woodVariant, new LinkedHashMap<>());
             for (String part : modelParts) {
-                bakedModels.get(woodVariant).put(part, MinecraftClient.getInstance().getBakedModelManager().getModel(ModelIdentifier.ofInventoryVariant(Identifier.of(PaladinFurnitureMod.MOD_ID, part.replaceAll("template", woodVariant.asString())))));
+                bakedModels.get(woodVariant).put(part, MinecraftClient.getInstance().getBakedModelManager().getModel(new ModelIdentifier(Identifier.of(PaladinFurnitureMod.MOD_ID, part.replaceAll("template", woodVariant.asString())), "inventory")));
             }
         }
         return bakedModels.get(variantBase).get(modelParts.get(index));
     }
 
-    @Override
     public void render(ItemStack stack, ModelTransformationMode mode, MatrixStack matrices, VertexConsumerProvider vertexConsumers, int light, int overlay) {
         if (stack.isOf(PaladinFurnitureModBlocksItems.BASIC_LAMP_ITEM)) {
             WoodVariant variant = WoodVariantRegistry.OAK;
@@ -68,17 +65,17 @@ public class PFMItemRenderer extends BuiltinModelItemRenderer {
             matrices.pop();
 
 
-            BakedModel lampShadeModel = ClientHooks.handleCameraTransforms(matrices, getLampPartFromVariant(variant, 4), mode, leftHanded);
+            //BakedModel lampShadeModel = ClientHooks.handleCameraTransforms(matrices, getLampPartFromVariant(variant, 4), mode, leftHanded);
 
             matrices.translate(-.5, -.5, -.5); // Replicate ItemRenderer's translation
 
-            renderer.renderBakedItemModel(lampShadeModel, stack, light, overlay, matrices, consumer);
+          //  renderer.renderBakedItemModel(lampShadeModel, stack, light, overlay, matrices, consumer);
 
             BakedModel poleModel = getLampPartFromVariant(variant, 2);
-            renderer.renderBakedItemModel(poleModel, stack, light, overlay, matrices, consumer);
+        //    renderer.renderBakedItemModel(poleModel, stack, light, overlay, matrices, consumer);
 
             BakedModel bulbModel = getLampPartFromVariant(variant, 5);
-            renderer.renderBakedItemModel(bulbModel, stack, light, overlay, matrices, consumer);
+         //   renderer.renderBakedItemModel(bulbModel, stack, light, overlay, matrices, consumer);
             matrices.push();
         }
     }

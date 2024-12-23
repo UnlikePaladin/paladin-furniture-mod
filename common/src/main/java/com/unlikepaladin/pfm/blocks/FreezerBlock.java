@@ -100,8 +100,8 @@ public class FreezerBlock extends HorizontalFacingBlockWithEntity {
     }
 
     @Override
-    public ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state) {
-        return super.getPickStack(world, pos, state);
+    protected ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state, boolean includeData) {
+        return super.getPickStack(world, pos, state, includeData);
     }
 
     @Override

@@ -24,9 +24,9 @@ import net.minecraft.advancement.criterion.InventoryChangedCriterion;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.data.DataWriter;
-import net.minecraft.data.server.recipe.CraftingRecipeJsonBuilder;
-import net.minecraft.data.server.recipe.RecipeExporter;
-import net.minecraft.data.server.recipe.ShapedRecipeJsonBuilder;
+import net.minecraft.data.recipe.CraftingRecipeJsonBuilder;
+import net.minecraft.data.recipe.RecipeExporter;
+import net.minecraft.data.recipe.ShapedRecipeJsonBuilder;
 import net.minecraft.item.*;
 import net.minecraft.predicate.NumberRange;
 import net.minecraft.predicate.item.ItemPredicate;
@@ -928,7 +928,7 @@ public class PFMRecipeProvider extends PFMProvider {
     public static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromIngredient(Ingredient item) {
         List<Item> items = new ArrayList<>();
         for (RegistryEntry<Item> item1:
-                item.getMatchingItems()) {
+                item.getMatchingItems().toList()) {
             if (items.contains(item1.value()))
                 continue;
             items.add(item1.value());
@@ -949,7 +949,7 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     private static String getItemPath(Ingredient item) {
-        List<RegistryEntry<Item>> n = item.getMatchingItems();
+        List<RegistryEntry<Item>> n = item.getMatchingItems().toList();
         if (!n.isEmpty()) {
             return Registries.ITEM.getId(n.getFirst().value()).getPath();
         } else {

@@ -39,9 +39,9 @@ public class PFMAssetGenerator extends PFMGenerator {
             setAssetsRunning(true);
             log("Packs:");
             for (ResourcePack pack : PFMRuntimeResources.RESOURCE_PACK_LIST) {
-                log("\tPack {}", pack.getInfo().title().getString());
+                log("\tPack " + pack.getInfo().title().getString().replace("Pack Fabric Mod ", "").replaceAll("\"", ""));
                 for (String namespace : pack.getNamespaces(ResourceType.CLIENT_RESOURCES)) {
-                    log("\t\tNamespace {}", namespace);
+                    log("\t\tNamespace " + namespace);
                 }
             }
             FROZEN = true;

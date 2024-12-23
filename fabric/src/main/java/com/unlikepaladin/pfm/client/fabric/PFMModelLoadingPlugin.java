@@ -1,5 +1,6 @@
 package com.unlikepaladin.pfm.client.fabric;
 
+import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.blocks.models.ModelHelper;
 import com.unlikepaladin.pfm.blocks.models.basicCoffeeTable.UnbakedCoffeeBasicTableModel;
 import com.unlikepaladin.pfm.blocks.models.basicLamp.UnbakedBasicLampModel;
@@ -33,10 +34,15 @@ import com.unlikepaladin.pfm.blocks.models.modernCoffeeTable.UnbakedModernCoffee
 import com.unlikepaladin.pfm.blocks.models.modernDinnerTable.UnbakedModernDinnerTableModel;
 import com.unlikepaladin.pfm.blocks.models.modernStool.UnbakedModernStoolModel;
 import com.unlikepaladin.pfm.blocks.models.simpleStool.UnbakedSimpleStoolModel;
+import com.unlikepaladin.pfm.client.model.PFMItemModel;
 import net.fabricmc.fabric.api.client.model.loading.v1.ModelLoadingPlugin;
-import net.fabricmc.fabric.api.client.model.loading.v1.ModelResolver;
+import net.fabricmc.fabric.api.client.model.loading.v1.ModelModifier;
+import net.minecraft.block.BlockState;
+import net.minecraft.client.render.item.model.ItemModelTypes;
+import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.render.model.Baker;
+import net.minecraft.client.render.model.GroupableModel;
 import net.minecraft.client.render.model.UnbakedModel;
-import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,7 +52,12 @@ import java.util.List;
 public class PFMModelLoadingPlugin implements ModelLoadingPlugin {
     @Override
     public void initialize(Context pluginContext) {
-        pluginContext.resolveModel().register(context -> loadModelResource(context.id()));
+        pluginContext.modifyModelOnLoad().register((oldModel, context) -> {
+            UnbakedModel model = loadModelResource(context.id());
+            if (model != null)
+                return model;
+            return oldModel;
+        });
         pluginContext.addModels(provideExtraModels());
     }
 

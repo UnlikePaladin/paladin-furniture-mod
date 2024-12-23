@@ -2,17 +2,16 @@ package com.unlikepaladin.pfm.blocks.models.bed.fabric;
 
 import com.unlikepaladin.pfm.blocks.ClassicBedBlock;
 import com.unlikepaladin.pfm.blocks.SimpleBedBlock;
-import com.unlikepaladin.pfm.blocks.models.AbstractBakedModel;
 import com.unlikepaladin.pfm.blocks.models.ModelHelper;
 import com.unlikepaladin.pfm.blocks.models.bed.BedInterface;
 import com.unlikepaladin.pfm.blocks.models.fabric.PFMFabricBakedModel;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.enums.BedPart;
-import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.ModelBakeSettings;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.item.ItemStack;
@@ -21,8 +20,11 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockRenderView;
 
 import java.util.List;
-import java.util.Map;
+
 import net.minecraft.util.math.random.Random;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class FabricBedModel extends PFMFabricBakedModel implements BedInterface {
@@ -36,7 +38,7 @@ public class FabricBedModel extends PFMFabricBakedModel implements BedInterface 
     }
 
     @Override
-    public void emitBlockQuads(BlockRenderView blockView, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context) {
+    public void emitBlockQuads(QuadEmitter context, BlockRenderView blockView, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, Predicate<@Nullable Direction> cullTest) {
         if (state.getBlock() instanceof SimpleBedBlock) {
             Direction dir = state.get(BedBlock.FACING);
             boolean isClassic = state.getBlock().getTranslationKey().contains("classic");
@@ -48,42 +50,41 @@ public class FabricBedModel extends PFMFabricBakedModel implements BedInterface 
             List<Sprite> spriteList = getSpriteList(state);
             pushTextureTransform(context, ModelHelper.getOakBedSprites(), spriteList);
             if (part == BedPart.HEAD) {
-                ((FabricBakedModel) getTemplateBakedModels().get((classicOffset+3))).emitBlockQuads(blockView, state, pos, randomSupplier, context);
+                getTemplateBakedModels().get((classicOffset+3)).emitBlockQuads(context, blockView, state, pos, randomSupplier, cullTest);
                 if (!right){
-                    ((FabricBakedModel) getTemplateBakedModels().get((classicOffset+6))).emitBlockQuads(blockView, state, pos, randomSupplier, context);
+                    getTemplateBakedModels().get((classicOffset+6)).emitBlockQuads(context, blockView, state, pos, randomSupplier, cullTest);
                 }
                 if (!left){
-                    ((FabricBakedModel) getTemplateBakedModels().get((classicOffset+7))).emitBlockQuads(blockView, state, pos, randomSupplier, context);
+                    getTemplateBakedModels().get((classicOffset+7)).emitBlockQuads(context, blockView, state, pos, randomSupplier, cullTest);
                 }
                 if (bunk && !(state.getBlock() instanceof ClassicBedBlock)){
-                    ((FabricBakedModel) getTemplateBakedModels().get((classicOffset+10))).emitBlockQuads(blockView, state, pos, randomSupplier, context);
+                    getTemplateBakedModels().get((classicOffset+10)).emitBlockQuads(context, blockView, state, pos, randomSupplier, cullTest);
                 }
             } else {
-                ((FabricBakedModel) getTemplateBakedModels().get((classicOffset+2))).emitBlockQuads(blockView, state, pos, randomSupplier, context);
+                getTemplateBakedModels().get((classicOffset+2)).emitBlockQuads(context, blockView, state, pos, randomSupplier, cullTest);
                 if (!right){
-                    ((FabricBakedModel) getTemplateBakedModels().get((classicOffset+4))).emitBlockQuads(blockView, state, pos, randomSupplier, context);
+                    getTemplateBakedModels().get((classicOffset+4)).emitBlockQuads(context, blockView, state, pos, randomSupplier, cullTest);
                 }
                 if (!left){
-                    ((FabricBakedModel) getTemplateBakedModels().get((classicOffset+5))).emitBlockQuads(blockView, state, pos, randomSupplier, context);
+                    getTemplateBakedModels().get((classicOffset+5)).emitBlockQuads(context, blockView, state, pos, randomSupplier, cullTest);
                 }
                 if (!right && bunk){
-                    ((FabricBakedModel) getTemplateBakedModels().get((classicOffset+8))).emitBlockQuads(blockView, state, pos, randomSupplier, context);
+                    getTemplateBakedModels().get((classicOffset+8)).emitBlockQuads(context, blockView, state, pos, randomSupplier, cullTest);
                 }
                 if (!left && bunk){
-                    ((FabricBakedModel) getTemplateBakedModels().get((classicOffset+9))).emitBlockQuads(blockView, state, pos, randomSupplier, context);
+                    getTemplateBakedModels().get((classicOffset+9)).emitBlockQuads(context, blockView, state, pos, randomSupplier, cullTest);
                 }
             }
             context.popTransform();
         }
     }
 
-
     @Override
-    public void emitItemQuads(ItemStack stack, Supplier<Random> randomSupplier, RenderContext context) {
-        List<Sprite> spriteList = getSpriteList(stack);
+    public void emitItemQuads(QuadEmitter context, Supplier<Random> randomSupplier) {
+        List<Sprite> spriteList = getSpriteList(blockState);
         pushTextureTransform(context, ModelHelper.getOakBedSprites(), spriteList);
-        int classicOffset = stack.getItem().getTranslationKey().contains("classic") ? 12 : 0;
-        ((FabricBakedModel) getTemplateBakedModels().get((classicOffset+11))).emitItemQuads(stack, randomSupplier, context);
+        int classicOffset = blockState.getBlock().getTranslationKey().contains("classic") ? 12 : 0;
+        getTemplateBakedModels().get((classicOffset+11)).emitItemQuads(context, randomSupplier);
         context.popTransform();
 
     }

@@ -35,8 +35,8 @@ public class StoveBlockEntityRenderer<T extends StoveBlockEntity>
             ItemStack itemStack = itemList.get(l);
             if (itemStack == ItemStack.EMPTY) continue;
             matrices.push();
-            Direction direction2 = Direction.fromHorizontal((l + direction.getHorizontal()) % 4);
-            float g = -direction2.asRotation();
+            Direction direction2 = Direction.fromHorizontalQuarterTurns((l + direction.getHorizontalQuarterTurns()) % 4);
+            float g = -direction2.getPositiveHorizontalDegrees();
             int rot = 45;
             Direction dir = stovetopBlockEntity.getCachedState().get(KitchenStovetopBlock.FACING);
             switch(dir) {

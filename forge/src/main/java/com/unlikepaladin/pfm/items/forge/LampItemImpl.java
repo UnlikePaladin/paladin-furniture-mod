@@ -3,7 +3,6 @@ package com.unlikepaladin.pfm.items.forge;
 import com.unlikepaladin.pfm.client.forge.PFMItemRenderer;
 import com.unlikepaladin.pfm.items.LampItem;
 import net.minecraft.block.Block;
-import net.minecraft.client.render.item.BuiltinModelItemRenderer;
 import net.minecraft.item.BlockItem;
 import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
@@ -23,10 +22,6 @@ public class LampItemImpl extends LampItem {
     public void initializeClient(Consumer<IClientItemExtensions> consumer) {
         consumer.accept(new IClientItemExtensions() {
 
-            @Override
-            public BuiltinModelItemRenderer getCustomRenderer() {
-                return PFMItemRenderer.INSTANCE;
-            }
         });
     }
 }

@@ -49,7 +49,7 @@
   ],
   "depends": {
     "fabric-api": "*",
-    "minecraft": ["1.21.2", "1.21.3"]
+    "minecraft": ["1.21.4"]
   },
   "suggests": {
     "patchouli": "*"

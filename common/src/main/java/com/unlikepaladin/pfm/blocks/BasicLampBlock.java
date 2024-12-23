@@ -175,8 +175,8 @@ public class BasicLampBlock extends PowerableBlock implements BlockEntityProvide
     }
 
     @Override
-    public ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state) {
-        ItemStack stack = super.getPickStack(world, pos, state);
+    protected ItemStack getPickStack(WorldView world, BlockPos pos, BlockState state, boolean includeData) {
+        ItemStack stack = super.getPickStack(world, pos, state, includeData);
         BlockEntity blockEntity = world.getBlockEntity(pos);
         if (blockEntity instanceof LampBlockEntity) {
             stack.set(PFMComponents.VARIANT_COMPONENT, ((LampBlockEntity) blockEntity).getVariant().identifier);

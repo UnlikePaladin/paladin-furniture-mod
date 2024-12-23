@@ -1,14 +1,13 @@
 package com.unlikepaladin.pfm.blocks.models.kitchenDrawer.fabric;
 
 import com.unlikepaladin.pfm.blocks.KitchenDrawerBlock;
-import com.unlikepaladin.pfm.blocks.models.AbstractBakedModel;
 import com.unlikepaladin.pfm.blocks.models.ModelHelper;
 import com.unlikepaladin.pfm.blocks.models.fabric.PFMFabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.model.FabricBakedModel;
-import net.fabricmc.fabric.api.renderer.v1.render.RenderContext;
+import net.fabricmc.fabric.api.renderer.v1.mesh.QuadEmitter;
 import net.minecraft.block.AbstractFurnaceBlock;
 import net.minecraft.block.BlockState;
 import net.minecraft.client.render.model.BakedModel;
+import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.ModelBakeSettings;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.item.ItemStack;
@@ -18,8 +17,11 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockRenderView;
 
 import java.util.List;
-import java.util.Map;
+
 import net.minecraft.util.math.random.Random;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public class FabricKitchenDrawerModel extends PFMFabricBakedModel {
@@ -32,7 +34,7 @@ public class FabricKitchenDrawerModel extends PFMFabricBakedModel {
     }
 
     @Override
-    public void emitBlockQuads(BlockRenderView world, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context) {
+    public void emitBlockQuads(QuadEmitter context, BlockRenderView world, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, Predicate<@Nullable Direction> cullTest) {
         if (state.getBlock() instanceof KitchenDrawerBlock) {
             KitchenDrawerBlock block = (KitchenDrawerBlock) state.getBlock();
             Direction direction = state.get(KitchenDrawerBlock.FACING);
@@ -48,13 +50,13 @@ public class FabricKitchenDrawerModel extends PFMFabricBakedModel {
                 Direction direction2 = neighborStateFacing.get(Properties.HORIZONTAL_FACING);
                 if (direction2.getAxis() != state.get(Properties.HORIZONTAL_FACING).getAxis() && block.isDifferentOrientation(state, world, pos, direction2.getOpposite())) {
                     if (direction2 == direction.rotateYCounterclockwise()) {
-                        ((FabricBakedModel) getTemplateBakedModels().get((5 + openOffset))).emitBlockQuads(world, state, pos, randomSupplier, context);
+                        getTemplateBakedModels().get((5 + openOffset)).emitBlockQuads(context, world, state, pos, randomSupplier, cullTest);
                     }
                     else {
-                        ((FabricBakedModel) getTemplateBakedModels().get((6 + openOffset))).emitBlockQuads(world, state, pos, randomSupplier, context);
+                        getTemplateBakedModels().get((6 + openOffset)).emitBlockQuads(context, world, state, pos, randomSupplier, cullTest);
                     }
                 } else {
-                    middleCounter(world, state, pos, randomSupplier, context, left, right, openOffset);
+                    middleCounter(world, state, pos, randomSupplier, context, cullTest, left, right, openOffset);
                 }
             }
             else if (block.canConnectToCounter(neighborStateOpposite) && neighborStateOpposite.contains(Properties.HORIZONTAL_FACING)) {
@@ -67,38 +69,38 @@ public class FabricKitchenDrawerModel extends PFMFabricBakedModel {
                 }
                 if (direction3.getAxis() != state.get(Properties.HORIZONTAL_FACING).getAxis() && block.isDifferentOrientation(state, world, pos, direction3)) {
                     if (direction3 == direction.rotateYCounterclockwise()) {
-                        ((FabricBakedModel) getTemplateBakedModels().get((4 + openOffset))).emitBlockQuads(world, state, pos, randomSupplier, context);
+                        getTemplateBakedModels().get((4 + openOffset)).emitBlockQuads(context, world, state, pos, randomSupplier, cullTest);
                     } else {
-                        ((FabricBakedModel) getTemplateBakedModels().get((3 + openOffset))).emitBlockQuads(world, state, pos, randomSupplier, context);
+                        getTemplateBakedModels().get((3 + openOffset)).emitBlockQuads(context, world, state, pos, randomSupplier, cullTest);
                     }
                 } else {
-                    middleCounter(world, state, pos, randomSupplier, context, left, right, openOffset);
+                    middleCounter(world, state, pos, randomSupplier, context, cullTest, left, right, openOffset);
                 }
             }
             else {
-                middleCounter(world, state, pos, randomSupplier, context, left, right, openOffset);
+                middleCounter(world, state, pos, randomSupplier, context, cullTest, left, right, openOffset);
             }
             context.popTransform();
         }
     }
 
-    private void middleCounter(BlockRenderView world, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, RenderContext context, boolean left, boolean right, int openOffset) {
+    private void middleCounter(BlockRenderView world, BlockState state, BlockPos pos, Supplier<Random> randomSupplier, QuadEmitter context, Predicate<@Nullable Direction> cullTest, boolean left, boolean right, int openOffset) {
         if (left && right) {
-            ((FabricBakedModel) getTemplateBakedModels().get((openOffset))).emitBlockQuads(world, state, pos, randomSupplier, context);
+            getTemplateBakedModels().get((openOffset)).emitBlockQuads(context, world, state, pos, randomSupplier, cullTest);
         } else if (left) {
-            ((FabricBakedModel) getTemplateBakedModels().get((1 + openOffset))).emitBlockQuads(world, state, pos, randomSupplier, context);
+            getTemplateBakedModels().get((1 + openOffset)).emitBlockQuads(context, world, state, pos, randomSupplier, cullTest);
         } else if (right) {
-            ((FabricBakedModel) getTemplateBakedModels().get((2 + openOffset))).emitBlockQuads(world, state, pos, randomSupplier, context);
+            getTemplateBakedModels().get((2 + openOffset)).emitBlockQuads(context, world, state, pos, randomSupplier, cullTest);
         } else {
-            ((FabricBakedModel) getTemplateBakedModels().get((openOffset))).emitBlockQuads(world, state, pos, randomSupplier, context);
+            getTemplateBakedModels().get((openOffset)).emitBlockQuads(context, world, state, pos, randomSupplier, cullTest);
         }
     }
 
     @Override
-    public void emitItemQuads(ItemStack stack, Supplier<Random> randomSupplier, RenderContext context) {
-        List<Sprite> spriteList = getSpriteList(stack);
+    public void emitItemQuads(QuadEmitter context, Supplier<Random> randomSupplier) {
+        List<Sprite> spriteList = getSpriteList(blockState);
         pushTextureTransform(context, ModelHelper.getOakPlankLogSprites(), spriteList);
-        ((FabricBakedModel) getTemplateBakedModels().get((0))).emitItemQuads(stack, randomSupplier, context);
+        getTemplateBakedModels().get((0)).emitItemQuads(context, randomSupplier);
         context.popTransform();
     }
 

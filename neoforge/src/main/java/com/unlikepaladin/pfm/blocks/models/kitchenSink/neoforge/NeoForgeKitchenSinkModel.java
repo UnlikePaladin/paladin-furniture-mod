@@ -9,7 +9,6 @@ import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.render.model.ModelBakeSettings;
 import net.minecraft.client.texture.Sprite;
-import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.BlockRenderView;
@@ -55,9 +54,9 @@ public class NeoForgeKitchenSinkModel extends PFMNeoForgeBakedModel {
     }
 
     @Override
-    public List<BakedQuad> getQuads(ItemStack stack, @Nullable BlockState state, @Nullable Direction face, Random random) {
-        List<Sprite> spriteList = getSpriteList(stack);
-        List<BakedQuad> originalQuads = getTemplateBakedModels().get(0).getQuads(state, face, random);
+    public List<BakedQuad> getQuads(@Nullable Direction face, Random random) {
+        List<Sprite> spriteList = getSpriteList(blockState);
+        List<BakedQuad> originalQuads = getTemplateBakedModels().get(0).getQuads(null, face, random);
         return getQuadsWithTexture(originalQuads, ModelHelper.getOakPlankLogSprites(), spriteList);
     }
 }

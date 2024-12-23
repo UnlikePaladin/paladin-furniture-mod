@@ -4,7 +4,6 @@ import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.client.color.block.BlockColorProvider;
-import net.minecraft.client.color.item.ItemColorProvider;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.item.Item;
 
@@ -17,15 +16,8 @@ public class ColorRegistryImpl {
         BlockRenderLayerMap.INSTANCE.putBlock(block, renderLayer);
     }
 
-    public static void registerItemColor(Item item, ItemColorProvider colorProvider) {
-        ColorProviderRegistry.ITEM.register(colorProvider, item);
-    }
-
     public static BlockColorProvider getBlockColor(Block block) {
         return ColorProviderRegistry.BLOCK.get(block);
     }
 
-    public static ItemColorProvider getItemColor(Item item) {
-        return ColorProviderRegistry.ITEM.get(item);
-    }
 }

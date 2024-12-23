@@ -9,13 +9,15 @@ import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.data.TextureMap;
 import net.minecraft.client.render.TexturedRenderLayers;
 import net.minecraft.client.render.model.BakedModel;
 import net.minecraft.client.render.model.BakedQuad;
 import net.minecraft.client.texture.MissingSprite;
 import net.minecraft.client.texture.Sprite;
+import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.SpriteIdentifier;
-import net.minecraft.data.client.TextureMap;
+import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.resource.ResourcePack;
 import net.minecraft.resource.ResourceType;
@@ -37,8 +39,8 @@ public class ModelHelper {
     public static List<Sprite> OAK_SPRITES_PLANKS_TO_REPLACE = null;
     public static List<Sprite> getOakPlankLogSprites() {
         if (OAK_SPRITES_PLANKS_TO_REPLACE == null) {
-            SpriteIdentifier planksId = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, Identifier.of("minecraft:block/oak_planks"));
-            SpriteIdentifier logId = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, Identifier.of("minecraft:block/oak_log"));
+            SpriteIdentifier planksId = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, Identifier.of("minecraft:block/oak_planks"));
+            SpriteIdentifier logId = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, Identifier.of("minecraft:block/oak_log"));
             OAK_SPRITES_PLANKS_TO_REPLACE = Arrays.asList(planksId.getSprite(), logId.getSprite());
         }
         return OAK_SPRITES_PLANKS_TO_REPLACE;
@@ -46,8 +48,8 @@ public class ModelHelper {
     public static List<Sprite> OAK_SPRITES_BED_TO_REPLACE = null;
     public static List<Sprite> getOakBedSprites() {
         if (OAK_SPRITES_BED_TO_REPLACE == null) {
-            SpriteIdentifier planksId = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, Identifier.of("minecraft:block/oak_planks"));
-            SpriteIdentifier bedId = TexturedRenderLayers.BED_TEXTURES[DyeColor.RED.getId()];
+            SpriteIdentifier planksId = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, Identifier.of("minecraft:block/oak_planks"));
+            SpriteIdentifier bedId = TexturedRenderLayers.getBedTextureId(DyeColor.RED);
             OAK_SPRITES_BED_TO_REPLACE = Arrays.asList(planksId.getSprite(), bedId.getSprite());
         }
         return OAK_SPRITES_BED_TO_REPLACE;
@@ -55,8 +57,8 @@ public class ModelHelper {
     public static List<Sprite> OAK_SPRITES_LOG_TOP_TO_REPLACE = null;
     public static List<Sprite> getOakLogLogTopSprites() {
         if (OAK_SPRITES_LOG_TOP_TO_REPLACE == null) {
-            SpriteIdentifier logId = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, Identifier.of("minecraft:block/oak_log"));
-            SpriteIdentifier logTopId = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, Identifier.of("minecraft:block/oak_log_top"));
+            SpriteIdentifier logId = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, Identifier.of("minecraft:block/oak_log"));
+            SpriteIdentifier logTopId = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, Identifier.of("minecraft:block/oak_log_top"));
             OAK_SPRITES_LOG_TOP_TO_REPLACE = Arrays.asList(logId.getSprite(), logTopId.getSprite());
         }
         return OAK_SPRITES_LOG_TOP_TO_REPLACE;

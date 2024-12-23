@@ -14,6 +14,7 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.client.resource.metadata.TextureResourceMetadata;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.ResourceTexture;
+import net.minecraft.client.texture.TextureContents;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.resource.DefaultResourcePack;
 import net.minecraft.resource.ResourceManager;
@@ -141,8 +142,8 @@ public class PFMGeneratingOverlay extends Overlay {
         }
 
         @Override
-        protected ResourceTexture.TextureData loadTextureData(ResourceManager resourceManager) {
-            ResourceTexture.TextureData textureData;
+        public TextureContents loadContents(ResourceManager resourceManager) {
+            TextureContents textureData;
 
             BufferedImage bufferedImage;
             NativeImage nativeImage = null;
@@ -151,12 +152,12 @@ public class PFMGeneratingOverlay extends Overlay {
                 nativeImage = convertToNativeImage(bufferedImage);
                 textureWidth = nativeImage.getWidth();
                 textureHeight = nativeImage.getHeight();
-                textureData = new TextureData(new TextureResourceMetadata(true, true), nativeImage);
+                textureData = new TextureContents(nativeImage, new TextureResourceMetadata(true, true));
             } catch (Throwable throwable) {
                 if (nativeImage != null)
                     nativeImage.close();
 
-                return new TextureData(new IOException(throwable.getMessage()));
+                return null;
             }
 
             return textureData;

@@ -1,0 +1,6 @@
+{
+    "model": {
+        "type": "minecraft:model",
+        "model": "pfm:block/gray_fridge/fridge_single"
+    }
+}

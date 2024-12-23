@@ -16,12 +16,18 @@
     "PFMMixinDedicatedServer"
   ],
   "client": [
-    "PFMBakedModelManagerMixin",
-    "PFMItemRendererMixin",
+    "BasicItemModelAccessor",
+    "BasicItemModelMixin",
+    "CompositeItemModelAccessor",
+    "ConditionItemModelAccessor",
+    "ItemRenderState$LayerRenderStateAccessor",
+    "ItemRenderStateAccessor",
     "PFMLanguageManagerAccessor",
     "PFMMixinClientPacketListener",
     "PFMReloadableResourceManagerImplMixin",
-    "PFMRenderLayersMixin"
+    "PFMRenderLayersMixin",
+    "RangeDispatchItemModelAccessor",
+    "SelectItemModelAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -9,7 +9,6 @@ import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.WorldRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
-import net.minecraft.client.render.item.ItemModels;
 import net.minecraft.client.render.item.ItemRenderer;
 import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.item.ModelTransformationMode;
@@ -63,7 +62,7 @@ public class MicrowaveBlockEntityRenderer<T extends MicrowaveBlockEntity> implem
             default -> throw new IllegalStateException("Unexpected value: " + facing);
         }
         matrices.translate(x, y ,z);
-        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-facing.asRotation()));
+        matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees(-facing.getPositiveHorizontalDegrees()));
         if (blockEntity.isActive && recipePropertySet.canUse(itemStack)) {
             matrices.multiply(RotationAxis.POSITIVE_Y.rotationDegrees((blockEntity.getWorld().getTime() + tickDelta) * 4));}
         matrices.scale(0.5f, 0.5f, 0.5f);

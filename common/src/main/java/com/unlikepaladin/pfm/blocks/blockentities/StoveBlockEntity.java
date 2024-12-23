@@ -242,11 +242,11 @@ public class StoveBlockEntity extends AbstractFurnaceBlockEntity {
             StoveBlockEntity stoveBlockEntity = (StoveBlockEntity) blockEntity;
             int i;
             Random random = world.random;
-            i = state.get(StoveBlock.FACING).rotateYClockwise().getHorizontal();
+            i = state.get(StoveBlock.FACING).rotateYClockwise().getHorizontalQuarterTurns();
             for (int j = 0; j < stoveBlockEntity.itemsBeingCooked.size(); ++j) {
                 ItemStack stack = stoveBlockEntity.itemsBeingCooked.get(j);
                 if (stack.isEmpty() || !(random.nextFloat() < 0.2f)) continue;
-                Direction direction = Direction.fromHorizontal(Math.floorMod(j + i, 4));
+                Direction direction = Direction.fromHorizontalQuarterTurns(Math.floorMod(j + i, 4));
                 float f = 0.2125f;
                 double x = pos.getX() + 0.5 - ((direction.getOffsetX() * f) + (direction.rotateYClockwise().getOffsetX() * f));
                 double y = pos.getY() + 1.1;

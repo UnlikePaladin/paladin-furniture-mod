@@ -29,8 +29,8 @@ public class PlateBlockEntityRenderer<T extends PlateBlockEntity> implements Blo
         Direction direction = plateBlockEntity.getCachedState().get(PlateBlock.FACING);
         itemStack = plateBlockEntity.getItemInPlate();
         matrices.push();
-        Direction direction2 = Direction.fromHorizontal((direction.getHorizontal()) % 4);
-        float g = -direction2.asRotation();
+        Direction direction2 = Direction.fromHorizontalQuarterTurns((direction.getHorizontalQuarterTurns()) % 4);
+        float g = -direction2.getPositiveHorizontalDegrees();
         Direction dir = plateBlockEntity.getCachedState().get(PlateBlock.FACING);
         switch (dir) {
             case NORTH -> matrices.translate(0.5, 0.08, 0.65);

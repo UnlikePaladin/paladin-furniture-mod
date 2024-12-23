@@ -51,7 +51,7 @@ public class FurnitureRecipe implements Recipe<FurnitureRecipe.FurnitureRecipeIn
     public Map<Item, Integer> getItemCounts() {
         Map<Item, Integer> ingredientCounts = new HashMap<>();
         for (Ingredient ingredient : this.getIngredients()) {
-            for (RegistryEntry<Item> itemRegistryEntry : ingredient.getMatchingItems()) {
+            for (RegistryEntry<Item> itemRegistryEntry : ingredient.getMatchingItems().toList()) {
                 if (ingredientCounts.containsKey(itemRegistryEntry.value())) {
                     ingredientCounts.put(itemRegistryEntry.value(), ingredientCounts.get(itemRegistryEntry.value())+1);
                 } else {
@@ -147,7 +147,7 @@ public class FurnitureRecipe implements Recipe<FurnitureRecipe.FurnitureRecipeIn
         if (!this.output.isItemEnabled(world.getEnabledFeatures()))
             return false;
         for (Ingredient ingredient : this.getIngredients()) {
-            for (RegistryEntry<Item> item : ingredient.getMatchingItems()) {
+            for (RegistryEntry<Item> item : ingredient.getMatchingItems().toList()) {
                 if (!item.value().isEnabled(world.getEnabledFeatures()))
                     return false;
             }

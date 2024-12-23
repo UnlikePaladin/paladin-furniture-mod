@@ -5,7 +5,9 @@ import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.model.SpriteGetter;
 import net.minecraft.client.render.model.*;
+import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.SpriteIdentifier;
@@ -61,12 +63,13 @@ public class UnbakedMirrorModel implements UnbakedModel {
 
     @Nullable
     @Override
-    public BakedModel bake(Baker loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer) {
+    public BakedModel bake(ModelTextures textures, Baker loader, ModelBakeSettings rotationContainer, boolean ambientOcclusion, boolean isSideLit, ModelTransformation transformation){
         Map<String,BakedModel> bakedModels = new LinkedHashMap<>();
         for (String modelPartName: MODEL_PARTS) {
             bakedModels.put(modelPartName, loader.bake(Identifier.of(PaladinFurnitureMod.MOD_ID, modelPartName), rotationContainer));
         }
-        return getBakedModel(textureGetter.apply(frameTex), textureGetter.apply(glassTex), textureGetter.apply(reflectTex), rotationContainer, bakedModels, MODEL_PARTS);
+        SpriteGetter textureGetter = loader.getSpriteGetter();
+        return getBakedModel(textureGetter.get(frameTex), textureGetter.get(glassTex), textureGetter.get(reflectTex), rotationContainer, bakedModels, MODEL_PARTS);
     }
 
     @ExpectPlatform

@@ -38,6 +38,7 @@ import com.unlikepaladin.pfm.blocks.models.simpleStool.UnbakedSimpleStoolModel;
 import com.unlikepaladin.pfm.client.forge.PaladinFurnitureModClientForge;
 import net.minecraft.client.render.model.BlockStatesLoader;
 import net.minecraft.client.render.model.ReferencedModelsCollector;
+import net.minecraft.client.render.model.ResolvableModel;
 import net.minecraft.client.render.model.UnbakedModel;
 import net.minecraft.client.util.ModelIdentifier;
 import net.minecraft.util.Identifier;
@@ -53,9 +54,10 @@ import java.util.ArrayList;
 @Mixin(ReferencedModelsCollector.class)
 public abstract class PFMReferencedModelsCollectorMixin {
 
-    @Shadow protected abstract void addTopLevelModel(ModelIdentifier modelId, UnbakedModel model);
 
     @Shadow abstract UnbakedModel computeResolvedModel(Identifier id);
+
+    @Shadow public abstract void add(ResolvableModel model);
 
     @ModifyVariable(method = "getModel", at = @At(value = "STORE", ordinal = 0), ordinal = 0)
     private UnbakedModel pfm$loadModels(UnbakedModel olModel, Identifier olId) throws IOException {
@@ -189,11 +191,11 @@ public abstract class PFMReferencedModelsCollectorMixin {
         return olModel;
     }
 
-    @Inject(method = "addBlockStates", at = @At("RETURN"))
-    private void onAddStandardModels(BlockStatesLoader.BlockStateDefinition blockStateModels, CallbackInfo ci) {
+    @Inject(method = "addGenerated", at = @At("RETURN"))
+    private void onAddStandardModels(CallbackInfo ci) {
         PaladinFurnitureModClientForge.registerExtraModels(modelIdentifier -> {
-            UnbakedModel unbakedModel = computeResolvedModel(modelIdentifier.id());
-            addTopLevelModel(modelIdentifier, unbakedModel);
+            UnbakedModel model = this.computeResolvedModel(modelIdentifier);
+            this.add(model);
         });
     }
 }

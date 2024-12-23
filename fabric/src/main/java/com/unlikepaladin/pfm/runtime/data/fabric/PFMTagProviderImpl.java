@@ -1,7 +1,7 @@
 package com.unlikepaladin.pfm.runtime.data.fabric;
 
 import com.unlikepaladin.pfm.data.PFMTag;
-import net.minecraft.data.server.tag.TagProvider;
+import net.minecraft.data.tag.TagProvider;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.tag.TagBuilder;

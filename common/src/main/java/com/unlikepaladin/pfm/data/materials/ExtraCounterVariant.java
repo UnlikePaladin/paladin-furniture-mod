@@ -15,6 +15,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
     public static ExtraCounterVariant DARK_CONCRETE = new ExtraCounterVariant(Blocks.GRAY_CONCRETE, Blocks.WHITE_CONCRETE, "dark_concrete");
@@ -45,6 +46,10 @@ public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
     }
     ExtraCounterVariant(Block baseBlock, Block secondaryBlock, String name) {
         this(Identifier.of("", name), baseBlock, secondaryBlock);
+    }
+
+    public static Optional<ExtraCounterVariant> getOptionalVariant(Identifier name) {
+        return ExtraCounterVariant.DEFAULT_VARIANTS.stream().filter(extraCounterVariant -> extraCounterVariant.identifier.equals(name)).findFirst();
     }
 
     @Override

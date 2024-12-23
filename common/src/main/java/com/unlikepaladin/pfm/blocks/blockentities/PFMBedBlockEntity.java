@@ -20,7 +20,7 @@ public class PFMBedBlockEntity extends BedBlockEntity implements DyeableFurnitur
 
     @Override
     public void setPFMColor(DyeColor color) {
-        this.setColor(color);
+        this.color = color;
     }
 
     @Override

@@ -231,9 +231,9 @@ public class BasicBathtubBlock extends BedBlock {
             if (!active.isEmpty())
                 return ActionResult.PASS;
 
-            float yaw = state.get(FACING).getOpposite().asRotation();
+            float yaw = state.get(FACING).getOpposite().getPositiveHorizontalDegrees();
             if (state.get(PART) == BedPart.FOOT) {
-                yaw = state.get(FACING).asRotation();
+                yaw = state.get(FACING).getPositiveHorizontalDegrees();
             }
             ChairEntity entity = Entities.CHAIR.create(world, SpawnReason.EVENT);
             entity.refreshPositionAndAngles(px, py, pz, yaw, 0);

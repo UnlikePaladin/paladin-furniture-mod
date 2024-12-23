@@ -32,8 +32,8 @@ public class TrashcanBlockEntityRenderer<T extends TrashcanBlockEntity> implemen
             {
                 Direction direction = trashcanBlockEntity.getCachedState().get(InnerTrashcanBlock.FACING);
                 matrices.push();
-                Direction direction2 = Direction.fromHorizontal((direction.getHorizontal()) % 4);
-                float g = -direction2.asRotation();
+                Direction direction2 = Direction.fromHorizontalQuarterTurns((direction.getHorizontalQuarterTurns()) % 4);
+                float g = -direction2.getPositiveHorizontalDegrees();
                 itemStack = trashcanBlockEntity.getStack(i);
                 switch (i) {
                     case 0: {

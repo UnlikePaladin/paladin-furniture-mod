@@ -6,7 +6,9 @@ import com.unlikepaladin.pfm.blocks.models.ModelHelper;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.model.SpriteGetter;
 import net.minecraft.client.render.model.*;
+import net.minecraft.client.render.model.json.ModelTransformation;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.client.texture.SpriteAtlasTexture;
 import net.minecraft.client.util.SpriteIdentifier;
@@ -57,14 +59,15 @@ public class UnbakedFreezerModel implements UnbakedModel {
     }
     @Nullable
     @Override
-    public BakedModel bake(Baker loader, Function<SpriteIdentifier, Sprite> textureGetter, ModelBakeSettings rotationContainer) {
+    public BakedModel bake(ModelTextures modelTextures, Baker loader, ModelBakeSettings rotationContainer, boolean ambientOcclusion, boolean isSideLit, ModelTransformation transformation){
         Map<String,BakedModel> bakedModels = new LinkedHashMap<>();
         for (String modelPart : FREEZER_MODEL_PARTS_BASE) {
             if (this.id.getPath().contains("gray"))
                 modelPart = modelPart.replaceAll("white", "gray");
             bakedModels.put(modelPart, loader.bake(Identifier.of(PaladinFurnitureMod.MOD_ID, modelPart), rotationContainer));
         }
-        return getBakedModel(textureGetter.apply(frameTex), rotationContainer, bakedModels, bakedModels.keySet().stream().toList());
+        SpriteGetter textureGetter = loader.getSpriteGetter();
+        return getBakedModel(textureGetter.get(frameTex), rotationContainer, bakedModels, bakedModels.keySet().stream().toList());
     }
 
     @ExpectPlatform

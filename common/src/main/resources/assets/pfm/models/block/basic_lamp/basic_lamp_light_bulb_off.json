@@ -1,7 +1,8 @@
 {
 	"credit": "By UnlikePaladin",
 	"textures": {
-		"3": "pfm:block/light_off"
+		"3": "pfm:block/light_off",
+		"particle": "pfm:block/light_off"
 	},
 	"elements": [
 		{

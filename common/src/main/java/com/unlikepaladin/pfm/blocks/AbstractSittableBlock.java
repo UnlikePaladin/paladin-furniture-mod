@@ -148,7 +148,7 @@ public abstract class AbstractSittableBlock extends HorizontalFacingBlock {
             pz = pos.getZ() + 0.5;
         }
         double py = pos.getY() + this.height;
-        float yaw = state.get(FACING).getOpposite().asRotation();
+        float yaw = state.get(FACING).getOpposite().getPositiveHorizontalDegrees();
         ChairEntity chairEntity = Entities.CHAIR.create(world, SpawnReason.TRIGGERED);
         chairEntity.refreshPositionAndAngles(px, py, pz, yaw, 0);
         chairEntity.setNoGravity(true);

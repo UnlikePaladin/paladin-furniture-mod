@@ -5,18 +5,17 @@
   "compatibilityLevel": "JAVA_8",
   "client": [
     "BlockColorsAccessor",
-    "ItemColorsAccessor",
     "ItemRendererMixin",
     "PFMReferencedModelsCollectorMixin",
     "PFMRenderLayersForgeMixin"
   ],
   "mixins": [
     "PFMCookingPotBlockEntityMixin",
-    "PFMMinecraftServerMixin",
-    "PFMSaveLoaderMixin",
     "PFMItemEntryAccessor",
     "PFMLootPool$BuilderMixin",
-    "PFMReloadableResourceManagerImplMixin"
+    "PFMMinecraftServerMixin",
+    "PFMReloadableResourceManagerImplMixin",
+    "PFMSaveLoaderMixin"
   ],
   "injectors": {
     "defaultRequire": 1

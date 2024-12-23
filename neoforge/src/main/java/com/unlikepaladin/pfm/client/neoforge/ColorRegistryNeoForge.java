@@ -13,12 +13,6 @@ public class ColorRegistryNeoForge {
         ColorRegistryImpl.BLOCK_COLOR_PROVIDER_MAP.forEach((block, blockColorProvider) -> event.getBlockColors().registerColorProvider(blockColorProvider, block));
     }
 
-    public static void registerItemColors(RegisterColorHandlersEvent.Item event){
-        ColorRegistryImpl.itemColors = event.getItemColors();
-        ColorRegistry.registerItemColors();
-        ColorRegistryImpl.ITEM_COLOR_PROVIDER_MAP.forEach((item, colorProvider) -> event.getItemColors().register(colorProvider, item));
-    }
-
     public static void registerBlockRenderLayers() {
         ColorRegistry.registerBlockRenderLayers();
         ColorRegistryImpl.BLOCK_RENDER_LAYER_MAP.forEach(RenderLayers::setRenderLayer);

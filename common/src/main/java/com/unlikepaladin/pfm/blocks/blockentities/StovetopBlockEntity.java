@@ -87,11 +87,11 @@ public class StovetopBlockEntity extends BlockEntity implements Clearable {
     public static void clientTick(World world, BlockPos pos, BlockState state, StovetopBlockEntity stovetopBlockEntity) {
         int i;
         Random random = world.random;
-        i = state.get(KitchenStovetopBlock.FACING).rotateYClockwise().getHorizontal();
+        i = state.get(KitchenStovetopBlock.FACING).rotateYClockwise().getHorizontalQuarterTurns();
         for (int j = 0; j < stovetopBlockEntity.itemsBeingCooked.size(); ++j) {
             ItemStack stack = stovetopBlockEntity.itemsBeingCooked.get(j);
             if (stack.isEmpty() || !(random.nextFloat() < 0.2f) || !world.getRecipeManager().getPropertySet(RecipePropertySet.CAMPFIRE_INPUT).canUse(stack)) continue;
-            Direction direction = Direction.fromHorizontal(Math.floorMod(j + i, 4));
+            Direction direction = Direction.fromHorizontalQuarterTurns(Math.floorMod(j + i, 4));
             float f = 0.2125f;
             double x = pos.getX() + 0.5 - ((direction.getOffsetX() * f) + (direction.rotateYClockwise().getOffsetX() * f));
             double y = pos.getY() + 0.2;

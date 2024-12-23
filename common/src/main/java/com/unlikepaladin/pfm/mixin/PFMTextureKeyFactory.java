@@ -1,7 +1,7 @@
 package com.unlikepaladin.pfm.mixin;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.data.client.TextureKey;
+import net.minecraft.client.data.TextureKey;
 import net.minecraft.world.poi.PointOfInterestType;
 import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;

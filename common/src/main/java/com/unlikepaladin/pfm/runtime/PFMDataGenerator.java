@@ -41,9 +41,9 @@ public class PFMDataGenerator extends PFMGenerator {
             setDataRunning(true);
             log("Packs:");
             for (ResourcePack pack : PFMRuntimeResources.RESOURCE_PACK_LIST) {
-                log("\tPack {}", pack.getInfo().title().getString());
+                log("\tPack {} {}", pack.getInfo().title().getString().replace("Pack Fabric Mod ", "").replaceAll("\"", ""));
                 for (String namespace : pack.getNamespaces(ResourceType.SERVER_DATA)) {
-                    log("\t\tNamespace {}", namespace);
+                    log("\t\tNamespace {} {}", namespace);
                 }
             }
             FROZEN = true;

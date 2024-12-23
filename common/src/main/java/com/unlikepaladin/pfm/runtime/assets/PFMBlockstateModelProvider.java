@@ -2,29 +2,32 @@ package com.unlikepaladin.pfm.runtime.assets;
 
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.hash.Hashing;
-import com.google.common.hash.HashingOutputStream;
 import com.google.gson.JsonElement;
 import com.google.gson.stream.JsonWriter;
+import com.mojang.serialization.DataResult;
+import com.mojang.serialization.JsonOps;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.blocks.*;
 import com.unlikepaladin.pfm.blocks.models.ModelHelper;
 import com.unlikepaladin.pfm.blocks.models.basicLamp.UnbakedBasicLampModel;
+import com.unlikepaladin.pfm.client.model.PFMBedModelRenderer;
+import com.unlikepaladin.pfm.client.model.PFMItemModel;
 import com.unlikepaladin.pfm.data.materials.StoneVariant;
 import com.unlikepaladin.pfm.data.materials.VariantBase;
-import com.unlikepaladin.pfm.data.materials.WoodVariant;
-import com.unlikepaladin.pfm.data.materials.WoodVariantRegistry;
 import com.unlikepaladin.pfm.mixin.PFMTextureKeyFactory;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.TriFunc;
-import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.data.DataProvider;
+import net.minecraft.client.data.*;
+import net.minecraft.client.item.ItemAsset;
+import net.minecraft.client.render.item.model.ItemModel;
+import net.minecraft.client.render.item.model.special.BedModelRenderer;
+import net.minecraft.client.render.item.model.special.SpecialModelRenderer;
+import net.minecraft.client.render.item.tint.TintSource;
 import net.minecraft.data.DataWriter;
-import net.minecraft.data.client.*;
 import net.minecraft.item.Item;
 import net.minecraft.registry.Registries;
 import net.minecraft.state.property.Properties;
@@ -32,16 +35,12 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
 import net.minecraft.util.math.Direction;
 
-import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.OpenOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.FileAttribute;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
@@ -71,7 +70,7 @@ public class PFMBlockstateModelProvider extends PFMProvider {
         };
         HashMap<Identifier, Supplier<JsonElement>> models = Maps.newHashMap();
         HashSet<Item> excludeBlockItem = Sets.newHashSet();
-        BiConsumer<Identifier, Supplier<JsonElement>> identifierSupplierBiConsumer = (identifier, supplier) -> {
+        BiConsumer<Identifier, ModelSupplier> identifierSupplierBiConsumer = (identifier, supplier) -> {
             Supplier<JsonElement> supplier2 = models.put(identifier, supplier);
             if (supplier2 != null) {
                 getParent().getLogger().error("Duplicate model definition for " + identifier);
@@ -80,6 +79,7 @@ public class PFMBlockstateModelProvider extends PFMProvider {
         };
         Consumer<Item> excludeBlockItemConsumer = excludeBlockItem::add;
         new PFMBlockStateModelGenerator(blockStateSupplierConsumer, identifierSupplierBiConsumer, excludeBlockItemConsumer).registerModelsAndStates();
+        List<Item> generateModelFor = new ArrayList<>();
         modelPathMap.keySet().forEach(block -> {
             Item item = Item.BLOCK_ITEMS.get(block);
             if (item != null) {
@@ -89,11 +89,26 @@ public class PFMBlockstateModelProvider extends PFMProvider {
                 Identifier identifier = ModelIds.getItemModelId(item);
                 if (!models.containsKey(identifier)) {
                     models.put(identifier, new SimpleModelSupplier(modelPathMap.get(block)));
+                    generateModelFor.add(item);
                 }
             }
         });
+
+
+        HashMap<Identifier, Supplier<JsonElement>> itemModels = Maps.newHashMap();
+        BiConsumer<Identifier, ItemModel.Unbaked> consumer = (id, unbakedModel) -> {
+            ItemAsset asset = new ItemAsset(unbakedModel, ItemAsset.Properties.DEFAULT);
+            DataResult<JsonElement> result = ItemAsset.CODEC.encodeStart(JsonOps.INSTANCE, asset);
+            if (result.isSuccess() && !itemModels.containsKey(id))
+                itemModels.put(id, result::getOrThrow);
+            else if (result.isError())
+                getParent().getLogger().error("Failed to load item model for: {} {}", id, result.error().get());
+        };
+
+        new PFMItemModelGenerator(consumer, identifierSupplierBiConsumer).register(generateModelFor);
         this.writeJsons(path, blockstates, PFMBlockstateModelProvider::getBlockStateJsonPath);
         this.writeJsons(path, models, PFMBlockstateModelProvider::getModelJsonPath);
+        this.writeJsons(path, itemModels, PFMBlockstateModelProvider::getItemsJsonPath);
         return CompletableFuture.allOf();
     }
 
@@ -109,6 +124,10 @@ public class PFMBlockstateModelProvider extends PFMProvider {
 
     private static Path getModelJsonPath(Path root, Identifier id) {
         return root.resolve("assets/" + id.getNamespace() + "/models/" + id.getPath() + ".json");
+    }
+
+    private static Path getItemsJsonPath(Path root, Identifier id) {
+        return root.resolve("assets/" + id.getNamespace() + "/items/" + id.getPath() + ".json");
     }
 
     private static final Identifier replaceable = Identifier.of("block/stone");
@@ -134,16 +153,54 @@ public class PFMBlockstateModelProvider extends PFMProvider {
             }
         });
     }
+    static class PFMItemModelGenerator {
+        final BiConsumer<Identifier, ItemModel.Unbaked> output;
+        public final BiConsumer<Identifier, ModelSupplier> modelCollector;
+
+        PFMItemModelGenerator(BiConsumer<Identifier, ItemModel.Unbaked> output, BiConsumer<Identifier, ModelSupplier> modelCollector) {
+            this.output = output;
+            this.modelCollector = modelCollector;
+        }
+
+
+        public final void registerBasicModel(Item item) {
+            this.output.accept(Registries.ITEM.getId(item), ItemModels.basic(ModelIds.getItemModelId(item)));
+        }
+
+        public final void registerFurnitureModel(Item item) {
+            this.output.accept(Registries.ITEM.getId(item), new PFMItemModel.Unbaked(ModelIds.getItemModelId(item), Optional.empty(), List.of()));
+        }
+
+        public final void registerFurnitureModel(Item item, SpecialModelRenderer.Unbaked specialModel) {
+            this.output.accept(Registries.ITEM.getId(item), new PFMItemModel.Unbaked(ModelIds.getItemModelId(item), Optional.of(specialModel), List.of()));
+        }
+
+        public final void registerFurnitureModel(Item item, SpecialModelRenderer.Unbaked specialModel, List<TintSource> tints) {
+            this.output.accept(Registries.ITEM.getId(item), new PFMItemModel.Unbaked(ModelIds.getItemModelId(item), Optional.of(specialModel), tints));
+        }
+
+        public void register(List<Item> items) {
+            for (Block block : PaladinFurnitureModBlocksItems.getBeds()) {
+                if (block instanceof DyeableFurnitureBlock)
+                    registerFurnitureModel(block.asItem(), new PFMBedModelRenderer.Unbaked(((DyeableFurnitureBlock) block).getPFMColor()));
+            }
+
+            for (Item item : items) {
+                registerFurnitureModel(item);
+            }
+        }
+    }
+
     static class PFMBlockStateModelGenerator {
         public static Map<Model, Identifier> ModelIDS = new HashMap<>();
 
         final Consumer<BlockStateSupplier> blockStateCollector;
-        final BiConsumer<Identifier, Supplier<JsonElement>> modelCollector;
+        final BiConsumer<Identifier, ModelSupplier> modelCollector;
 
         final List<Identifier> generatedStates = new ArrayList<>();
         final Consumer<Item> simpleItemModelExemptionCollector;
 
-        PFMBlockStateModelGenerator(Consumer<BlockStateSupplier> blockStateCollector, BiConsumer<Identifier, Supplier<JsonElement>> modelCollector, Consumer<Item> simpleItemModelExemptionCollector) {
+        PFMBlockStateModelGenerator(Consumer<BlockStateSupplier> blockStateCollector, BiConsumer<Identifier, ModelSupplier> modelCollector, Consumer<Item> simpleItemModelExemptionCollector) {
             this.blockStateCollector = blockStateCollector;
             this.modelCollector = modelCollector;
             this.simpleItemModelExemptionCollector = simpleItemModelExemptionCollector;
@@ -387,7 +444,7 @@ public class PFMBlockstateModelProvider extends PFMProvider {
                             if (model == models[0]) {
                                 block(blockName+"/template/full/"+ blockName+ "_"+color, TextureKey.TEXTURE).upload(id, blockTexture, this.modelCollector);
                             }  else {
-                                model.upload(id, blockTexture, this.modelCollector);
+                                model.upload(block, blockTexture, this.modelCollector);
                             }
                             ids.add(id);
                         }

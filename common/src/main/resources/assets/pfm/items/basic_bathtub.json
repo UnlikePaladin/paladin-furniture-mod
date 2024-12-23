@@ -1,0 +1,6 @@
+{
+    "model": {
+        "type": "minecraft:model",
+        "model": "pfm:block/basic_bathtub/bathtub"
+    }
+}

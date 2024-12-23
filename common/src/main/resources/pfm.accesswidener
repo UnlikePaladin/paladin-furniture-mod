@@ -1,16 +1,16 @@
 accessWidener v1 named
 
 accessible class net/minecraft/block/entity/BlockEntityType$BlockEntityFactory
-accessible method net/minecraft/data/server/loottable/BlockLootTableGenerator drops (Lnet/minecraft/item/ItemConvertible;)Lnet/minecraft/loot/LootTable$Builder;
-accessible method net/minecraft/data/server/loottable/BlockLootTableGenerator dropsWithProperty (Lnet/minecraft/block/Block;Lnet/minecraft/state/property/Property;Ljava/lang/Comparable;)Lnet/minecraft/loot/LootTable$Builder;
-accessible class net/minecraft/data/server/tag/ValueLookupTagProvider$ObjectBuilder
-accessible method net/minecraft/client/render/item/ItemRenderer renderBakedItemModel (Lnet/minecraft/client/render/model/BakedModel;Lnet/minecraft/item/ItemStack;IILnet/minecraft/client/util/math/MatrixStack;Lnet/minecraft/client/render/VertexConsumer;)V
+accessible class net/minecraft/data/tag/ValueLookupTagProvider$ObjectBuilder
 accessible class net/minecraft/data/DataCache$CachedDataWriter
 accessible class net/minecraft/data/DataCache$CachedData
 accessible field net/minecraft/resource/featuretoggle/FeatureSet universe Lnet/minecraft/resource/featuretoggle/FeatureUniverse;
 accessible field net/minecraft/resource/featuretoggle/FeatureSet featuresMask J
 mutable field net/minecraft/resource/featuretoggle/FeatureFlag mask J
 accessible field net/minecraft/resource/featuretoggle/FeatureFlag mask J
-accessible class net/minecraft/data/server/tag/TagProvider$ProvidedTagBuilder
 accessible	method	net/minecraft/recipe/SingleStackRecipe	result ()Lnet/minecraft/item/ItemStack;
 accessible method net/minecraft/block/entity/BlockEntityType <init> (Lnet/minecraft/block/entity/BlockEntityType$BlockEntityFactory;Ljava/util/Set;)V
+accessible field net/minecraft/block/entity/BedBlockEntity color Lnet/minecraft/util/DyeColor;
+mutable field net/minecraft/block/entity/BedBlockEntity color Lnet/minecraft/util/DyeColor;
+accessible field net/minecraft/client/render/item/model/ItemModelTypes ID_MAPPER Lnet/minecraft/util/dynamic/Codecs$IdMapper;
+accessible field net/minecraft/client/render/item/model/special/SpecialModelTypes ID_MAPPER Lnet/minecraft/util/dynamic/Codecs$IdMapper;

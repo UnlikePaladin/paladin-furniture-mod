@@ -211,7 +211,7 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
             tooltip.add(Text.translatable("container.pfm.working_table.ingredient_required").setStyle(Style.EMPTY.withItalic(true)));
             HashMap<Item, Integer> itemStackCountMap = new HashMap<>();
             for (Ingredient ingredient : this.handler.getSortedRecipes().get(iCopy).getIngredients()) {
-                for (RegistryEntry<Item> item : ingredient.getMatchingItems()) {
+                for (RegistryEntry<Item> item : ingredient.getMatchingItems().toList()) {
                     if (!itemStackCountMap.containsKey(item.value())) {
                         itemStackCountMap.put(item.value(), 1);
                     } else {
