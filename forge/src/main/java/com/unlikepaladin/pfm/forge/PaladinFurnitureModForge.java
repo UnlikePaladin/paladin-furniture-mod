@@ -34,6 +34,7 @@ public class PaladinFurnitureModForge extends PaladinFurnitureMod {
     public static PaladinFurnitureModConfig pfmConfig;
     public PaladinFurnitureModForge() {
         pfmConfig = new PaladinFurnitureModConfig(FMLPaths.CONFIGDIR.get());
+        PaladinFurnitureMod.isClient = FMLEnvironment.dist == Dist.CLIENT;
         try {
             pfmConfig.initialize();
         } catch (IOException e) {
@@ -49,11 +50,12 @@ public class PaladinFurnitureModForge extends PaladinFurnitureMod {
         MinecraftForge.EVENT_BUS.register(BlockEntityRegistryForge.class);
         MinecraftForge.EVENT_BUS.register(SoundRegistryForge.class);
         MinecraftForge.EVENT_BUS.register(NetworkRegistryForge.class);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.LOW, ColorRegistryForge::registerBlockColors);
-        FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.LOWEST, ColorRegistryForge::registerItemColors);
+        if (isClient) {
+            FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.LOW, ColorRegistryForge::registerBlockColors);
+            FMLJavaModLoadingContext.get().getModEventBus().addListener(EventPriority.LOWEST, ColorRegistryForge::registerItemColors);
+        }
         NetworkRegistryForge.registerPackets();
         LateBlockRegistryForge.addDynamicBlockRegistration();
-        PaladinFurnitureMod.isClient = FMLEnvironment.dist == Dist.CLIENT;
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ItemGroupRegistryForge::registerItemGroups);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(ItemGroupRegistryForge::addToVanillaItemGroups);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(PaladinFurnitureModForge::generateResources);
