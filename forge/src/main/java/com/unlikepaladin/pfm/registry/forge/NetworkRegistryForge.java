@@ -35,7 +35,7 @@ public class NetworkRegistryForge {
         PFM_CHANNEL.messageBuilder(ToiletUsePacket.class, NetworkDirection.PLAY_TO_SERVER).encoder(ToiletUsePacket::encode).decoder(ToiletUsePacket::decode).consumerNetworkThread(CONTEXT, ToiletUsePacket::handle).add();
         PFM_CHANNEL.messageBuilder(TrashcanClearPacket.class, NetworkDirection.PLAY_TO_SERVER).encoder(TrashcanClearPacket::encode).decoder(TrashcanClearPacket::decode).consumerNetworkThread(CONTEXT, TrashcanClearPacket::handle).add();
         PFM_CHANNEL.messageBuilder(SyncConfigPacket.class, NetworkDirection.CONFIGURATION_TO_CLIENT).encoder(SyncConfigPacket::encode).decoder(SyncConfigPacket::decode).consumerNetworkThread(CONTEXT, SyncConfigPacket::handle).add();
-        PFM_CHANNEL.messageBuilder(SyncRecipesPayload.class, NetworkDirection.PLAY_TO_CLIENT).encoder(SyncRecipesPayload::write).decoder(SyncRecipesPayload::new).consumerNetworkThread(CONTEXT, (forgePacketHandler, syncRecipesPayload, context) -> {syncRecipesPayload.handle(context.getSender(), MinecraftClient.getInstance());}).add();
+        PFM_CHANNEL.messageBuilder(SyncRecipesPayload.class, NetworkDirection.PLAY_TO_CLIENT).encoder(SyncRecipesPayload::write).decoder(SyncRecipesPayload::new).consumerNetworkThread(CONTEXT, (forgePacketHandler, syncRecipesPayload, context) -> {syncRecipesPayload.handle(MinecraftClient.getInstance().player, MinecraftClient.getInstance()); context.setPacketHandled(true);}).add();
 
         // PFM_CHANNEL.registerMessage(++id, ResetConfigPacket.class, ResetConfigPacket::encode, ResetConfigPacket::decode, ResetConfigPacket::handle);
     }
