@@ -15,13 +15,11 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class ClassicChairBlock extends BasicChairBlock {
-    public float height;
     private static final List<FurnitureBlock> WOOD_CLASSIC_CHAIRS = new ArrayList<>();
     private static final List<FurnitureBlock> STONE_CLASSIC_CHAIRS = new ArrayList<>();
     public ClassicChairBlock(Settings settings) {
         super(settings);
         setDefaultState(this.getStateManager().getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(TUCKED, false));
-        this.height = 0.36f;
         if(isWoodBased(this.getDefaultState()) && this.getClass().isAssignableFrom(ClassicChairBlock.class)){
             WOOD_CLASSIC_CHAIRS.add(new FurnitureBlock(this.asBlock(), "chair_classic"));
         }
