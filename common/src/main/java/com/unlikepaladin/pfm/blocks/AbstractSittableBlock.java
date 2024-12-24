@@ -79,19 +79,19 @@ public abstract class AbstractSittableBlock extends HorizontalFacingBlock {
         }
 
         List<ChairEntity> active = world.getEntitiesByClass(ChairEntity.class, new Box(pos), Entity::hasPassengers);
-        if (active == null)
-            return ActionResult.FAIL;
+        if (active != null && !active.isEmpty()) {
+            List<Entity> hasPassenger = new ArrayList<>();
+            active.forEach(chairEntity -> hasPassenger.add(chairEntity.getPrimaryPassenger()));
+            if (hasPassenger.stream().anyMatch(entity -> entity instanceof PlayerEntity)) {
+                return ActionResult.FAIL;
+            }
+            else if (!active.isEmpty()) {
+                hasPassenger.forEach(Entity::stopRiding);
+                return ActionResult.SUCCESS;
+            }
+        }
 
-        List<Entity> hasPassenger = new ArrayList<>();
-        active.forEach(chairEntity -> hasPassenger.add(chairEntity.getPrimaryPassenger()));
-        if (!active.isEmpty() && hasPassenger.stream().anyMatch(entity -> entity instanceof PlayerEntity)) {
-            return ActionResult.FAIL;
-        }
-        else if (!active.isEmpty()) {
-            hasPassenger.forEach(Entity::stopRiding);
-            return ActionResult.SUCCESS;
-        }
-        else if (sitEntity(world, pos, state, player) == ActionResult.SUCCESS) {
+        if (sitEntity(world, pos, state, player) == ActionResult.SUCCESS) {
             if (!(state.getBlock() instanceof BasicToiletBlock))
                 player.incrementStat(Statistics.CHAIR_USED);
             return ActionResult.SUCCESS;

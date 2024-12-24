@@ -7,10 +7,7 @@ import com.unlikepaladin.pfm.blocks.BasicToiletBlock;
 import com.unlikepaladin.pfm.blocks.ToiletState;
 import com.unlikepaladin.pfm.client.PaladinFurnitureModClient;
 import dev.architectury.injectables.annotations.ExpectPlatform;
-import net.minecraft.entity.Dismounting;
-import net.minecraft.entity.EntityPose;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.*;
 import net.minecraft.entity.attribute.DefaultAttributeContainer;
 import net.minecraft.entity.attribute.EntityAttributes;
 import net.minecraft.entity.mob.MobEntity;
@@ -22,6 +19,7 @@ import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 public class ChairEntity extends MobEntity {
     public ChairEntity(EntityType<? extends ChairEntity> type, World world) {
@@ -110,6 +108,12 @@ public class ChairEntity extends MobEntity {
 
     public static DefaultAttributeContainer.Builder createMobAttributes(){
         return MobEntity.createMobAttributes().add(EntityAttributes.GENERIC_MAX_HEALTH, 0);
+    }
+
+    @Nullable
+    @Override
+    public Entity getPrimaryPassenger() {
+        return !this.getPassengerList().isEmpty() ? this.getPassengerList().get(0) : null;
     }
 
     @Override
