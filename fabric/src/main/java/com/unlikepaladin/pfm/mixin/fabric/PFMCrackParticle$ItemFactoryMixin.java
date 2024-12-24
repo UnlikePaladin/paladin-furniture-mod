@@ -18,12 +18,12 @@ import org.spongepowered.asm.mixin.injection.At;
 @Mixin(CrackParticle.ItemFactory.class)
 public class PFMCrackParticle$ItemFactoryMixin {
     @ModifyReturnValue(method = "createParticle(Lnet/minecraft/particle/ItemStackParticleEffect;Lnet/minecraft/client/world/ClientWorld;DDDDDD)Lnet/minecraft/client/particle/Particle;", at = @At("RETURN"))
-    public Particle modifyParticle(Particle original, @Local(argsOnly = true) ItemStackParticleEffect itemStackParticleEffect, @Local(argsOnly = true) ClientWorld world, @Local(name = "d") double d, @Local(name = "e") double e, @Local(name = "f") double f) {
+    public Particle modifyParticle(Particle original, ItemStackParticleEffect itemStackParticleEffect, ClientWorld clientWorld, double d, double e, double f, double g, double h, double i) {
         if (itemStackParticleEffect.getItemStack().getItem() instanceof BlockItem) {
             BlockState defaultState = ((BlockItem)itemStackParticleEffect.getItemStack().getItem()).getBlock().getDefaultState();
             BakedModel model = MinecraftClient.getInstance().getBakedModelManager().getBlockModels().getModel(defaultState);
             if (model instanceof PFMBakedModelParticleExtension) {
-                ((PFMSpriteBillBoardParticleMixin)original).setSprite(((PFMBakedModelParticleExtension) model).pfm$getParticle(world, BlockPos.ofFloored(d, e, f), defaultState));
+                ((PFMSpriteBillBoardParticleMixin)original).setSprite(((PFMBakedModelParticleExtension) model).pfm$getParticle(clientWorld, BlockPos.ofFloored(d, e, f), defaultState));
             }
         }
         return original;
