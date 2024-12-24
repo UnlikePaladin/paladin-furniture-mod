@@ -87,4 +87,9 @@ public class BathtubBlockEntity extends BedBlockEntity {
             }
         }
     }
+
+    @Override
+    public boolean supports(BlockState state) {
+        return getType().supports(state);
+    }
 }
