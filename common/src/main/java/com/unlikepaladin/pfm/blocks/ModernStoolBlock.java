@@ -15,13 +15,11 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class ModernStoolBlock extends BasicChairBlock {
-    public float height;
     private static final List<FurnitureBlock> WOOD_MODERN_STOOLS = new ArrayList<>();
     private static final List<FurnitureBlock> STONE_MODERN_STOOLS = new ArrayList<>();
     public ModernStoolBlock(Settings settings) {
         super(settings);
         setDefaultState(this.getStateManager().getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(TUCKED, false));
-        this.height = 1.0f;
         if(isWoodBased(this.getDefaultState()) && this.getClass().isAssignableFrom(ModernStoolBlock.class)){
             WOOD_MODERN_STOOLS.add(new FurnitureBlock(this, "modern_stool"));
         }
