@@ -44,7 +44,7 @@ public class NetworkRegistryNeoForge {
 
         registrar.playToClient(NetworkIDs.MICROWAVE_UPDATE_PACKET_ID, MicrowaveUpdatePayload.PACKET_SIMPLE_CODEC, (payload, context) -> payload.handle(context.player(), MinecraftClient.getInstance()));
 
-        registrar.playToClient(NetworkIDs.SYNC_FURNITURE_RECIPES, SyncRecipesPayload.PACKET_CODEC, (payload, context) -> payload.handle(context.player(), MinecraftClient.getInstance()));
+        registrar.playToClient(NetworkIDs.SYNC_FURNITURE_RECIPES, SyncRecipesPayload.PACKET_CODEC, (payload, context) -> payload.handle());
     }
 
     @SubscribeEvent

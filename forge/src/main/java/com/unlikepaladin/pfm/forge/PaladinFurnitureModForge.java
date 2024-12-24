@@ -5,16 +5,12 @@ import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.client.PathPackRPWrapper;
 import com.unlikepaladin.pfm.client.forge.ColorRegistryForge;
 import com.unlikepaladin.pfm.config.PaladinFurnitureModConfig;
-import com.unlikepaladin.pfm.data.forge.PFMTagsImpl;
 import com.unlikepaladin.pfm.items.forge.PFMComponentsImpl;
-import com.unlikepaladin.pfm.registry.BlockItemRegistry;
 import com.unlikepaladin.pfm.registry.dynamic.forge.LateBlockRegistryForge;
 import com.unlikepaladin.pfm.registry.forge.*;
 import com.unlikepaladin.pfm.utilities.Version;
 import net.minecraft.registry.VersionedIdentifier;
-import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.resource.*;
-import net.minecraft.resource.featuretoggle.FeatureFlags;
 import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import net.minecraft.SharedConstants;
@@ -31,7 +27,6 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 

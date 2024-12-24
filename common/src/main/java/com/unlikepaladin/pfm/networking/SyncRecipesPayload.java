@@ -1,10 +1,7 @@
 package com.unlikepaladin.pfm.networking;
 
-import com.unlikepaladin.pfm.menus.WorkbenchScreenHandler;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import com.unlikepaladin.pfm.registry.NetworkIDs;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
@@ -27,13 +24,7 @@ public record SyncRecipesPayload(ArrayList<FurnitureRecipe> recipes) implements 
         buf.writeCollection(recipes, (registry, recipe) -> FurnitureRecipe.Serializer.write((RegistryByteBuf) registry, recipe));
     }
 
-
-    public void handle(PlayerEntity player, MinecraftClient client) {
-        client.execute(() -> {
-            if (player.getWorld() != null && player.currentScreenHandler instanceof WorkbenchScreenHandler) {
-                ((WorkbenchScreenHandler) player.currentScreenHandler).setAllRecipes(recipes);
-                ((WorkbenchScreenHandler) player.currentScreenHandler).updateInput();
-            }
-        });
+    public void handle() {
+        ClientSyncRecipesPayloadHandler.handlePacket(this.recipes);
     }
 }
