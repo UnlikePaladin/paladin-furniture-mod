@@ -3,6 +3,7 @@
   "package": "com.unlikepaladin.pfm.mixin.fabric",
   "compatibilityLevel": "JAVA_8",
   "client": [
+    "PFMBlockDustParticleMixin",
     "PFMBlockModelsMixin",
     "PFMCrackParticleMixin",
     "PFMTitleScreenMixin"
