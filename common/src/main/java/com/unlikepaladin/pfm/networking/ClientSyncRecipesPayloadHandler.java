@@ -10,8 +10,8 @@ import java.util.List;
 public class ClientSyncRecipesPayloadHandler {
     public static void handlePacket(List<FurnitureRecipe> recipes) {
         MinecraftClient client = MinecraftClient.getInstance();
-        ClientPlayerEntity player = MinecraftClient.getInstance().player;
         client.execute(() -> {
+            ClientPlayerEntity player = MinecraftClient.getInstance().player;
             if (player.getWorld() != null && player.currentScreenHandler instanceof WorkbenchScreenHandler) {
                 ((WorkbenchScreenHandler) player.currentScreenHandler).setAllRecipes(recipes);
                 ((WorkbenchScreenHandler) player.currentScreenHandler).updateInput();
