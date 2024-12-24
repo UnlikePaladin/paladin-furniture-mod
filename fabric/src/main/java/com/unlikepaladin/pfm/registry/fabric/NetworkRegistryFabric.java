@@ -18,5 +18,8 @@ public class NetworkRegistryFabric {
         PayloadTypeRegistry.playC2S().register(NetworkIDs.TOILET_USE_ID, ToiletUsePayload.PACKET_CODEC);
         ServerPlayNetworking.registerGlobalReceiver(NetworkIDs.TOILET_USE_ID,
                 ((payload, context) -> payload.handle(context.server(), context.player())));
+
+        PayloadTypeRegistry.playS2C().register(NetworkIDs.CONFIG_SYNC_ID, SyncConfigPayload.PACKET_CODEC);
+        PayloadTypeRegistry.playS2C().register(NetworkIDs.MICROWAVE_UPDATE_PACKET_ID, MicrowaveUpdatePayload.PACKET_CODEC);
     }
 }
