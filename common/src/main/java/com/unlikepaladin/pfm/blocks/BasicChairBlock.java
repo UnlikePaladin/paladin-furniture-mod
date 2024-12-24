@@ -32,7 +32,6 @@ public class BasicChairBlock extends AbstractSittableBlock {
     public BasicChairBlock(Settings settings) {
         super(settings);
         setDefaultState(this.getStateManager().getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(TUCKED, false));
-        this.height = 0.36f;
         if(isWoodBased(this.getDefaultState()) && this.getClass().isAssignableFrom(BasicChairBlock.class)){
             WOOD_BASIC_CHAIRS.add(new FurnitureBlock(this, "chair"));
         }

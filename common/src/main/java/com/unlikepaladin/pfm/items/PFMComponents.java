@@ -11,12 +11,12 @@ public class PFMComponents {
         PaladinFurnitureMod.GENERAL_LOGGER.info("Registering {} components", PaladinFurnitureMod.MOD_ID);
         VARIANT_COMPONENT = register(
                 Identifier.of(PaladinFurnitureMod.MOD_ID, "variant"),
-                ComponentType.<Identifier>builder().codec(Identifier.CODEC).build()
+                ComponentType.<Identifier>builder().codec(Identifier.CODEC).packetCodec(Identifier.PACKET_CODEC).build()
         );
 
         COLOR_COMPONENT = register(
                 Identifier.of(PaladinFurnitureMod.MOD_ID, "color"),
-                ComponentType.<DyeColor>builder().codec(DyeColor.CODEC).build()
+                ComponentType.<DyeColor>builder().codec(DyeColor.CODEC).packetCodec(DyeColor.PACKET_CODEC).build()
         );
     }
 
