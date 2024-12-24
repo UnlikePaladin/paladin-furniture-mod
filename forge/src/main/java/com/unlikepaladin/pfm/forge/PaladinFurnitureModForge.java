@@ -6,16 +6,12 @@ import com.unlikepaladin.pfm.client.PathPackRPWrapper;
 import com.unlikepaladin.pfm.client.forge.ColorRegistryForge;
 import com.unlikepaladin.pfm.client.forge.ItemModelRegistry;
 import com.unlikepaladin.pfm.config.PaladinFurnitureModConfig;
-import com.unlikepaladin.pfm.data.forge.PFMTagsImpl;
 import com.unlikepaladin.pfm.items.forge.PFMComponentsImpl;
-import com.unlikepaladin.pfm.registry.BlockItemRegistry;
 import com.unlikepaladin.pfm.registry.dynamic.forge.LateBlockRegistryForge;
 import com.unlikepaladin.pfm.registry.forge.*;
 import com.unlikepaladin.pfm.utilities.Version;
 import net.minecraft.registry.VersionedIdentifier;
-import net.minecraft.registry.tag.BlockTags;
 import net.minecraft.resource.*;
-import net.minecraft.resource.featuretoggle.FeatureFlags;
 import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import net.minecraft.SharedConstants;
@@ -32,7 +28,6 @@ import net.minecraftforge.fml.loading.FMLEnvironment;
 import net.minecraftforge.fml.loading.FMLPaths;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Optional;
 
 
@@ -41,6 +36,7 @@ public class PaladinFurnitureModForge extends PaladinFurnitureMod {
     public static PaladinFurnitureModConfig pfmConfig;
     public PaladinFurnitureModForge(FMLJavaModLoadingContext loadContext) {
         pfmConfig = new PaladinFurnitureModConfig(FMLPaths.CONFIGDIR.get());
+        PaladinFurnitureMod.isClient = FMLEnvironment.dist == Dist.CLIENT;
         try {
             pfmConfig.initialize();
         } catch (IOException e) {
@@ -57,17 +53,16 @@ public class PaladinFurnitureModForge extends PaladinFurnitureMod {
         MinecraftForge.EVENT_BUS.register(SoundRegistryForge.class);
         MinecraftForge.EVENT_BUS.register(NetworkRegistryForge.class);
         MinecraftForge.EVENT_BUS.register(PFMComponentsImpl.class);
-        NetworkRegistryForge.registerPackets();
-        LateBlockRegistryForge.addDynamicBlockRegistration(loadContext);
-        PaladinFurnitureMod.isClient = FMLEnvironment.dist == Dist.CLIENT;
-        loadContext.getModEventBus().addListener(ItemGroupRegistryForge::registerItemGroups);
-        loadContext.getModEventBus().addListener(ItemGroupRegistryForge::addToVanillaItemGroups);
-        loadContext.getModEventBus().addListener(PaladinFurnitureModForge::generateResources);
         if (isClient) {
             ItemModelRegistry.registerItemModelTypes();
             loadContext.getModEventBus().addListener(EventPriority.LOW, ColorRegistryForge::registerBlockColors);
             MinecraftForge.EVENT_BUS.addListener(ItemModelRegistry::registerSpecialModelRenderers);
         }
+        NetworkRegistryForge.registerPackets();
+        LateBlockRegistryForge.addDynamicBlockRegistration(loadContext);
+        loadContext.getModEventBus().addListener(ItemGroupRegistryForge::registerItemGroups);
+        loadContext.getModEventBus().addListener(ItemGroupRegistryForge::addToVanillaItemGroups);
+        loadContext.getModEventBus().addListener(PaladinFurnitureModForge::generateResources);
     }
 
     @SubscribeEvent

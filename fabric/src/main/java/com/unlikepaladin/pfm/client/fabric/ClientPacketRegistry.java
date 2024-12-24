@@ -29,7 +29,7 @@ public class ClientPacketRegistry {
         );
         ClientPlayNetworking.registerGlobalReceiver(NetworkIDs.SYNC_FURNITURE_RECIPES,
                 (payload, context) -> {
-                    payload.handle(context.player(), context.client());
+                    payload.handle();
                 }
         );
     }

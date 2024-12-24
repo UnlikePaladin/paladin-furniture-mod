@@ -49,7 +49,7 @@ public abstract class AbstractSittableBlock extends HorizontalFacingBlock {
         this.baseBlock = baseBlockState.getBlock();
         setDefaultState(this.getStateManager().getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH));
 
-        this.height = 0.36f;
+        this.height = 0.7f;
         if (!CODECS.containsKey(this)) {
             CODECS.put(this.getClass(), createCodec(settings1 -> getChairConstructor().apply(settings1)));
         }

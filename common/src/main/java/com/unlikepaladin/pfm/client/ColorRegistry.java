@@ -28,7 +28,6 @@ public class ColorRegistry {
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_TOILET, addToiletColor());
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_BATHTUB, addWaterColor());
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_SINK, addWaterColor());
-
         registerBlockColor(PaladinFurnitureModBlocksItems.BASIC_LAMP, (state, world, pos, tintIndex) -> {
             BlockEntity entity = world.getBlockEntity(pos);
             if (entity != null && tintIndex == 1) {
