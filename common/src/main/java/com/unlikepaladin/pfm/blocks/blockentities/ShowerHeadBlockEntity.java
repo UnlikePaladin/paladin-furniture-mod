@@ -10,6 +10,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
+import net.minecraft.util.Tickable;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
@@ -17,7 +18,7 @@ import net.minecraft.world.World;
 import java.util.Random;
 import java.util.function.Supplier;
 
-public class ShowerHeadBlockEntity extends BlockEntity {
+public class ShowerHeadBlockEntity extends BlockEntity implements Tickable {
     public ShowerHeadBlockEntity() {
         super(BlockEntities.SHOWER_HEAD_BLOCK_ENTITY);
     }
@@ -48,11 +49,11 @@ public class ShowerHeadBlockEntity extends BlockEntity {
         this.isOpen = isOpen;
     }
 
-    public static void tick(World world, BlockPos pos, BlockState state, ShowerHeadBlockEntity blockEntity) {
-        if (blockEntity.isOpen && world.isClient) {
-            spawnParticles(blockEntity.getCachedState().get(Properties.HORIZONTAL_FACING), blockEntity.world, blockEntity.getPos());
+    public void tick() {
+        if (world != null && this.isOpen && world.isClient) {
+            spawnParticles(this.getCachedState().get(Properties.HORIZONTAL_FACING), this.world, this.getPos());
         }
-        if (blockEntity.isOpen) {
+        if (this.isOpen) {
             world.playSound(null, pos, SoundEvents.WEATHER_RAIN, SoundCategory.BLOCKS, 0.1f, 8.0f);
         }
     }
