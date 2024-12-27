@@ -29,7 +29,7 @@ public class LogTableBlock extends HorizontalFacingBlock {
     private static final List<FurnitureBlock> WOOD_LOG_TABLES = new ArrayList<>();
     private static final List<FurnitureBlock> STONE_NATURAL_TABLES = new ArrayList<>();
     public LogTableBlock(Settings settings) {
-        super(settings);
+        super(settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         setDefaultState(this.getStateManager().getDefaultState().with(FACING, Direction.NORTH));
         this.baseBlockState = this.getDefaultState();
         this.baseBlock = baseBlockState.getBlock();

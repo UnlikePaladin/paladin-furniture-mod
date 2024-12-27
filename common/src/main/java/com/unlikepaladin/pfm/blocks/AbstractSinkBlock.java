@@ -45,7 +45,7 @@ public abstract class AbstractSinkBlock extends AbstractCauldronBlock implements
     final Predicate<Biome.Precipitation> precipitationPredicate;
 
     public AbstractSinkBlock(Settings settings, Predicate<Biome.Precipitation> precipitationPredicate, Map<Item, CauldronBehavior> behaviorMap) {
-        super(settings, behaviorMap);
+        super(settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false), behaviorMap);
         this.behaviorMap = behaviorMap;
         this.precipitationPredicate = precipitationPredicate;
         this.setDefaultState(this.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(LEVEL_4, 0));
