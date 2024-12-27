@@ -11,14 +11,15 @@ import net.blay09.mods.balm.api.container.SubContainer;
 import net.blay09.mods.balm.api.energy.BalmEnergyStorageProvider;
 import net.blay09.mods.balm.api.energy.EnergyStorage;
 import net.blay09.mods.balm.api.menu.BalmMenuProvider;
+import net.blay09.mods.balm.api.tag.BalmItemTags;
 import net.blay09.mods.balm.common.BalmBlockEntity;
 import net.blay09.mods.cookingforblockheads.CookingForBlockheadsConfig;
-import net.blay09.mods.cookingforblockheads.api.capability.IKitchenSmeltingProvider;
+import net.blay09.mods.cookingforblockheads.api.IngredientToken;
+import net.blay09.mods.cookingforblockheads.api.KitchenItemProcessor;
+import net.blay09.mods.cookingforblockheads.api.KitchenOperation;
 import net.blay09.mods.cookingforblockheads.api.event.OvenCookedEvent;
-import net.blay09.mods.cookingforblockheads.block.OvenBlock;
-import net.blay09.mods.cookingforblockheads.compat.Compat;
-import net.blay09.mods.cookingforblockheads.registry.CookingRegistry;
-import net.blay09.mods.cookingforblockheads.tile.IMutableNameable;
+import net.blay09.mods.cookingforblockheads.block.entity.IMutableNameable;
+import net.blay09.mods.cookingforblockheads.recipe.ModRecipes;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -28,9 +29,9 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
+import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.SmeltingRecipe;
 import net.minecraft.screen.PropertyDelegate;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.sound.SoundCategory;
@@ -46,7 +47,9 @@ import net.minecraft.world.World;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 
-public class StoveBlockEntityBalm extends BalmBlockEntity implements IKitchenSmeltingProvider, BalmMenuProvider, IMutableNameable, BalmContainerProvider, BalmEnergyStorageProvider {
+import java.util.List;
+
+public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItemProcessor, BalmMenuProvider, IMutableNameable, BalmContainerProvider, BalmEnergyStorageProvider {
     private static final int COOK_TIME = 200;
     private final DefaultContainer container = new DefaultContainer(20) {
         public boolean isValid(int slot, ItemStack itemStack) {
@@ -267,27 +270,28 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements IKitchenSme
 
     }
 
-    public ItemStack getSmeltingResult(ItemStack itemStack) {
-        ItemStack result = CookingRegistry.getSmeltingResult(itemStack);
-        if (!result.isEmpty()) {
-            return result;
-        } else {
-            this.singleSlotRecipeWrapper.setStack(0, itemStack);
-            RecipeEntry<SmeltingRecipe> entry = this.world.getRecipeManager().getFirstMatch(RecipeType.SMELTING, this.singleSlotRecipeWrapper, this.world).orElse(null);
-            if (entry != null) {
-                result = entry.value().getResult(world.getRegistryManager());
-                if (!result.isEmpty() && result.getItem().isFood()) {
-                    return result;
-                }
-            }
 
-            return !result.isEmpty() && CookingRegistry.isNonFoodRecipe(result) ? result : ItemStack.EMPTY;
+    public ItemStack getSmeltingResult(ItemStack itemStack) {
+        this.singleSlotRecipeWrapper.setStack(0, itemStack);
+        ItemStack ovenRecipeResult = this.getSmeltingResult(ModRecipes.ovenRecipeType, this.singleSlotRecipeWrapper);
+        return !ovenRecipeResult.isEmpty() ? ovenRecipeResult : this.getSmeltingResult(RecipeType.SMELTING, this.singleSlotRecipeWrapper);
+    }
+
+    public <T extends Inventory> ItemStack getSmeltingResult(RecipeType<? extends Recipe<T>> recipeType, T container) {
+        RecipeEntry<?> recipe = this.world.getRecipeManager().getFirstMatch(recipeType, container, this.world).orElse(null);
+        if (recipe != null) {
+            ItemStack result = recipe.value().getResult(this.world.getRegistryManager());
+            if (!result.isEmpty() && result.getItem().isFood()) {
+                return result;
+            }
         }
+
+        return ItemStack.EMPTY;
     }
 
     public static boolean isItemFuel(ItemStack itemStack) {
         if (CookingForBlockheadsConfig.getActive().ovenRequiresCookingOil) {
-            return itemStack.isIn(Compat.getCookingOilTag());
+            return itemStack.isIn(BalmItemTags.COOKING_OIL);
         } else {
             return getBurnTime(itemStack) > 0;
         }
@@ -297,7 +301,7 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements IKitchenSme
         if (itemStack.isEmpty()) {
             return 0;
         } else {
-            return CookingForBlockheadsConfig.getActive().ovenRequiresCookingOil && itemStack.isIn(Compat.getCookingOilTag()) ? 800 : Balm.getHooks().getBurnTime(itemStack);
+            return CookingForBlockheadsConfig.getActive().ovenRequiresCookingOil && itemStack.isIn(BalmItemTags.COOKING_OIL) ? 800 : Balm.getHooks().getBurnTime(itemStack);
         }
     }
 
@@ -343,22 +347,14 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements IKitchenSme
         }
     }
 
-    public void balmFromClientTag(NbtCompound tag) {
-    }
-
-    public NbtCompound balmToClientTag(NbtCompound tag) {
-        return tag;
+    @Override
+    protected void writeUpdateTag(NbtCompound tag) {
+        this.writeNbt(tag);
+        super.writeUpdateTag(tag);
     }
 
     public boolean hasPowerUpgrade() {
         return this.hasPowerUpgrade;
-    }
-
-    public void setHasPowerUpgrade(boolean hasPowerUpgrade) {
-        this.hasPowerUpgrade = hasPowerUpgrade;
-        BlockState state = this.world.getBlockState(this.pos);
-        this.world.setBlockState(this.pos, (BlockState)state.with(OvenBlock.POWERED, hasPowerUpgrade));
-        this.markDirty();
     }
 
     public boolean isBurning() {
@@ -523,5 +519,21 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements IKitchenSme
         double e = (double)this.pos.getY() + 0.5 + (double)vec3i.getY() / 2.0;
         double f = (double)this.pos.getZ() + 0.5 + (double)vec3i.getZ() / 2.0;
         this.world.playSound(null, d, e, f, soundEvent, SoundCategory.BLOCKS, 0.5f, this.world.random.nextFloat() * 0.1f + 0.9f);
+    }
+
+    public boolean canProcess(RecipeType<?> recipeType) {
+        return recipeType == RecipeType.SMELTING;
+    }
+
+    public KitchenOperation processRecipe(Recipe<?> recipe, List<IngredientToken> ingredientTokens) {
+        for (IngredientToken ingredientToken : ingredientTokens) {
+            ItemStack itemStack = ingredientToken.consume();
+            ItemStack restStack = ContainerUtils.insertItemStacked(this.inputContainer, itemStack, false);
+            if (!restStack.isEmpty()) {
+                ingredientToken.restore(restStack);
+            }
+        }
+
+        return KitchenOperation.EMPTY;
     }
 }

@@ -1,29 +1,26 @@
 package com.unlikepaladin.pfm.compat.cookingforblockheads.fabric;
 
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import com.unlikepaladin.pfm.blocks.blockentities.CounterOvenBlockEntity;
 import net.blay09.mods.balm.api.container.BalmContainerProvider;
 import net.blay09.mods.balm.api.provider.BalmProvider;
 import net.blay09.mods.balm.api.provider.BalmProviderHolder;
-import net.blay09.mods.cookingforblockheads.api.capability.DefaultKitchenItemProvider;
-import net.blay09.mods.cookingforblockheads.api.capability.IKitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.api.KitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.kitchen.ContainerKitchenItemProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class CounterOvenBlockEntityBalm extends CounterOvenBlockEntity implements BalmContainerProvider, BalmProviderHolder, BlockEntityContract {
-    private final DefaultKitchenItemProvider itemProvider;
+    private final KitchenItemProvider itemProvider;
 
     public CounterOvenBlockEntityBalm(BlockPos pos, BlockState state) {
         super(pos, state);
-        this.itemProvider = new DefaultKitchenItemProvider(this);
+        this.itemProvider = new ContainerKitchenItemProvider(this);
     }
 
     @Override
@@ -32,7 +29,7 @@ public class CounterOvenBlockEntityBalm extends CounterOvenBlockEntity implement
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(IKitchenItemProvider.class, this.itemProvider)});
+        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(KitchenItemProvider.class, this.itemProvider)});
     }
 
     private final Map<Class<?>, BalmProvider<?>> providers = new HashMap<>();

@@ -34,8 +34,6 @@ public class RecipeRegistryForge {
             );
             // Can't run resource gen until the recipe serializer has been registered or it dies because it needs the ID
             // PFMRuntimeResources.prepareAsyncResourceGen(); Had to disable async gen because Forge dies and I can't be bothered to figure out why, this is cursed enough as it is
-            if (PaladinFurnitureMod.getModList().contains("cookingforblockheads"))
-                PFMCookingForBlockHeadsCompat.initBlockConnectors();
         });
     }
 

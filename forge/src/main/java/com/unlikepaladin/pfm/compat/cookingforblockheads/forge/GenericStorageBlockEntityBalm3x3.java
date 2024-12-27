@@ -14,13 +14,11 @@ import net.blay09.mods.balm.api.provider.BalmProviderHolder;
 import net.blay09.mods.balm.forge.energy.ForgeEnergyStorage;
 import net.blay09.mods.balm.forge.fluid.ForgeFluidTank;
 import net.blay09.mods.balm.forge.provider.ForgeBalmProviders;
-import net.blay09.mods.cookingforblockheads.api.capability.DefaultKitchenItemProvider;
-import net.blay09.mods.cookingforblockheads.api.capability.IKitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.api.KitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.kitchen.ContainerKitchenItemProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -32,11 +30,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class GenericStorageBlockEntityBalm3x3 extends GenericStorageBlockEntity3x3 implements BalmContainerProvider, BalmProviderHolder, BlockEntityContract {
-    private final DefaultKitchenItemProvider itemProvider;
+    private final KitchenItemProvider itemProvider;
 
     public GenericStorageBlockEntityBalm3x3(BlockPos pos, BlockState state) {
         super(pos, state);
-        this.itemProvider = new DefaultKitchenItemProvider(this);
+        this.itemProvider = new ContainerKitchenItemProvider(this);
     }
 
     @Override
@@ -45,7 +43,7 @@ public class GenericStorageBlockEntityBalm3x3 extends GenericStorageBlockEntity3
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(IKitchenItemProvider.class, this.itemProvider)});
+        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(KitchenItemProvider.class, this.itemProvider)});
     }
 
     private boolean capabilitiesInitialized;

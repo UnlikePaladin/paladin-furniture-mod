@@ -22,7 +22,7 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
-import org.jetbrains.annotations.Nullable;;
+import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.stream.Stream;
 

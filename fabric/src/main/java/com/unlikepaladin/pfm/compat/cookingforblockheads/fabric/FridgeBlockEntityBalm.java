@@ -6,8 +6,8 @@ import com.unlikepaladin.pfm.blocks.blockentities.FridgeBlockEntity;
 import net.blay09.mods.balm.api.container.BalmContainerProvider;
 import net.blay09.mods.balm.api.provider.BalmProvider;
 import net.blay09.mods.balm.api.provider.BalmProviderHolder;
-import net.blay09.mods.cookingforblockheads.api.capability.DefaultKitchenItemProvider;
-import net.blay09.mods.cookingforblockheads.api.capability.IKitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.api.KitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.kitchen.ContainerKitchenItemProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.util.math.BlockPos;
@@ -17,11 +17,11 @@ import java.util.*;
 
 //TODO: oven and freezer support, make the freezer always provide ice, custom crafting counter
 public class FridgeBlockEntityBalm extends FridgeBlockEntity implements BalmContainerProvider, BalmProviderHolder, BlockEntityContract {
-    private final DefaultKitchenItemProvider itemProvider;
+    private final KitchenItemProvider itemProvider;
 
     public FridgeBlockEntityBalm(BlockPos pos, BlockState state) {
         super(pos, state);
-        this.itemProvider = new DefaultKitchenItemProvider(this);
+        this.itemProvider = new ContainerKitchenItemProvider(this);
     }
 
     @Override
@@ -30,7 +30,7 @@ public class FridgeBlockEntityBalm extends FridgeBlockEntity implements BalmCont
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(IKitchenItemProvider.class, this.itemProvider)});
+        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(KitchenItemProvider.class, this.itemProvider)});
     }
 
     private final Map<Class<?>, BalmProvider<?>> providers = new HashMap<>();

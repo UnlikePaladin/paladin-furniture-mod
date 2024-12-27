@@ -1,26 +1,35 @@
 package com.unlikepaladin.pfm.compat.cookingforblockheads.fabric;
 
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
+import com.unlikepaladin.pfm.blocks.*;
 import com.unlikepaladin.pfm.compat.PFMClientModCompatibility;
 import com.unlikepaladin.pfm.compat.cookingforblockheads.PFMCookingForBlockheads;
 import com.unlikepaladin.pfm.compat.cookingforblockheads.fabric.client.PFMCookingForBlockheadsClient;
+import com.unlikepaladin.pfm.data.PFMTag;
+import com.unlikepaladin.pfm.data.PFMTags;
 import com.unlikepaladin.pfm.registry.BlockEntities;
+import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.dynamic.LateBlockRegistry;
 import com.unlikepaladin.pfm.runtime.data.FurnitureRecipeJsonFactory;
 import com.unlikepaladin.pfm.runtime.data.PFMRecipeProvider;
+import com.unlikepaladin.pfm.runtime.data.PFMTagProvider;
 import net.blay09.mods.balm.common.BalmBlockEntity;
-import net.blay09.mods.cookingforblockheads.api.capability.IKitchenConnector;
-import net.blay09.mods.cookingforblockheads.api.capability.IKitchenItemProvider;
-import net.blay09.mods.cookingforblockheads.api.capability.IKitchenSmeltingProvider;
+import net.blay09.mods.cookingforblockheads.api.KitchenItemProcessor;
+import net.blay09.mods.cookingforblockheads.api.KitchenItemProvider;
 import net.blay09.mods.cookingforblockheads.item.ModItems;
+import net.blay09.mods.cookingforblockheads.tag.ModBlockTags;
 import net.fabricmc.fabric.api.lookup.v1.block.BlockApiLookup;
+import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.data.server.recipe.RecipeExporter;
+import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 public class PFMCookingForBlockheadsImpl extends PFMCookingForBlockheads {
     private PFMClientModCompatibility clientModCompatibility;
@@ -48,16 +57,45 @@ public class PFMCookingForBlockheadsImpl extends PFMCookingForBlockheads {
 
     @Override
     public void registerBlockEntityTypes() {
-        this.registerLookup("kitchen_smelting_provider", IKitchenSmeltingProvider.class, BlockEntities.STOVE_BLOCK_ENTITY);
-        this.registerLookup("kitchen_item_provider", IKitchenItemProvider.class, BlockEntities.DRAWER_BLOCK_ENTITY, BlockEntities.FRIDGE_BLOCK_ENTITY, BlockEntities.FREEZER_BLOCK_ENTITY, BlockEntities.KITCHEN_DRAWER_SMALL_BLOCK_ENTITY, BlockEntities.KITCHEN_COUNTER_OVEN_BLOCK_ENTITY);
-        this.registerLookup("kitchen_connector", IKitchenConnector.class, BlockEntities.DRAWER_BLOCK_ENTITY, BlockEntities.FRIDGE_BLOCK_ENTITY, BlockEntities.FREEZER_BLOCK_ENTITY, BlockEntities.KITCHEN_DRAWER_SMALL_BLOCK_ENTITY, BlockEntities.KITCHEN_COUNTER_OVEN_BLOCK_ENTITY, BlockEntities.STOVE_BLOCK_ENTITY);
+        this.registerLookup("kitchen_item_processor", KitchenItemProcessor.class, BlockEntities.STOVE_BLOCK_ENTITY);
+        this.registerLookup("kitchen_item_provider", KitchenItemProvider.class, BlockEntities.DRAWER_BLOCK_ENTITY, BlockEntities.FRIDGE_BLOCK_ENTITY, BlockEntities.FREEZER_BLOCK_ENTITY, BlockEntities.KITCHEN_DRAWER_SMALL_BLOCK_ENTITY, BlockEntities.KITCHEN_COUNTER_OVEN_BLOCK_ENTITY);
+    }
+
+    @Override
+    public void generateTags() {
+        super.generateTags();
+
+        List<Block> storageBlocks = new ArrayList<>(PaladinFurnitureMod.furnitureEntryMap.get(KitchenDrawerBlock.class).getAllBlocks());
+        storageBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerBlock.class).getAllBlocks());
+        storageBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenCabinetBlock.class).getAllBlocks());
+        storageBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(ClassicNightstandBlock.class).getAllBlocks());
+        storageBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerSmallBlock.class).getAllBlocks());
+        storageBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterOvenBlock.class).getAllBlocks());
+        storageBlocks.addAll(List.of(PaladinFurnitureModBlocksItems.WHITE_FRIDGE, PaladinFurnitureModBlocksItems.XBOX_FRIDGE, PaladinFurnitureModBlocksItems.GRAY_FRIDGE, PaladinFurnitureModBlocksItems.IRON_FRIDGE));
+
+        PFMTagProvider.getOrCreateTagBuilder(ModBlockTags.KITCHEN_ITEM_PROVIDERS)
+                .add(storageBlocks.toArray(new Block[0]));
+
+        Block[] ovens = {PaladinFurnitureModBlocksItems.WHITE_STOVE, PaladinFurnitureModBlocksItems.GRAY_STOVE, PaladinFurnitureModBlocksItems.IRON_STOVE};
+        PFMTagProvider.getOrCreateTagBuilder(ModBlockTags.OVENS)
+                .add(ovens);
+
+        Block[] freezers = {PaladinFurnitureModBlocksItems.GRAY_FREEZER, PaladinFurnitureModBlocksItems.IRON_FREEZER, PaladinFurnitureModBlocksItems.WHITE_FREEZER};
+
+        PFMTag<Block> builder = PFMTagProvider.getOrCreateTagBuilder(ModBlockTags.KITCHEN_CONNECTORS);
+        PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterBlock.class).getAllBlocks().forEach(builder::add);
+        PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallCounterBlock.class).getAllBlocks().forEach(builder::add);
+        PaladinFurnitureMod.furnitureEntryMap.get(KitchenSinkBlock.class).getAllBlocks().forEach(builder::add);
+        builder.add(storageBlocks.toArray(new Block[0]));
+        builder.add(ovens);
+        builder.add(freezers);
     }
 
     private <T> void registerLookup(String provName, Class<T> clazz, BlockEntityType<?>... blockEntities) {
         Identifier identifier = new Identifier(getModId(), provName);
         BlockApiLookup<T, Void> lookup = BlockApiLookup.get(identifier, clazz, Void.class);
         lookup.registerForBlockEntities((blockEntity, context) -> {
-            return blockEntity instanceof BalmBlockEntity ? (T) ((BalmBlockEntity) blockEntity).getProvider(clazz) : ((BlockEntityContract)blockEntity).getProvider(clazz);
+            return blockEntity instanceof BalmBlockEntity ? ((BalmBlockEntity) blockEntity).getProvider(clazz) : ((BlockEntityContract)blockEntity).getProvider(clazz);
         }, blockEntities);
     }
 

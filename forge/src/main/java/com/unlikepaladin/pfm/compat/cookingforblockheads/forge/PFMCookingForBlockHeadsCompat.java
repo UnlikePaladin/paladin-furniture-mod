@@ -1,9 +1,5 @@
 package com.unlikepaladin.pfm.compat.cookingforblockheads.forge;
 
-import com.unlikepaladin.pfm.PaladinFurnitureMod;
-import com.unlikepaladin.pfm.blocks.KitchenCounterBlock;
-import com.unlikepaladin.pfm.blocks.KitchenSinkBlock;
-import com.unlikepaladin.pfm.blocks.KitchenWallCounterBlock;
 import com.unlikepaladin.pfm.blocks.StoveBlock;
 import com.unlikepaladin.pfm.blocks.forge.StoveBlockImpl;
 import com.unlikepaladin.pfm.compat.cookingforblockheads.forge.menu.StoveScreenHandlerBalm;
@@ -11,9 +7,8 @@ import com.unlikepaladin.pfm.registry.BlockEntities;
 import com.unlikepaladin.pfm.registry.TriFunc;
 import net.blay09.mods.balm.api.Balm;
 import net.blay09.mods.balm.api.container.ContainerUtils;
-import net.blay09.mods.cookingforblockheads.KitchenMultiBlock;
 import net.blay09.mods.cookingforblockheads.item.ModItems;
-import net.blay09.mods.cookingforblockheads.registry.CookingRegistry;
+import net.blay09.mods.cookingforblockheads.tag.ModItemTags;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -32,12 +27,6 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 public class PFMCookingForBlockHeadsCompat {
-
-    public static void initBlockConnectors() {
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterBlock.class).getAllBlocks().forEach(KitchenMultiBlock::registerConnectorBlock);
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallCounterBlock.class).getAllBlocks().forEach(KitchenMultiBlock::registerConnectorBlock);
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenSinkBlock.class).getAllBlocks().forEach(KitchenMultiBlock::registerConnectorBlock);
-    }
 
     public static final PFMCookingTableBlock COOKING_TABLE_BLOCK = new PFMCookingTableBlock(AbstractBlock.Settings.copy(Blocks.GRAY_CONCRETE));//PaladinFurnitureModBlocksItems.GRAY_STOVE));
     public static <T extends ScreenHandler> TriFunc<Integer, PlayerInventory, PacketByteBuf, T> getStoveScreenHandler() {
@@ -71,7 +60,7 @@ public class PFMCookingForBlockHeadsCompat {
         ItemStack heldItem = player.getStackInHand(hand);
         if (heldItem.getItem() == ModItems.heatingUnit) {
             return ActionResult.PASS;
-        } else if (hit.getSide() == Direction.UP && CookingRegistry.isToolItem(heldItem)) {
+        } else if (hit.getSide() == Direction.UP && heldItem.isIn(ModItemTags.UTENSILS)) {
             Direction stateFacing = state.get(StoveBlock.FACING);
             double hx =  (hit.getPos().x - hit.getBlockPos().getX());
             double hz = (hit.getPos().z - hit.getBlockPos().getZ());

@@ -63,8 +63,6 @@ dependencies {
     //modRuntimeOnly("curse.maven:biomesop-220318:3562256")
     modCompileOnly ("maven.modrinth:oculus:${rootProject.oculus_version}")
 
-    modCompileOnly "curse.maven:balm-neoforge-531761:${rootProject.balm_version_neoforge}"
-    modCompileOnly "curse.maven:cooking-for-blockheads-neoforge-231484:${rootProject.cookingforblockheads_version_neoforge}"
     modCompileOnly "curse.maven:farmers-delight-forge-398521:${rootProject.farmers_delight_version_forge}"
     modCompileOnly(files("../libs/immersive-portals-2.5.4-mc1.19.3-forge.jar"))
 }
@@ -89,6 +87,18 @@ if (rootProject.lazy_dfu_enabled == "true"){
 if (rootProject.rei_compatibility == "true"){
     dependencies {
         modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-neoforge:${rootProject.rei_version}")
+    }
+}
+
+if (rootProject.cookingfor_blockheads_compatibility_neoforge == "true") {
+    dependencies {
+        modImplementation "curse.maven:balm-neoforge-531761:${rootProject.balm_version_neoforge}"
+        modImplementation "curse.maven:cooking-for-blockheads-neoforge-231484:${rootProject.cookingforblockheads_version_neoforge}"
+    }
+} else {
+    dependencies {
+        modCompileOnly "curse.maven:balm-neoforge-531761:${rootProject.balm_version_neoforge}"
+        modCompileOnly "curse.maven:cooking-for-blockheads-neoforge-231484:${rootProject.cookingforblockheads_version_neoforge}"
     }
 }
 

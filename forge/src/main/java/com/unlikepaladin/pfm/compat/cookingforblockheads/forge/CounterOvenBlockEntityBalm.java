@@ -5,7 +5,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
 import com.mojang.datafixers.util.Pair;
 import com.unlikepaladin.pfm.blocks.blockentities.CounterOvenBlockEntity;
-import com.unlikepaladin.pfm.blocks.blockentities.GenericStorageBlockEntity3x3;
 import net.blay09.mods.balm.api.Balm;
 import net.blay09.mods.balm.api.container.BalmContainerProvider;
 import net.blay09.mods.balm.api.energy.EnergyStorage;
@@ -15,13 +14,11 @@ import net.blay09.mods.balm.api.provider.BalmProviderHolder;
 import net.blay09.mods.balm.forge.energy.ForgeEnergyStorage;
 import net.blay09.mods.balm.forge.fluid.ForgeFluidTank;
 import net.blay09.mods.balm.forge.provider.ForgeBalmProviders;
-import net.blay09.mods.cookingforblockheads.api.capability.DefaultKitchenItemProvider;
-import net.blay09.mods.cookingforblockheads.api.capability.IKitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.api.KitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.kitchen.ContainerKitchenItemProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.inventory.Inventory;
-import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.ForgeCapabilities;
@@ -33,11 +30,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class CounterOvenBlockEntityBalm extends CounterOvenBlockEntity implements BalmContainerProvider, BalmProviderHolder, BlockEntityContract {
-    private final DefaultKitchenItemProvider itemProvider;
+    private final KitchenItemProvider itemProvider;
 
     public CounterOvenBlockEntityBalm(BlockPos pos, BlockState state) {
         super(pos, state);
-        this.itemProvider = new DefaultKitchenItemProvider(this);
+        this.itemProvider = new ContainerKitchenItemProvider(this);
     }
 
     @Override
@@ -46,7 +43,7 @@ public class CounterOvenBlockEntityBalm extends CounterOvenBlockEntity implement
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(IKitchenItemProvider.class, this.itemProvider)});
+        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(KitchenItemProvider.class, this.itemProvider)});
     }
 
     private boolean capabilitiesInitialized;

@@ -138,7 +138,5 @@ public class PaladinFurnitureModFabric extends PaladinFurnitureMod implements Mo
             throw new RuntimeException(e);
         }
         BlockEntityRegistry.registerBlockEntities();
-        if (PaladinFurnitureMod.getModList().contains("cookingforblockheads"))
-            PFMCookingForBlockHeadsCompat.initBlockConnectors();
     }
 }

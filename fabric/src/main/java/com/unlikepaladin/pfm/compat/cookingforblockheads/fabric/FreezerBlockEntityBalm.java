@@ -1,60 +1,66 @@
 package com.unlikepaladin.pfm.compat.cookingforblockheads.fabric;
 
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Table;
 import com.mojang.datafixers.util.Pair;
 import com.unlikepaladin.pfm.blocks.blockentities.FreezerBlockEntity;
 import net.blay09.mods.balm.api.container.BalmContainerProvider;
 import net.blay09.mods.balm.api.container.ContainerUtils;
 import net.blay09.mods.balm.api.provider.BalmProvider;
 import net.blay09.mods.balm.api.provider.BalmProviderHolder;
-import net.blay09.mods.cookingforblockheads.api.SourceItem;
-import net.blay09.mods.cookingforblockheads.api.capability.DefaultKitchenItemProvider;
-import net.blay09.mods.cookingforblockheads.api.capability.IKitchenItemProvider;
-import net.blay09.mods.cookingforblockheads.api.capability.IngredientPredicate;
+import net.blay09.mods.cookingforblockheads.api.CacheHint;
+import net.blay09.mods.cookingforblockheads.api.IngredientToken;
+import net.blay09.mods.cookingforblockheads.api.KitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.block.entity.FridgeBlockEntity;
+import net.blay09.mods.cookingforblockheads.kitchen.ContainerKitchenItemProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.recipe.Ingredient;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.Function;
 
 public class FreezerBlockEntityBalm extends FreezerBlockEntity implements BalmContainerProvider, BalmProviderHolder, BlockEntityContract {
-    private final DefaultKitchenItemProvider itemProvider;
+    private final KitchenItemProvider itemProvider;
 
     public FreezerBlockEntityBalm(BlockPos pos, BlockState state) {
         super(pos, state);
-        this.itemProvider = new DefaultKitchenItemProvider(this){
+        this.itemProvider = new ContainerKitchenItemProvider(this){
             private final ItemStack snowStack;
             private final ItemStack iceStack;
             {
                 this.snowStack = new ItemStack(Items.SNOWBALL);
                 this.iceStack = new ItemStack(Blocks.ICE);
             }
-            private @Nullable SourceItem applyIceUnit(IngredientPredicate predicate, int maxAmount) {
-                if (predicate.test(this.snowStack, 64))
-                    return new SourceItem(this, -1, ContainerUtils.copyStackWithSize(this.snowStack, maxAmount));
-                else
-                    return predicate.test(this.iceStack, 64) ? new SourceItem(this, -1, ContainerUtils.copyStackWithSize(this.iceStack, maxAmount)) : null;
+
+            @Override
+            public IngredientToken findIngredient(Ingredient ingredient, Collection<IngredientToken> ingredientTokens, CacheHint cacheHint) {
+                IngredientToken result = applyIceUnit(ingredient::test);
+                if (result != null)
+                    return result;
+
+                return super.findIngredient(ingredient, ingredientTokens, cacheHint);
             }
-            public @Nullable SourceItem findSource(IngredientPredicate predicate, int maxAmount, List<IKitchenItemProvider> inventories, boolean requireBucket, boolean simulate) {
-                SourceItem iceUnitResult = this.applyIceUnit(predicate, maxAmount);
-                if (iceUnitResult != null) {
-                    return iceUnitResult;
-                } else {
-                    return super.findSource(predicate, maxAmount, inventories, requireBucket, simulate);
-                }             }
-            public @Nullable SourceItem findSourceAndMarkAsUsed(IngredientPredicate predicate, int maxAmount, List<IKitchenItemProvider> inventories, boolean requireBucket, boolean simulate) {
-                SourceItem iceUnitResult = this.applyIceUnit(predicate, maxAmount);
-                if (iceUnitResult != null) {                     return iceUnitResult;
-                } else {
-                    return super.findSourceAndMarkAsUsed(predicate, maxAmount, inventories, requireBucket, simulate);
-                }
+
+            @Override
+            public IngredientToken findIngredient(ItemStack itemStack, Collection<IngredientToken> ingredientTokens, CacheHint cacheHint) {
+                IngredientToken result = applyIceUnit(stack -> ItemStack.areItemsEqual(stack, itemStack));
+                if (result != null)
+                    return result;
+
+                return super.findIngredient(itemStack, ingredientTokens, cacheHint);
+            }
+
+            private @Nullable IngredientToken applyIceUnit(Function<ItemStack, Boolean> predicate) {
+                if (predicate.apply(this.snowStack))
+                    return new FridgeBlockEntity.IceUnitIngredientToken(ContainerUtils.copyStackWithSize(this.snowStack, 64));
+                else
+                    return predicate.apply(this.iceStack) ? new FridgeBlockEntity.IceUnitIngredientToken(ContainerUtils.copyStackWithSize(this.iceStack, 64)) : null;
             }
         };
     }
@@ -65,7 +71,7 @@ public class FreezerBlockEntityBalm extends FreezerBlockEntity implements BalmCo
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(IKitchenItemProvider.class, this.itemProvider)});
+        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(KitchenItemProvider.class, this.itemProvider)});
     }
 
     private final Map<Class<?>, BalmProvider<?>> providers = new HashMap<>();
