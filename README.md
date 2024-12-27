@@ -4,13 +4,14 @@
   <img alt="fabric" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/fabric_vector.svg">
   <img alt="forge" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/forge_vector.svg">
   <img alt="quilt" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/supported/quilt_vector.svg">
+  <img alt="neoforge" height="56" src="https://cdn.jsdelivr.net/gh/Hyperbole-Devs/vectors@neoforge_badges/assets/cozy/supported/neoforge_vector.svg">
 </p>
 
 
 ## Description
 A Brand-New Furniture mod for Modern Minecraft where things are functional! It contains over 1,000 New Pieces of Furniture that you can use to furnish your build, while being functional and nice to look at. Everything is craftable and obtainable in Survival so it's friendly, and nice to look at, it has compatibility with Sandwichable, REI, JEI, EMI, Patchouli, CookingForBlockHeads, Farmer's Delight and features modded wood type support. The mod has been in development for roughly 2 years but I don't plan on stopping with new updates, adding new furniture and mod compat with other mods!
 
-![A Kitchen](https://cdn.discordapp.com/attachments/930656475741814804/1010808630683115611/2022-08-18_23.34.12.png)
+![A Kitchen](./docs/2022-08-18_23.34.12.png?raw=true)
 
 ## Installation
 
