@@ -28,7 +28,7 @@ public class ModernCoffeeTableBlock extends Block {
     private final BlockState baseBlockState;
 
     public ModernCoffeeTableBlock(Settings settings) {
-        super(settings);
+        super(settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         setDefaultState(this.getStateManager().getDefaultState().with(AXIS, Direction.Axis.X));
         this.baseBlockState = this.getDefaultState();
         this.baseBlock = baseBlockState.getBlock();
