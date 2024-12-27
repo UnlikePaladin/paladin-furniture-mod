@@ -42,7 +42,7 @@ public class BasicLampBlock extends PowerableBlock implements BlockEntityProvide
     public static final MapCodec<BasicLampBlock> CODEC = createCodec(BasicLampBlock::new);
 
     public BasicLampBlock(AbstractBlock.Settings settings) {
-        super(settings);
+        super(settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         setDefaultState(this.getStateManager().getDefaultState().with(LIT, false).with(POWERLOCKED, false));
     }
 

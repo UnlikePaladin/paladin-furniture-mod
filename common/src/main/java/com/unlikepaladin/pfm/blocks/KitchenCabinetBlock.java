@@ -45,7 +45,7 @@ public class KitchenCabinetBlock extends HorizontalFacingBlock implements BlockE
     private static final List<FurnitureBlock> STONE_CABINETS = new ArrayList<>();
 
     public KitchenCabinetBlock(Settings settings) {
-        super(settings);
+        super(settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         setDefaultState(this.getStateManager().getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(OPEN, false));
         this.baseBlockState = this.getDefaultState();
         this.baseBlock = baseBlockState.getBlock();
