@@ -1,11 +1,15 @@
 package com.unlikepaladin.pfm.blocks.models;
 
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
+import com.unlikepaladin.pfm.blocks.BasicChairBlock;
 import com.unlikepaladin.pfm.blocks.LogStoolBlock;
 import com.unlikepaladin.pfm.blocks.SimpleBedBlock;
 import com.unlikepaladin.pfm.data.materials.BlockType;
 import com.unlikepaladin.pfm.data.materials.VariantBase;
 import com.unlikepaladin.pfm.data.materials.WoodVariant;
+import com.unlikepaladin.pfm.data.materials.WoodVariantRegistry;
+import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
+import com.unlikepaladin.pfm.registry.dynamic.LateBlockRegistry;
 import com.unlikepaladin.pfm.runtime.data.PFMRecipeProvider;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -70,7 +74,7 @@ public abstract class AbstractBakedModel implements BakedModel {
     public ModelTransformation getTransformation() {
         return templateBakedModels.get(0).getTransformation();
     }
-    
+
     Map<Block, VariantBase<?>> blockVariantMap = new HashMap<>();
     protected VariantBase<?> getVariant(BlockState state) {
         VariantBase<?> variant;
@@ -84,11 +88,21 @@ public abstract class AbstractBakedModel implements BakedModel {
     }
 
 
+    public <T> List<Sprite> getSpriteList(T element) {
+        List<Sprite> spriteList = getSpriteListWrapped(element);
+        if (spriteList == null || spriteList.isEmpty() || spriteList.size() < 2) {
+            VariantBase<?> variant = WoodVariantRegistry.OAK;
+            SpriteIdentifier mainTexture = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, ModelHelper.getTextureId(variant.getBaseBlock()));
+            SpriteIdentifier secondTexture = new SpriteIdentifier(SpriteAtlasTexture.BLOCK_ATLAS_TEXTURE, ModelHelper.getTextureId(variant.getSecondaryBlock()));
+            return List.of(mainTexture.getSprite(), secondTexture.getSprite());
+        }
+        return spriteList;
+    }
     private final Map<BlockItem, BlockState> blockItemBlockStateMap = new HashMap<>();
     /**
         Accepts an ItemStack, a BlockState, a Block or a BlockItem
      */
-    public <T> List<Sprite> getSpriteList(T element) {
+    public <T> List<Sprite> getSpriteListWrapped(T element) {
         if (element instanceof BlockState) {
             BlockState state = (BlockState) element;
             return getSpriteFromState(state);

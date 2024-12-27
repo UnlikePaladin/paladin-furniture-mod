@@ -33,7 +33,7 @@ public class BasicCoffeeTableBlock extends Block {
     private static final List<FurnitureBlock> WOOD_BASIC_TABLES_COFFEE = new ArrayList<>();
     private static final List<FurnitureBlock> STONE_BASIC_TABLES_COFFEE = new ArrayList<>();
     public BasicCoffeeTableBlock(Settings settings) {
-        super(settings);
+        super(settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         setDefaultState(this.getStateManager().getDefaultState().with(AXIS, Direction.Axis.X));
         this.baseBlockState = this.getDefaultState();
         this.baseBlock = baseBlockState.getBlock();
