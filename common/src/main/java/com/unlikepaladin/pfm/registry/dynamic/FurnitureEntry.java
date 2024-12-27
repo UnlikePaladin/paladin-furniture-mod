@@ -34,6 +34,16 @@ public class FurnitureEntry<T extends Block> {
             throw new UnsupportedOperationException("Block was not instance of T");
         }
     }
+
+    public Optional<Block> getEntryFromVariant(VariantBase<?> variant) {
+        if (variantToBlockMap.containsKey(variant)) {
+            return Optional.of(variantToBlockMap.get(variant));
+        } else if (variantToBlockMapNonBase.containsKey(variant)) {
+            return Optional.of(variantToBlockMapNonBase.get(variant));
+        }
+        return Optional.empty();
+    }
+
     private Class<T> type;
 
     public VariantBase<?> getVariantFromEntry(Block block) {
