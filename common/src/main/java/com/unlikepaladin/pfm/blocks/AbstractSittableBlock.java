@@ -36,7 +36,7 @@ public abstract class AbstractSittableBlock extends HorizontalFacingBlock {
     private final Block baseBlock;
 
     public AbstractSittableBlock(Settings settings) {
-        super(settings);
+        super(settings.luminance((state) -> {return 0;}).emissiveLighting((blockstate, b, c) -> {return false;}));
         this.baseBlockState = this.getDefaultState();
         this.baseBlock = baseBlockState.getBlock();
         setDefaultState(this.getStateManager().getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH));
