@@ -59,7 +59,7 @@ public class BasicBathtubBlock extends BedBlock {
     private final Predicate<Biome.Precipitation> precipitationPredicate;
     private static final List<BasicBathtubBlock> basicBathtubBlocks = new ArrayList<>();
     public BasicBathtubBlock(Settings settings, Map<Item, BathtubBehavior> map, Predicate<Biome.Precipitation> precipitationPredicate) {
-        super(DyeColor.WHITE, settings);
+        super(DyeColor.WHITE, settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         this.setDefaultState(this.getStateManager().getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(LEVEL_8, 0).with(PART, BedPart.FOOT).with(OCCUPIED, false));
         this.behaviorMap = map;
         this.precipitationPredicate = precipitationPredicate;

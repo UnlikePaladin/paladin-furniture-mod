@@ -28,7 +28,7 @@ public class KitchenCounterBlock extends HorizontalFacingBlock {
     private static final List<FurnitureBlock> WOOD_COUNTERS = new ArrayList<>();
     private static final List<FurnitureBlock> STONE_COUNTERS = new ArrayList<>();
     public KitchenCounterBlock(Settings settings) {
-        super(settings);
+        super(settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         setDefaultState(this.getStateManager().getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH));
         this.baseBlockState = this.getDefaultState();
         this.baseBlock = baseBlockState.getBlock();

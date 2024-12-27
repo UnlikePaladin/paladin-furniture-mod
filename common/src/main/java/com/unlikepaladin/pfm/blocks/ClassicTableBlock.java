@@ -30,7 +30,7 @@ public class ClassicTableBlock extends Block {
     private static final List<FurnitureBlock> STONE_CLASSIC_TABLES = new ArrayList<>();
     private final BlockState baseBlockState;
     public ClassicTableBlock(Settings settings) {
-        super(settings);
+        super(settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         setDefaultState(this.getStateManager().getDefaultState());
         this.baseBlockState = this.getDefaultState();
         this.baseBlock = baseBlockState.getBlock();
