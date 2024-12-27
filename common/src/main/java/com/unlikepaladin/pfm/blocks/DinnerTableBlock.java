@@ -31,7 +31,7 @@ public class DinnerTableBlock extends HorizontalFacingBlock  {
     private static final List<FurnitureBlock> WOOD_DINNER_TABLES = new ArrayList<>();
     private static final List<FurnitureBlock> STONE_DINNER_TABLES = new ArrayList<>();
     public DinnerTableBlock(Settings settings) {
-        super(settings);
+        super(settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         setDefaultState(this.getStateManager().getDefaultState().with(FACING, Direction.NORTH));
         this.baseBlockState = this.getDefaultState();
         this.baseBlock = baseBlockState.getBlock();

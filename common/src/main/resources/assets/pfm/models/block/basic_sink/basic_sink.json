@@ -3,7 +3,7 @@
 	"textures": {
 		"sink": "block/quartz_block_side",
 		"hardware": "block/gray_concrete",
-		"particle": "block/oak_planks"
+		"particle": "block/quartz_block_side"
 	},
 	"elements": [
 		{
