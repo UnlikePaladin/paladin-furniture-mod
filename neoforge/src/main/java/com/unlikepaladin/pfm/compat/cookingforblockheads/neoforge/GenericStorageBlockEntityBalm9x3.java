@@ -13,7 +13,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.*;
 
 public class GenericStorageBlockEntityBalm9x3 extends GenericStorageBlockEntity9x3 implements BalmContainerProvider, BalmProviderHolder {
-    private final KitchenItemProvider itemProvider;
+    public final KitchenItemProvider itemProvider;
 
     public GenericStorageBlockEntityBalm9x3(BlockPos pos, BlockState state) {
         super(pos, state);

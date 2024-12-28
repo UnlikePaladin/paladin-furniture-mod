@@ -13,7 +13,7 @@ import net.minecraft.util.math.BlockPos;
 import java.util.List;
 
 public class CounterOvenBlockEntityBalm extends CounterOvenBlockEntity implements BalmContainerProvider, BalmProviderHolder {
-    private final KitchenItemProvider itemProvider;
+    public final KitchenItemProvider itemProvider;
 
     public CounterOvenBlockEntityBalm(BlockPos pos, BlockState state) {
         super(pos, state);

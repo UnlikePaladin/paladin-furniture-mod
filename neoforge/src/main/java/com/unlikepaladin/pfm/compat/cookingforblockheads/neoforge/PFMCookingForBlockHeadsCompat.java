@@ -182,8 +182,11 @@ public class PFMCookingForBlockHeadsCompat {
             return new ContainerKitchenItemProvider(new CombinedContainer(ovenBlockEntityBalm.toolsContainer, ovenBlockEntityBalm.outputContainer));
         });
 
-        event.registerBlockEntity(((NeoForgeBalmProviders)Balm.getProviders()).getBlockCapability(KitchenItemProcessor.class), BlockEntities.STOVE_BLOCK_ENTITY, (entity, side) -> {
-            return (StoveBlockEntityBalm) entity;
-        });
+        event.registerBlockEntity(((NeoForgeBalmProviders)Balm.getProviders()).getBlockCapability(KitchenItemProcessor.class), BlockEntities.STOVE_BLOCK_ENTITY, (entity, side) -> (StoveBlockEntityBalm) entity);
+
+        event.registerBlockEntity(((NeoForgeBalmProviders)Balm.getProviders()).getBlockCapability(KitchenItemProvider.class), BlockEntities.DRAWER_BLOCK_ENTITY, (entity, side) -> ((GenericStorageBlockEntityBalm9x3)entity).itemProvider);
+        event.registerBlockEntity(((NeoForgeBalmProviders)Balm.getProviders()).getBlockCapability(KitchenItemProvider.class), BlockEntities.FRIDGE_BLOCK_ENTITY, (entity, side) -> ((FridgeBlockEntityBalm)entity).itemProvider);
+        event.registerBlockEntity(((NeoForgeBalmProviders)Balm.getProviders()).getBlockCapability(KitchenItemProvider.class), BlockEntities.KITCHEN_COUNTER_OVEN_BLOCK_ENTITY, (entity, side) -> ((CounterOvenBlockEntityBalm)entity).itemProvider);
+        event.registerBlockEntity(((NeoForgeBalmProviders)Balm.getProviders()).getBlockCapability(KitchenItemProvider.class), BlockEntities.KITCHEN_DRAWER_SMALL_BLOCK_ENTITY, (entity, side) -> ((GenericStorageBlockEntityBalm3x3)entity).itemProvider);
     }
 }
