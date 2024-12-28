@@ -33,6 +33,7 @@ import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.recipe.Ingredient;
@@ -49,7 +50,7 @@ public class FurnitureDisplay implements Display {
     public List<EntryIngredient> output;
     public Optional<Identifier> location;
     public FurnitureDisplay(RecipeEntry<FurnitureRecipe> recipe) {
-        this.output = Collections.singletonList(EntryIngredients.of(this.recipe.value().result()));
+        this.output = Collections.singletonList(EntryIngredients.of(recipe.value().result()));
         this.location = Optional.of(recipe.id().getValue());
         List<Ingredient> ingredients = recipe.value().getIngredients();
         HashMap<Item, Integer> containedItems = new HashMap<>();
@@ -62,14 +63,17 @@ public class FurnitureDisplay implements Display {
                 }
             }
         }
-        List<Ingredient> finalList = new ArrayList<>();
+        List<ItemStack> finalList = new ArrayList<>();
         for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            for (int i = 0; i < entry.getValue(); i++) {
-                finalList.add(Ingredient.ofItem(entry.getKey()));
-            }
+            finalList.add(new ItemStack(entry.getKey(), entry.getValue()));
         }
-        finalList.sort(Comparator.comparing(o -> o.getMatchingItems().getFirst().toString()));
-        this.input = EntryIngredients.ofIngredients(finalList);
+        finalList.sort(Comparator.comparing(ItemStack::toString));
+
+        List<EntryIngredient> entryIngredients = new ArrayList<>();
+        for (final ItemStack stack : finalList) {
+            entryIngredients.add(EntryIngredients.of(stack));
+        }
+        this.input = entryIngredients;
     }
 
 

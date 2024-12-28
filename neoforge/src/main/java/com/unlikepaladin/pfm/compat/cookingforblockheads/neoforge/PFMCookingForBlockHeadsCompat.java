@@ -8,6 +8,7 @@ import com.unlikepaladin.pfm.menus.StoveScreenHandler;
 import com.unlikepaladin.pfm.registry.BlockEntities;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.TriFunc;
+import com.unlikepaladin.pfm.registry.dynamic.LateBlockRegistry;
 import net.blay09.mods.balm.api.Balm;
 import net.blay09.mods.balm.api.container.CombinedContainer;
 import net.blay09.mods.balm.api.container.ContainerUtils;
@@ -50,7 +51,7 @@ import java.util.Collection;
 import java.util.function.Function;
 
 public class PFMCookingForBlockHeadsCompat {
-    public static final PFMCookingTableBlock COOKING_TABLE_BLOCK = new PFMCookingTableBlock(AbstractBlock.Settings.copy(Blocks.GRAY_CONCRETE));//PaladinFurnitureModBlocksItems.GRAY_STOVE));
+    public static final PFMCookingTableBlock COOKING_TABLE_BLOCK = new PFMCookingTableBlock(AbstractBlock.Settings.copy(Blocks.GRAY_CONCRETE).registryKey(LateBlockRegistry.getBlockRegistryKey("cooking_table")));
     public static TriFunc<Integer, PlayerInventory, StoveScreenHandler.StoveData, StoveScreenHandlerBalm> getStoveScreenHandler() {
         return (integer, playerInventory, data) -> {
             BlockPos pos = data.pos();
