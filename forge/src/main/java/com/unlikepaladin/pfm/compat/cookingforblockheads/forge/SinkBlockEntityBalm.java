@@ -35,7 +35,6 @@ public class SinkBlockEntityBalm extends SinkBlockEntity implements BalmProvider
         this.connector = new DefaultKitchenConnector();
     }
 
-
     public List<BalmProvider<?>> getProviders() {
         return List.of(new BalmProvider<>(IKitchenConnector.class, this.connector));
     }
