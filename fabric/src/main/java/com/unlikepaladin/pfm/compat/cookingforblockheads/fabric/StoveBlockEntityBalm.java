@@ -218,7 +218,7 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements IKitchenSme
                             firstTransferSlot = i;
                         } else {
                             if (this.furnaceBurnTime > 0) {
-                                int var10002 = this.slotCookTime[i]++;
+                                this.slotCookTime[i]++;
                             }
 
                             if ((double)this.slotCookTime[i] >= maxCookTime) {
@@ -395,24 +395,19 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements IKitchenSme
         if (side == null) {
             return this.getContainer();
         } else {
-            SubContainer var10000;
+            SubContainer subContainer;
             switch (side) {
-                case UP:
-                    var10000 = this.inputContainer;
-                    break;
-                case DOWN:
-                    var10000 = this.outputContainer;
-                    break;
-                default:
-                    var10000 = this.fuelContainer;
+                case UP -> subContainer = this.inputContainer;
+                case DOWN -> subContainer = this.outputContainer;
+                default -> subContainer = this.fuelContainer;
             }
 
-            return var10000;
+            return subContainer;
         }
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(IKitchenItemProvider.class, this.itemProvider), new BalmProvider(IKitchenSmeltingProvider.class, this)});
+        return List.of(new BalmProvider<>(IKitchenItemProvider.class, this.itemProvider), new BalmProvider<>(IKitchenSmeltingProvider.class, this));
     }
 
     public Inventory getInputContainer() {
