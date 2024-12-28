@@ -35,7 +35,7 @@ public class BlockEntityRegistry {
         BlockEntities.TRASHCAN_BLOCK_ENTITY = BlockEntityRegistry.registerBlockEntity("trashcan_block_entity", new Block[]{PaladinFurnitureModBlocksItems.TRASHCAN, PaladinFurnitureModBlocksItems.MESH_TRASHCAN}, TrashcanBlockEntity.getFactory());
         List<Block> sinks = new ArrayList<>(PaladinFurnitureModBlocksItems.furnitureEntryMap.get(KitchenSinkBlock.class).getAllBlocks());
         sinks.addAll(PaladinFurnitureModBlocksItems.furnitureEntryMap.get(BasicSinkBlock.class).getAllBlocks());
-        BlockEntities.SINK_BLOCK_ENTITY = BlockEntityRegistry.registerBlockEntity("sink_block_entity", sinks.toArray(Block[]::new), SinkBlockEntity::new);
+        BlockEntities.SINK_BLOCK_ENTITY = BlockEntityRegistry.registerBlockEntity("sink_block_entity", sinks.toArray(Block[]::new), SinkBlockEntity.getFactory());
         BlockEntities.SHOWER_HEAD_BLOCK_ENTITY = BlockEntityRegistry.registerBlockEntity("shower_head_block_entity", new Block[]{PaladinFurnitureModBlocksItems.BASIC_SHOWER_HEAD}, ShowerHeadBlockEntity.getFactory());
         BlockEntities.SHOWER_HANDLE_BLOCK_ENTITY = BlockEntityRegistry.registerBlockEntity("shower_handle_block_entity", new Block[]{PaladinFurnitureModBlocksItems.BASIC_SHOWER_HANDLE}, ShowerHandleBlockEntity::new);
         BlockEntities.BATHTUB_BLOCK_ENTITY = BlockEntityRegistry.registerBlockEntity("bathtub_block_entity", new Block[]{PaladinFurnitureModBlocksItems.BASIC_BATHTUB}, BathtubBlockEntity::new);

@@ -2,10 +2,11 @@ package com.unlikepaladin.pfm.blocks.blockentities;
 
 import com.unlikepaladin.pfm.blocks.KitchenSinkBlock;
 import com.unlikepaladin.pfm.registry.BlockEntities;
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
@@ -61,5 +62,10 @@ public class SinkBlockEntity extends BlockEntity {
                 blockEntity.sinkTimer++;
             }
         }
+    }
+
+    @ExpectPlatform
+    public static BlockEntityType.BlockEntityFactory<? extends SinkBlockEntity> getFactory() {
+        throw new AssertionError();
     }
 }
