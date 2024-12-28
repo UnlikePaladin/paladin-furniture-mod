@@ -43,32 +43,6 @@ public class SinkBlockEntityBalm extends SinkBlockEntity implements BalmProvider
         this.connector = new DefaultKitchenConnector();
     }
 
-
-    @Override
-    public Box balmGetRenderBoundingBox() {
-        return super.getRenderBoundingBox();
-    }
-
-    @Override
-    public void balmOnLoad() {
-
-    }
-
-    @Override
-    public void balmFromClientTag(NbtCompound nbtCompound) {
-
-    }
-
-    @Override
-    public NbtCompound balmToClientTag(NbtCompound nbtCompound) {
-        return nbtCompound;
-    }
-
-    @Override
-    public void balmSync() {
-
-    }
-
     public List<BalmProvider<?>> getProviders() {
         return List.of(new BalmProvider<>(IKitchenConnector.class, this.connector));
     }
@@ -77,7 +51,7 @@ public class SinkBlockEntityBalm extends SinkBlockEntity implements BalmProvider
     public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (!this.capabilitiesInitialized) {
             List<BalmProviderHolder> providers = new ArrayList<>();
-            this.balmBuildProviders(providers);
+            this.buildProviders(providers);
 
             for (BalmProviderHolder providerHolder : providers) {
                 for (BalmProvider<?> provider : providerHolder.getProviders()) {
@@ -121,5 +95,12 @@ public class SinkBlockEntityBalm extends SinkBlockEntity implements BalmProvider
         } else if (provider.getProviderClass() == EnergyStorage.class) {
             capabilities.put(CapabilityEnergy.ENERGY, LazyOptional.of(() -> new ForgeEnergyStorage((EnergyStorage)provider.getInstance())));
         }
+    }
+
+    @Override
+    public <T> T getProvider(Class<T> clazz) {
+        ForgeBalmProviders forgeProviders = (ForgeBalmProviders)Balm.getProviders();
+        Capability<?> capability = forgeProviders.getCapability(clazz);
+        return (T) this.getCapability(capability).resolve().orElse(null);
     }
 }
