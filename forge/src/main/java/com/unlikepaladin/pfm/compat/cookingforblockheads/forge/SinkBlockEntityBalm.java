@@ -1,125 +1,29 @@
 package com.unlikepaladin.pfm.compat.cookingforblockheads.forge;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
-import com.mojang.datafixers.util.Pair;
 import com.unlikepaladin.pfm.blocks.blockentities.SinkBlockEntity;
-import net.blay09.mods.balm.api.Balm;
-import net.blay09.mods.balm.api.block.BalmBlockEntityContract;
-import net.blay09.mods.balm.api.container.BalmContainerProvider;
-import net.blay09.mods.balm.api.energy.EnergyStorage;
-import net.blay09.mods.balm.api.fluid.FluidTank;
-import net.blay09.mods.balm.api.provider.BalmProvider;
-import net.blay09.mods.balm.api.provider.BalmProviderHolder;
-import net.blay09.mods.balm.forge.energy.ForgeEnergyStorage;
-import net.blay09.mods.balm.forge.fluid.ForgeFluidTank;
-import net.blay09.mods.balm.forge.provider.ForgeBalmProviders;
-import net.blay09.mods.cookingforblockheads.api.capability.DefaultKitchenConnector;
-import net.blay09.mods.cookingforblockheads.api.capability.DefaultKitchenItemProvider;
-import net.blay09.mods.cookingforblockheads.api.capability.IKitchenConnector;
-import net.blay09.mods.cookingforblockheads.api.capability.IKitchenItemProvider;
-import net.minecraft.block.BlockState;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
+import net.blay09.mods.cookingforblockheads.api.capability.CapabilityKitchenConnector;
+import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.util.math.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.energy.CapabilityEnergy;
-import net.minecraftforge.fluids.capability.CapabilityFluidHandler;
-import net.minecraftforge.items.CapabilityItemHandler;
-import net.minecraftforge.items.wrapper.InvWrapper;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-public class SinkBlockEntityBalm extends SinkBlockEntity implements BalmProviderHolder, BalmBlockEntityContract {
-    private final DefaultKitchenConnector connector;
+public class SinkBlockEntityBalm extends SinkBlockEntity {
+    private final LazyOptional<CapabilityKitchenConnector.IKitchenConnector> connector;
 
-    public SinkBlockEntityBalm(BlockPos pos, BlockState state) {
-        super(pos, state);
-        this.connector = new DefaultKitchenConnector();
+    public SinkBlockEntityBalm() {
+        super();
+        this.connector = LazyOptional.of(CapabilityKitchenConnector.CAPABILITY::getDefaultInstance);
     }
 
-
-    @Override
-    public Box balmGetRenderBoundingBox() {
-        return super.getRenderBoundingBox();
+    @Nonnull
+    public <T> LazyOptional<T> getCapability(@Nonnull Capability<T> cap, @Nullable Direction side) {
+        return CapabilityKitchenConnector.CAPABILITY.orEmpty(cap, this.connector);
     }
 
-    @Override
-    public void balmOnLoad() {
-
-    }
-
-    @Override
-    public void balmFromClientTag(NbtCompound nbtCompound) {
-
-    }
-
-    @Override
-    public NbtCompound balmToClientTag(NbtCompound nbtCompound) {
-        return nbtCompound;
-    }
-
-    @Override
-    public void balmSync() {
-
-    }
-
-    public List<BalmProvider<?>> getProviders() {
-        return List.of(new BalmProvider<>(IKitchenConnector.class, this.connector));
-    }
-
-    private boolean capabilitiesInitialized;
-    public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
-        if (!this.capabilitiesInitialized) {
-            List<BalmProviderHolder> providers = new ArrayList<>();
-            this.balmBuildProviders(providers);
-
-            for (BalmProviderHolder providerHolder : providers) {
-                for (BalmProvider<?> provider : providerHolder.getProviders()) {
-                    this.addCapabilities(provider, this.capabilities);
-                }
-
-                for(Pair<Direction, BalmProvider<?>> providerPair : providerHolder.getSidedProviders()) {
-                    Direction direction = providerPair.getFirst();
-                    BalmProvider<?> provider = providerPair.getSecond();
-                    Map<Capability<?>, LazyOptional<?>> sidedCapabilities = this.sidedCapabilities.column(direction);
-                    this.addCapabilities(provider, sidedCapabilities);
-                }
-            }
-
-            this.capabilitiesInitialized = true;
-        }
-
-        LazyOptional<?> result = null;
-        if (side != null) {
-            result = this.sidedCapabilities.get(cap, side);
-        }
-
-        if (result == null) {
-            result = this.capabilities.get(cap);
-        }
-
-        return result != null ? result.cast() : super.getCapability(cap, side);
-    }
-
-    private final Map<Capability<?>, LazyOptional<?>> capabilities = new HashMap<>();
-    private final Table<Capability<?>, Direction, LazyOptional<?>> sidedCapabilities = HashBasedTable.create();
-    private void addCapabilities(BalmProvider<?> provider, Map<Capability<?>, LazyOptional<?>> capabilities) {
-        ForgeBalmProviders forgeProviders = (ForgeBalmProviders) Balm.getProviders();
-        Capability<?> capability = forgeProviders.getCapability(provider.getProviderClass());
-        Objects.requireNonNull(provider);
-        capabilities.put(capability, LazyOptional.of(provider::getInstance));
-        if (provider.getProviderClass() == Inventory.class) {
-            capabilities.put(CapabilityItemHandler.ITEM_HANDLER_CAPABILITY, LazyOptional.of(() -> new InvWrapper((Inventory)provider.getInstance())));
-        } else if (provider.getProviderClass() == FluidTank.class) {
-            capabilities.put(CapabilityFluidHandler.FLUID_HANDLER_CAPABILITY, LazyOptional.of(() -> new ForgeFluidTank((FluidTank)provider.getInstance())));
-        } else if (provider.getProviderClass() == EnergyStorage.class) {
-            capabilities.put(CapabilityEnergy.ENERGY, LazyOptional.of(() -> new ForgeEnergyStorage((EnergyStorage)provider.getInstance())));
-        }
+    public BlockEntityUpdateS2CPacket toUpdatePacket() {
+        return new BlockEntityUpdateS2CPacket(this.pos, 0, this.toInitialChunkDataNbt());
     }
 }

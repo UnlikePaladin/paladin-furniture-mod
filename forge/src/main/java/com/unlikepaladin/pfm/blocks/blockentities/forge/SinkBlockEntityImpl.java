@@ -7,8 +7,10 @@ import com.unlikepaladin.pfm.compat.cookingforblockheads.forge.GenericStorageBlo
 import com.unlikepaladin.pfm.compat.cookingforblockheads.forge.SinkBlockEntityBalm;
 import net.minecraft.block.entity.BlockEntityType;
 
+import java.util.function.Supplier;
+
 public class SinkBlockEntityImpl {
-    public static BlockEntityType.BlockEntityFactory<? extends SinkBlockEntity> getFactory() {
+    public static Supplier<? extends SinkBlockEntity> getFactory() {
         return PaladinFurnitureMod.getModList().contains("cookingforblockheads") ? SinkBlockEntityBalm::new : SinkBlockEntity::new;
     }
 }

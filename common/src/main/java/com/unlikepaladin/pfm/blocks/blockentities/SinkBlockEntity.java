@@ -17,6 +17,8 @@ import net.minecraft.util.math.Vec3i;
 import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 
+import java.util.function.Supplier;
+
 public class SinkBlockEntity extends BlockEntity implements Tickable {
     public SinkBlockEntity() {
         super(BlockEntities.SINK_BLOCK_ENTITY);
@@ -70,7 +72,7 @@ public class SinkBlockEntity extends BlockEntity implements Tickable {
     }
 
     @ExpectPlatform
-    public static BlockEntityType.BlockEntityFactory<? extends SinkBlockEntity> getFactory() {
+    public static Supplier<? extends SinkBlockEntity> getFactory() {
         throw new AssertionError();
     }
 }
