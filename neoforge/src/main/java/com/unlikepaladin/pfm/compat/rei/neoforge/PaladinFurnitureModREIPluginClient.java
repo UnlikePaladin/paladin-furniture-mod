@@ -4,8 +4,11 @@ import com.unlikepaladin.pfm.compat.rei.FreezingCategory;
 import com.unlikepaladin.pfm.compat.rei.FreezingDisplay;
 import com.unlikepaladin.pfm.compat.rei.FurnitureCategory;
 import com.unlikepaladin.pfm.compat.rei.FurnitureDisplay;
+import com.unlikepaladin.pfm.recipes.FreezingRecipe;
+import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
+import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
 import me.shedaniel.rei.forge.REIPluginClient;
 
 @REIPluginClient

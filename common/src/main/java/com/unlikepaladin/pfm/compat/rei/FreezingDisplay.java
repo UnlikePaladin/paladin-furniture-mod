@@ -65,6 +65,14 @@ public class FreezingDisplay implements Display {
         this.location = location;
     }
 
+    public FreezingDisplay(FreezingRecipe freezingRecipe) {
+        this.input = Collections.singletonList(EntryIngredients.ofIngredient(freezingRecipe.ingredient()));
+        this.output = Collections.singletonList(EntryIngredients.of(freezingRecipe.result()));
+        this.cookTime = freezingRecipe.getCookingTime();
+        this.xp = freezingRecipe.getExperience();
+        this.location = Optional.empty();
+    }
+
     @Override
     public List<EntryIngredient> getInputEntries() {
         return input;

@@ -79,6 +79,12 @@ public class FurnitureDisplay implements Display {
         this.location = location;
     }
 
+    public FurnitureDisplay(FurnitureRecipe furnitureRecipe) {
+        this.input = EntryIngredients.ofIngredients(furnitureRecipe.getIngredients());
+        this.output = Collections.singletonList(EntryIngredients.of(furnitureRecipe.result()));
+        this.location = Optional.empty();
+    }
+
 
     @Override
     public List<EntryIngredient> getInputEntries() {
