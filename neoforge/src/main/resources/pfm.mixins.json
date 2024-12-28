@@ -14,7 +14,6 @@
   "mixins": [
     "PFMCookingPotBlockEntityMixin",
     "PFMItemEntryAccessor",
-    "PFMKitchenImplMixin",
     "PFMLootPool$BuilderMixin",
     "PFMMinecraftServerMixin",
     "PFMReloadableResourceManagerImplMixin",

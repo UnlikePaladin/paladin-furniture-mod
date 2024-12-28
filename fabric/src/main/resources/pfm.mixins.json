@@ -11,7 +11,6 @@
   "mixins": [
     "PFMAbstractTagProvider$ObjectBuilderMixin",
     "PFMCookingPotBlockEntityMixin",
-    "PFMKitchenImplMixin",
     "PFMMinecraftServerMixin",
     "PFMModResourcePackCreatorMixin",
     "PFMReloadableResourceManagerImplMixin",

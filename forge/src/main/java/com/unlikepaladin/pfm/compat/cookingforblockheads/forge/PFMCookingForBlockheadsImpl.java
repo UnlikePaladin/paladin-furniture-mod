@@ -40,6 +40,9 @@ public class PFMCookingForBlockheadsImpl extends PFMCookingForBlockheads {
         PFMTagProvider.getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE)
                 .add(PFMCookingForBlockHeadsCompat.COOKING_TABLE_BLOCK);
 
+        PFMTagProvider.getOrCreateTagBuilder(ModBlockTags.COOKING_TABLES)
+                .add(PFMCookingForBlockHeadsCompat.COOKING_TABLE_BLOCK);
+
         List<Block> storageBlocks = new ArrayList<>(PaladinFurnitureMod.furnitureEntryMap.get(KitchenDrawerBlock.class).getAllBlocks());
         storageBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerBlock.class).getAllBlocks());
         storageBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenCabinetBlock.class).getAllBlocks());
