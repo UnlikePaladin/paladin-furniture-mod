@@ -33,6 +33,7 @@ import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.recipe.Ingredient;
@@ -62,14 +63,17 @@ public class FurnitureDisplay implements Display {
                 }
             }
         }
-        List<Ingredient> finalList = new ArrayList<>();
+        List<ItemStack> finalList = new ArrayList<>();
         for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            for (int i = 0; i < entry.getValue(); i++) {
-                finalList.add(Ingredient.ofItem(entry.getKey()));
-            }
+            finalList.add(new ItemStack(entry.getKey(), entry.getValue()));
         }
-        finalList.sort(Comparator.comparing(o -> o.getMatchingItems().toList().getFirst().toString()));
-        this.input = EntryIngredients.ofIngredients(finalList);
+        finalList.sort(Comparator.comparing(ItemStack::toString));
+
+        List<EntryIngredient> entryIngredients = new ArrayList<>();
+        for (final ItemStack stack : finalList) {
+            entryIngredients.add(EntryIngredients.of(stack));
+        }
+        this.input = entryIngredients;
     }
 
 
@@ -77,6 +81,12 @@ public class FurnitureDisplay implements Display {
         this.input = input;
         this.output = output;
         this.location = location;
+    }
+
+    public FurnitureDisplay(FurnitureRecipe furnitureRecipe) {
+        this.input = EntryIngredients.ofIngredients(furnitureRecipe.getIngredients());
+        this.output = Collections.singletonList(EntryIngredients.of(furnitureRecipe.result()));
+        this.location = Optional.empty();
     }
 
 

@@ -30,14 +30,11 @@
     "modmenu": [
       "com.unlikepaladin.pfm.compat.modmenu.PaladinFurnitureModMenu"
     ],
-    "jei_mod_plugin": [
-      "com.unlikepaladin.pfm.compat.jei.fabric.PaladinFurnitureModJEIPlugin"
-    ],
-    "rei_client": [
+    "rei_common": [
       "com.unlikepaladin.pfm.compat.rei.fabric.PaladinFurnitureModREIPlugin"
     ],
-    "emi": [
-      "com.unlikepaladin.pfm.compat.emi.PaladinFurnitureModEMIPlugin"
+    "rei_client": [
+      "com.unlikepaladin.pfm.compat.rei.fabric.PaladinFurnitureModREIPluginClient"
     ],
     "server": [
       "com.unlikepaladin.pfm.fabric.PaladinFurnitureModFabric"

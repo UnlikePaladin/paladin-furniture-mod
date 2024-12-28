@@ -1,5 +1,5 @@
 package com.unlikepaladin.pfm.compat.jei.fabric;
-
+/*
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.compat.jei.FreezingCategory;
 import com.unlikepaladin.pfm.compat.jei.FurnitureCategory;
@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 
 @JeiPlugin
 public class PaladinFurnitureModJEIPlugin implements IModPlugin {
-    /*public void PaladinFurnitureModJEIPlugin(){
+    public void PaladinFurnitureModJEIPlugin(){
 
     }
 
@@ -59,9 +59,9 @@ public class PaladinFurnitureModJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(PaladinFurnitureModBlocksItems.GRAY_FREEZER), PaladinFurnitureModJEI.FREEZING_RECIPE);
         registration.addRecipeCatalyst(new ItemStack(PaladinFurnitureModBlocksItems.WORKING_TABLE), PaladinFurnitureModJEI.FURNITURE_RECIPE);
     }
-*/
+
     @Override
     public Identifier getPluginUid() {
         return Identifier.of(PaladinFurnitureMod.MOD_ID, "jei_plugin");
     }
-}
+}*/

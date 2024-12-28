@@ -34,6 +34,7 @@ import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.book.RecipeCategory;
 import net.minecraft.registry.*;
+import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.*;
@@ -47,6 +48,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 public class PFMRecipeProvider extends PFMProvider {
 
@@ -55,10 +57,16 @@ public class PFMRecipeProvider extends PFMProvider {
         parent.setProgress("Generating Recipes");
     }
 
+    // Create a registry wrapper lookup without dynamic entries such as biomes as they don't exist yet
+    private static RegistryWrapper.WrapperLookup createWrapperLookup() {
+        RegistryBuilder builder = new RegistryBuilder();
+        return builder.createWrapperLookup(DynamicRegistryManager.of(Registries.REGISTRIES));
+    }
+
     public CompletableFuture<?> run(DataWriter writer) {
         Path path = getParent().getOutput();
         Set<RegistryKey<Recipe<?>>> set = Sets.newHashSet();
-        RegistryWrapper.WrapperLookup lookup = BuiltinRegistries.createWrapperLookup();
+        RegistryWrapper.WrapperLookup lookup = createWrapperLookup();
         generateRecipes(new RecipeExporter() {
             @Override
             public void accept(RegistryKey<Recipe<?>> recipeId, Recipe<?> recipe, @Nullable AdvancementEntry advancementEntry) {
@@ -766,7 +774,7 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     public static void offerHerringbonePlanks(ItemConvertible output, Item baseMaterial, RecipeExporter exporter) {
-        ShapedRecipeJsonBuilder.create(BuiltinRegistries.createWrapperLookup().getOrThrow(RegistryKeys.ITEM), RecipeCategory.BUILDING_BLOCKS, output, 4).input('X', baseMaterial).pattern("XX").pattern("XX").criterion("has_wood_slabs", conditionsFromItem(baseMaterial)).offerTo(exporter, RegistryKey.of(RegistryKeys.RECIPE ,Identifier.of("pfm", output.asItem().getTranslationKey().replace("block.pfm.", ""))));
+        ShapedRecipeJsonBuilder.create(createWrapperLookup().getOrThrow(RegistryKeys.ITEM), RecipeCategory.BUILDING_BLOCKS, output, 4).input('X', baseMaterial).pattern("XX").pattern("XX").criterion("has_wood_slabs", conditionsFromItem(baseMaterial)).offerTo(exporter, RegistryKey.of(RegistryKeys.RECIPE ,Identifier.of("pfm", output.asItem().getTranslationKey().replace("block.pfm.", ""))));
     }
 
     public static void offerDinnerTableRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
@@ -918,11 +926,11 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     private static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromItem(NumberRange.IntRange count, ItemConvertible item) {
-        return conditionsFromItemPredicates(ItemPredicate.Builder.create().items(BuiltinRegistries.createWrapperLookup().getOrThrow(RegistryKeys.ITEM), item).count(count).build());
+        return conditionsFromItemPredicates(ItemPredicate.Builder.create().items(createWrapperLookup().getOrThrow(RegistryKeys.ITEM), item).count(count).build());
     }
 
     public static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromItem(ItemConvertible item) {
-        return conditionsFromItemPredicates(ItemPredicate.Builder.create().items(BuiltinRegistries.createWrapperLookup().getOrThrow(RegistryKeys.ITEM), item).build());
+        return conditionsFromItemPredicates(ItemPredicate.Builder.create().items(createWrapperLookup().getOrThrow(RegistryKeys.ITEM), item).build());
     }
 
     public static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromIngredient(Ingredient item) {
@@ -937,7 +945,7 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     private static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromTag(TagKey<Item> tag) {
-        return conditionsFromItemPredicates(ItemPredicate.Builder.create().tag(BuiltinRegistries.createWrapperLookup().getOrThrow(RegistryKeys.ITEM), tag).build());
+        return conditionsFromItemPredicates(ItemPredicate.Builder.create().tag(createWrapperLookup().getOrThrow(RegistryKeys.ITEM), tag).build());
     }
 
     public static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromPredicates(ItemPredicate.Builder... predicates) {

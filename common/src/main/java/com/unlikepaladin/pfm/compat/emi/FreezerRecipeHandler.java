@@ -1,5 +1,5 @@
 package com.unlikepaladin.pfm.compat.emi;
-
+/*
 import com.google.common.collect.Lists;
 import com.unlikepaladin.pfm.menus.AbstractFreezerScreenHandler;
 import dev.emi.emi.api.recipe.EmiRecipe;
@@ -36,4 +36,4 @@ public class FreezerRecipeHandler implements StandardRecipeHandler<AbstractFreez
     public boolean supportsRecipe(EmiRecipe recipe) {
         return recipe.getCategory() == category && recipe.supportsRecipeTree();
     }
-}
+}*/
