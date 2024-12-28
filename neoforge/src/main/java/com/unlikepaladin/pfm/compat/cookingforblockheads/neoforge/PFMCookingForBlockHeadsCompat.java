@@ -6,6 +6,7 @@ import com.unlikepaladin.pfm.blocks.neoforge.StoveBlockImpl;
 import com.unlikepaladin.pfm.compat.cookingforblockheads.neoforge.menu.StoveScreenHandlerBalm;
 import com.unlikepaladin.pfm.menus.StoveScreenHandler;
 import com.unlikepaladin.pfm.registry.BlockEntities;
+import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.TriFunc;
 import net.blay09.mods.balm.api.Balm;
 import net.blay09.mods.balm.api.container.CombinedContainer;
@@ -13,6 +14,7 @@ import net.blay09.mods.balm.api.container.ContainerUtils;
 import net.blay09.mods.balm.neoforge.provider.NeoForgeBalmProviders;
 import net.blay09.mods.cookingforblockheads.api.CacheHint;
 import net.blay09.mods.cookingforblockheads.api.IngredientToken;
+import net.blay09.mods.cookingforblockheads.api.KitchenItemProcessor;
 import net.blay09.mods.cookingforblockheads.api.KitchenItemProvider;
 import net.blay09.mods.cookingforblockheads.block.entity.FridgeBlockEntity;
 import net.blay09.mods.cookingforblockheads.item.ModItems;
@@ -29,6 +31,7 @@ import net.minecraft.item.Items;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.Ingredient;
+import net.minecraft.recipe.Ingredient;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.Hand;
 import net.minecraft.util.ItemActionResult;
@@ -42,8 +45,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.function.Function;
 
-public class PFMCookingForBlockHeadsCompat {
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.function.Function;
 
+public class PFMCookingForBlockHeadsCompat {
     public static final PFMCookingTableBlock COOKING_TABLE_BLOCK = new PFMCookingTableBlock(AbstractBlock.Settings.copy(Blocks.GRAY_CONCRETE));//PaladinFurnitureModBlocksItems.GRAY_STOVE));
     public static TriFunc<Integer, PlayerInventory, StoveScreenHandler.StoveData, StoveScreenHandlerBalm> getStoveScreenHandler() {
         return (integer, playerInventory, data) -> {
@@ -140,6 +146,7 @@ public class PFMCookingForBlockHeadsCompat {
         }
     }
 
+
     public static void registerCapabilities(RegisterCapabilitiesEvent event) {
 
         event.registerBlockEntity(((NeoForgeBalmProviders)Balm.getProviders()).getBlockCapability(KitchenItemProvider.class), BlockEntities.FREEZER_BLOCK_ENTITY, (entity, side) -> {
@@ -181,6 +188,10 @@ public class PFMCookingForBlockHeadsCompat {
         event.registerBlockEntity(((NeoForgeBalmProviders)Balm.getProviders()).getBlockCapability(KitchenItemProvider.class), BlockEntities.STOVE_BLOCK_ENTITY, (entity, side) -> {
             StoveBlockEntityBalm ovenBlockEntityBalm = (StoveBlockEntityBalm) entity;
             return new ContainerKitchenItemProvider(new CombinedContainer(ovenBlockEntityBalm.toolsContainer, ovenBlockEntityBalm.outputContainer));
+        });
+
+        event.registerBlockEntity(((NeoForgeBalmProviders)Balm.getProviders()).getBlockCapability(KitchenItemProcessor.class), BlockEntities.STOVE_BLOCK_ENTITY, (entity, side) -> {
+            return (StoveBlockEntityBalm) entity;
         });
     }
 }

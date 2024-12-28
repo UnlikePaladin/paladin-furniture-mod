@@ -56,7 +56,7 @@ public class FurnitureDisplay implements Display {
     public List<EntryIngredient> output;
     public FurnitureDisplay(RecipeEntry<FurnitureRecipe> recipe) {
         this.recipe = recipe;
-        output = Collections.singletonList(EntryIngredients.of(recipe.value().getResult(MinecraftClient.getInstance().world.getRegistryManager())));
+        output = Collections.singletonList(EntryIngredients.of(this.recipe.value().getResult(MinecraftClient.getInstance().world.getRegistryManager())));
     }
 
     @Override
