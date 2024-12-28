@@ -1,5 +1,5 @@
 package com.unlikepaladin.pfm.compat.imm_ptl.fabric.shape;
-
+/*
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtInt;
 import net.minecraft.nbt.NbtList;
@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 /**
  * Backported to 1.17 from <a href="https://github.com/iPortalTeam/ImmersivePortalsMod/blob/1.19/imm_ptl_core/src/main/java/qouteall/imm_ptl/core/portal/nether_portal/BlockPortalShape.java">...</a>
  * */
+/*
 public class BlockPortalShape {
     public BlockPos anchor;
     public Set<BlockPos> area;
@@ -537,3 +538,4 @@ public class BlockPortalShape {
         return Objects.hash(area, axis);
     }
 }
+*/

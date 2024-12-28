@@ -16,14 +16,14 @@ import dev.emi.emi.api.stack.EmiStack;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.util.Identifier;
-
+/*
 @EmiEntrypoint
 public class PaladinFurnitureModEMIPlugin implements EmiPlugin {
     @Override
     public void register(EmiRegistry registry) {
 
     }
-    /*
+
     protected static EmiRecipeCategory FURNITURE;
     protected static EmiRecipeCategory FREEZER;
 
@@ -57,5 +57,6 @@ public class PaladinFurnitureModEMIPlugin implements EmiPlugin {
             RenderSystem.setShader(GameRenderer::getPositionTexProgram);
             context.drawTexture(Identifier.of("emi", "textures/gui/widgets.png"), x, y, u, v, 16, 16, 256, 256);
         };
-    }*/
+    }
 }
+*/

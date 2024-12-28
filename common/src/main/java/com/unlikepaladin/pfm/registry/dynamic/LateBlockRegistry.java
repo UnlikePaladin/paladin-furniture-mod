@@ -517,10 +517,10 @@ public class LateBlockRegistry {
                 i++;
             }
         }});
-        if (!BlockItemRegistry.isModLoaded("immersive_portals") || PaladinFurnitureMod.getLoader() == PaladinFurnitureMod.Loader.FORGE) {
+   //     if (!BlockItemRegistry.isModLoaded("immersive_portals") || PaladinFurnitureMod.getLoader() == PaladinFurnitureMod.Loader.FORGE) {
             PaladinFurnitureModBlocksItems.WHITE_MIRROR = new MirrorBlock(AbstractBlock.Settings.create().mapColor(MapColor.WHITE).nonOpaque().registryKey(getBlockRegistryKey("white_mirror")));
             PaladinFurnitureModBlocksItems.GRAY_MIRROR = new MirrorBlock(AbstractBlock.Settings.create().mapColor(MapColor.GRAY).nonOpaque().registryKey(getBlockRegistryKey("gray_mirror")));
-        }
+     //   }
         registerLateBlock("white_mirror",() -> PaladinFurnitureModBlocksItems.WHITE_MIRROR, true, PaladinFurnitureMod.FURNITURE_GROUP);
         registerLateBlock("gray_mirror",() -> PaladinFurnitureModBlocksItems.GRAY_MIRROR, true, PaladinFurnitureMod.FURNITURE_GROUP);
         PaladinFurnitureMod.furnitureEntryMap.put(BasicLampBlock.class, new FurnitureEntry<>() {{

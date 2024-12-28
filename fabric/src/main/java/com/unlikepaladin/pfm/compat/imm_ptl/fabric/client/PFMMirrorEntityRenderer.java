@@ -1,5 +1,5 @@
 package com.unlikepaladin.pfm.compat.imm_ptl.fabric.client;
-
+/*
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import net.minecraft.client.render.VertexConsumerProvider;
 import net.minecraft.client.render.entity.EntityRendererFactory;
@@ -18,3 +18,4 @@ public class PFMMirrorEntityRenderer extends PortalEntityRenderer {
             super.render(portal, yaw, tickDelta, matrixStack, vertexConsumerProvider, light);
     }
 }
+*/

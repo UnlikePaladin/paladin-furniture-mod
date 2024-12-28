@@ -1,5 +1,5 @@
 package com.unlikepaladin.pfm.compat.jei;
-
+/*
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -129,4 +129,4 @@ public class FreezingCategory implements IRecipeCategory<FreezingRecipe>  {
         drawExperience(recipe, context, 0);
         drawFreezeTime(recipe, context, 45);
     }
-}
+}*/

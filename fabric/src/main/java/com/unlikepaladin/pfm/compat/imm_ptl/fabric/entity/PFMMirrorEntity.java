@@ -1,6 +1,6 @@
 package com.unlikepaladin.pfm.compat.imm_ptl.fabric.entity;
 
-
+/*
 import com.unlikepaladin.pfm.compat.imm_ptl.fabric.PFMImmersivePortalsImpl;
 import com.unlikepaladin.pfm.compat.imm_ptl.fabric.PFMMirrorBlockIP;
 import com.unlikepaladin.pfm.compat.imm_ptl.fabric.shape.BlockPortalShape;
@@ -23,7 +23,7 @@ import qouteall.q_misc_util.Helper;
 import qouteall.q_misc_util.my_util.IntBox;
 
 import java.util.stream.Stream;
-/*
+
 public class PFMMirrorEntity extends Mirror {
     @Nullable
     public IntBox wallArea;

@@ -24,8 +24,8 @@ public class PFMImmersivePortalsImpl implements PFMModCompatibility {
 
     @Override
     public void createBlocks() {
-        PaladinFurnitureModBlocksItems.WHITE_MIRROR = new PFMMirrorBlockIP(AbstractBlock.Settings.create().mapColor(MapColor.WHITE).nonOpaque());
-        PaladinFurnitureModBlocksItems.GRAY_MIRROR = new PFMMirrorBlockIP(AbstractBlock.Settings.create().mapColor(MapColor.GRAY).nonOpaque());
+      //  PaladinFurnitureModBlocksItems.WHITE_MIRROR = new PFMMirrorBlockIP(AbstractBlock.Settings.create().mapColor(MapColor.WHITE).nonOpaque());
+        //PaladinFurnitureModBlocksItems.GRAY_MIRROR = new PFMMirrorBlockIP(AbstractBlock.Settings.create().mapColor(MapColor.GRAY).nonOpaque());
     }
 
     @Override
