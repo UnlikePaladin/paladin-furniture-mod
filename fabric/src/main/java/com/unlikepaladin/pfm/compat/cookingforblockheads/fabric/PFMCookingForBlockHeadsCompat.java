@@ -1,10 +1,7 @@
 package com.unlikepaladin.pfm.compat.cookingforblockheads.fabric;
 
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
-import com.unlikepaladin.pfm.blocks.KitchenCounterBlock;
-import com.unlikepaladin.pfm.blocks.KitchenSinkBlock;
-import com.unlikepaladin.pfm.blocks.KitchenWallCounterBlock;
-import com.unlikepaladin.pfm.blocks.StoveBlock;
+import com.unlikepaladin.pfm.blocks.*;
 import com.unlikepaladin.pfm.blocks.fabric.StoveBlockImpl;
 import com.unlikepaladin.pfm.compat.cookingforblockheads.fabric.menu.StoveScreenHandlerBalm;
 import com.unlikepaladin.pfm.registry.BlockEntities;
@@ -16,6 +13,7 @@ import net.blay09.mods.cookingforblockheads.KitchenMultiBlock;
 import net.blay09.mods.cookingforblockheads.item.ModItems;
 import net.blay09.mods.cookingforblockheads.registry.CookingRegistry;
 import net.minecraft.block.AbstractBlock;
+import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.block.entity.BlockEntityTicker;
@@ -33,12 +31,25 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class PFMCookingForBlockHeadsCompat {
 
     public static void initBlockConnectors() {
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterBlock.class).getAllBlocks().forEach(KitchenMultiBlock::registerConnectorBlock);
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallCounterBlock.class).getAllBlocks().forEach(KitchenMultiBlock::registerConnectorBlock);
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenSinkBlock.class).getAllBlocks().forEach(KitchenMultiBlock::registerConnectorBlock);
+        List<Block> connectorBlocks = new ArrayList<>(PaladinFurnitureMod.furnitureEntryMap.get(KitchenDrawerBlock.class).getAllBlocks());
+        connectorBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerBlock.class).getAllBlocks());
+        connectorBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenCabinetBlock.class).getAllBlocks());
+        connectorBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(ClassicNightstandBlock.class).getAllBlocks());
+        connectorBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerSmallBlock.class).getAllBlocks());
+        connectorBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterOvenBlock.class).getAllBlocks());
+        connectorBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenSinkBlock.class).getAllBlocks());
+        connectorBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallCounterBlock.class).getAllBlocks());
+        connectorBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterBlock.class).getAllBlocks());
+        connectorBlocks.addAll(List.of(PaladinFurnitureModBlocksItems.WHITE_FRIDGE, PaladinFurnitureModBlocksItems.XBOX_FRIDGE, PaladinFurnitureModBlocksItems.GRAY_FRIDGE, PaladinFurnitureModBlocksItems.IRON_FRIDGE));
+        connectorBlocks.addAll(List.of(PaladinFurnitureModBlocksItems.WHITE_STOVE, PaladinFurnitureModBlocksItems.GRAY_STOVE, PaladinFurnitureModBlocksItems.IRON_STOVE));
+        connectorBlocks.addAll(List.of(PaladinFurnitureModBlocksItems.GRAY_FREEZER, PaladinFurnitureModBlocksItems.IRON_FREEZER, PaladinFurnitureModBlocksItems.WHITE_FREEZER));
+        connectorBlocks.forEach(KitchenMultiBlock::registerConnectorBlock);
     }
 
     public static final PFMCookingTableBlock COOKING_TABLE_BLOCK = new PFMCookingTableBlock(AbstractBlock.Settings.copy(PaladinFurnitureModBlocksItems.GRAY_STOVE));
