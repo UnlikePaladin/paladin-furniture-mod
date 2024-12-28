@@ -1,7 +1,6 @@
 package com.unlikepaladin.pfm.compat.cookingforblockheads.forge;
 
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
 import com.mojang.datafixers.util.Pair;
 import com.unlikepaladin.pfm.blocks.blockentities.GenericStorageBlockEntity3x3;
@@ -43,7 +42,7 @@ public class GenericStorageBlockEntityBalm3x3 extends GenericStorageBlockEntity3
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(KitchenItemProvider.class, this.itemProvider)});
+        return List.of(new BalmProvider<>(KitchenItemProvider.class, this.itemProvider));
     }
 
     private boolean capabilitiesInitialized;
@@ -53,19 +52,13 @@ public class GenericStorageBlockEntityBalm3x3 extends GenericStorageBlockEntity3
             this.buildProviders(providers);
 
             for (BalmProviderHolder providerHolder : providers) {
-                Iterator var6 = providerHolder.getProviders().iterator();
-
-                while(var6.hasNext()) {
-                    BalmProvider<?> provider = (BalmProvider)var6.next();
+                for (BalmProvider<?> provider : providerHolder.getProviders()) {
                     this.addCapabilities(provider, this.capabilities);
                 }
 
-                var6 = providerHolder.getSidedProviders().iterator();
-
-                while (var6.hasNext()) {
-                    Pair<Direction, BalmProvider<?>> pair = (Pair) var6.next();
-                    Direction direction = pair.getFirst();
-                    BalmProvider<?> provider = pair.getSecond();
+                for(Pair<Direction, BalmProvider<?>> providerPair : providerHolder.getSidedProviders()) {
+                    Direction direction = providerPair.getFirst();
+                    BalmProvider<?> provider = providerPair.getSecond();
                     Map<Capability<?>, LazyOptional<?>> sidedCapabilities = this.sidedCapabilities.column(direction);
                     this.addCapabilities(provider, sidedCapabilities);
                 }

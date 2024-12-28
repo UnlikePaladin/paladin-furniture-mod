@@ -39,10 +39,7 @@ import net.minecraft.predicate.item.ItemPredicate;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.book.RecipeCategory;
-import net.minecraft.registry.BuiltinRegistries;
-import net.minecraft.registry.Registries;
-import net.minecraft.registry.RegistryOps;
-import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.*;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.*;
@@ -56,6 +53,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Stream;
 
 public class PFMRecipeProvider extends PFMProvider {
 
@@ -64,10 +62,16 @@ public class PFMRecipeProvider extends PFMProvider {
         parent.setProgress("Generating Recipes");
     }
 
+    // Create a registry wrapper lookup without dynamic entries such as biomes as they don't exist yet
+    private static RegistryWrapper.WrapperLookup createWrapperLookup() {
+        RegistryBuilder builder = new RegistryBuilder();
+        return builder.createWrapperLookup(DynamicRegistryManager.of(Registries.REGISTRIES));
+    }
+
     public CompletableFuture<?> run(DataWriter writer) {
         Path path = getParent().getOutput();
         Set<Identifier> set = Sets.newHashSet();
-        RegistryWrapper.WrapperLookup lookup = BuiltinRegistries.createWrapperLookup();
+        RegistryWrapper.WrapperLookup lookup = createWrapperLookup();
         generateRecipes(new RecipeExporter() {
 
             @Override

@@ -18,6 +18,7 @@ import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.util.math.BlockPos;
 
+import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 
 public class MicrowaveBlockEntityImpl extends MicrowaveBlockEntity implements ExtendedScreenHandlerFactory<MicrowaveScreenHandler.MicrowaveData> {

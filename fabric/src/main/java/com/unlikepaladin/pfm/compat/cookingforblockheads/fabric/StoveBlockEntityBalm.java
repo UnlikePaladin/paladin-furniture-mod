@@ -22,6 +22,8 @@ import net.blay09.mods.cookingforblockheads.api.event.OvenCookedEvent;
 import net.blay09.mods.cookingforblockheads.block.entity.IMutableNameable;
 import net.blay09.mods.cookingforblockheads.kitchen.ContainerKitchenItemProvider;
 import net.blay09.mods.cookingforblockheads.recipe.ModRecipes;
+import net.blay09.mods.cookingforblockheads.block.entity.IMutableNameable;
+import net.blay09.mods.cookingforblockheads.compat.Compat;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.component.DataComponentTypes;
@@ -55,6 +57,7 @@ import net.minecraft.world.World;
 import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Iterator;
 import java.util.List;
 
 public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItemProcessor, BalmMenuProvider<StoveScreenHandler.StoveData>, IMutableNameable, BalmContainerProvider, BalmEnergyStorageProvider {
@@ -64,7 +67,7 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
             if (slot < 3) {
                 return !StoveBlockEntityBalm.this.getSmeltingResult(itemStack).isEmpty();
             } else {
-                return slot == 3 ? StoveBlockEntityBalm.isItemFuel(itemStack) : true;
+                return slot != 3 || StoveBlockEntityBalm.isItemFuel(itemStack);
             }
         }
 
@@ -225,7 +228,7 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
                             firstTransferSlot = i;
                         } else {
                             if (this.furnaceBurnTime > 0) {
-                                int var10002 = this.slotCookTime[i]++;
+                                this.slotCookTime[i]++;
                             }
 
                             if ((double)this.slotCookTime[i] >= maxCookTime) {
@@ -358,11 +361,10 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
         }
     }
 
-    public void balmFromClientTag(NbtCompound tag) {
-    }
-
-    public NbtCompound balmToClientTag(NbtCompound tag) {
-        return tag;
+    @Override
+    protected void writeUpdateTag(NbtCompound tag) {
+        this.writeNbt(tag, this.world.getRegistryManager());
+        super.writeUpdateTag(tag);
     }
 
     public boolean hasPowerUpgrade() {
@@ -397,24 +399,19 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
         if (side == null) {
             return this.getContainer();
         } else {
-            SubContainer var10000;
+            SubContainer subContainer;
             switch (side) {
-                case UP:
-                    var10000 = this.inputContainer;
-                    break;
-                case DOWN:
-                    var10000 = this.outputContainer;
-                    break;
-                default:
-                    var10000 = this.fuelContainer;
+                case UP -> subContainer = this.inputContainer;
+                case DOWN -> subContainer = this.outputContainer;
+                default -> subContainer = this.fuelContainer;
             }
 
-            return var10000;
+            return subContainer;
         }
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(KitchenItemProvider.class, this.itemProvider), new BalmProvider(KitchenItemProcessor.class, this)});
+        return List.of(new BalmProvider<>(KitchenItemProvider.class, this.itemProvider), new BalmProvider<>(KitchenItemProcessor.class, this));
     }
 
     public Inventory getInputContainer() {
@@ -525,22 +522,10 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
         this.world.playSound(null, d, e, f, soundEvent, SoundCategory.BLOCKS, 0.5f, this.world.random.nextFloat() * 0.1f + 0.9f);
     }
 
-    @Override
-    public StoveScreenHandler.StoveData getScreenOpeningData(ServerPlayerEntity serverPlayerEntity) {
-        return new StoveScreenHandler.StoveData(this.pos);
-    }
-
-    @Override
-    public PacketCodec<RegistryByteBuf, StoveScreenHandler.StoveData> getScreenStreamCodec() {
-        return StoveScreenHandler.PACKET_CODEC;
-    }
-
-    @Override
     public boolean canProcess(RecipeType<?> recipeType) {
         return recipeType == RecipeType.SMELTING;
     }
 
-    @Override
     public KitchenOperation processRecipe(Recipe<?> recipe, List<IngredientToken> ingredientTokens) {
         for (IngredientToken ingredientToken : ingredientTokens) {
             ItemStack itemStack = ingredientToken.consume();
@@ -549,6 +534,18 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
                 ingredientToken.restore(restStack);
             }
         }
+
         return KitchenOperation.EMPTY;
+    }
+
+
+    @Override
+    public StoveScreenHandler.StoveData getScreenOpeningData(ServerPlayerEntity serverPlayerEntity) {
+        return new StoveScreenHandler.StoveData(this.pos);
+    }
+
+    @Override
+    public PacketCodec<RegistryByteBuf, StoveScreenHandler.StoveData> getScreenStreamCodec() {
+        return StoveScreenHandler.PACKET_CODEC;
     }
 }

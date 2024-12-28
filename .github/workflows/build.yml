@@ -1,51 +1,45 @@
-# Automatically build the project and run any configured tests for every push
-# and submitted pull request. This can help catch issues that only occur on
-# certain platforms or Java versions, and provides a first line of defence
-# against bad commits.
+# Clones the repository which then begins with validating the Gradle Wrapper checksum,
+# If the checksum completes, the script then sets up the JDK we need and begins compiling the software,
+# Finally, If the compiled files have been pushed out to the "(something)/build/libs/" directory - It gets uploaded to GitHub.
 
-name: build
+name: Build PFM using Gradle
 on: [pull_request, push]
 
 jobs:
   build:
-    strategy:
-      matrix:
-        # Use these Java versions
-        java: [
-          17    # Minimum supported by Minecraft
-        ]
-        # and run on both Linux and Windows
-        os: [ubuntu-20.04, windows-latest]
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-22.04
     steps:
-      - name: checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: validate gradle wrapper
-        uses: gradle/wrapper-validation-action@v2
-      - name: setup jdk ${{ matrix.java }}
+        with:
+          persist-credentials: false
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: temurin
-          java-version: ${{ matrix.java }}
-      - name: make gradle wrapper executable
-        if: ${{ runner.os != 'Windows' }}
-        run: chmod +x ./gradlew
-      - name: build
+          distribution: 'temurin'
+          java-version: 17
+          check-latest: true
+
+      - name: Build using Gradle
         run: ./gradlew build
-      - name: capture fabric build artifacts
-        if: ${{ runner.os == 'Linux' && matrix.java == '17' }} # Only upload artifacts built from latest java on one OS
+
+      - name: Upload Fabric artifacts to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: Fabric-Artifacts
           path: fabric/build/libs/
-      - name: capture minecraftforge build artifacts
-        if: ${{ runner.os == 'Linux' && matrix.java == '17' }} # Only upload artifacts built from latest java on one OS
+
+      - name: Upload Forge artifacts to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: Forge-Artifacts
           path: forge/build/libs/
-      - name: capture neoforge build artifacts
-        if: ${{ runner.os == 'Linux' && matrix.java == '17' }} # Only upload artifacts built from latest java on one OS
+
+      - name: Upload NeoForge artifacts to GitHub
         uses: actions/upload-artifact@v4
         with:
           name: NeoForge-Artifacts

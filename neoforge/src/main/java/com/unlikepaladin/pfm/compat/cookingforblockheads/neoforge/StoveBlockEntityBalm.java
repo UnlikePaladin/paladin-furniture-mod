@@ -67,7 +67,7 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
             if (slot < 3) {
                 return !StoveBlockEntityBalm.this.getSmeltingResult(itemStack).isEmpty();
             } else {
-                return slot == 3 ? StoveBlockEntityBalm.isItemFuel(itemStack) : true;
+                return slot != 3 || StoveBlockEntityBalm.isItemFuel(itemStack);
             }
         }
 
@@ -226,7 +226,7 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
                             firstTransferSlot = i;
                         } else {
                             if (this.furnaceBurnTime > 0) {
-                                int var10002 = this.slotCookTime[i]++;
+                                this.slotCookTime[i]++;
                             }
 
                             if ((double)this.slotCookTime[i] >= maxCookTime) {
@@ -280,6 +280,7 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
         }
 
     }
+
 
     public ItemStack getSmeltingResult(ItemStack itemStack) {
         SingleStackRecipeInput recipeInput = new SingleStackRecipeInput(itemStack);
@@ -359,11 +360,10 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
         }
     }
 
-    public void balmFromClientTag(NbtCompound tag) {
-    }
-
-    public NbtCompound balmToClientTag(NbtCompound tag) {
-        return tag;
+    @Override
+    protected void writeUpdateTag(NbtCompound tag) {
+        this.writeNbt(tag, this.world.getRegistryManager());
+        super.writeUpdateTag(tag);
     }
 
     public boolean hasPowerUpgrade() {
@@ -398,19 +398,14 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
         if (side == null) {
             return this.getContainer();
         } else {
-            SubContainer var10000;
+            SubContainer subContainer;
             switch (side) {
-                case UP:
-                    var10000 = this.inputContainer;
-                    break;
-                case DOWN:
-                    var10000 = this.outputContainer;
-                    break;
-                default:
-                    var10000 = this.fuelContainer;
+                case UP -> subContainer = this.inputContainer;
+                case DOWN -> subContainer = this.outputContainer;
+                default -> subContainer = this.fuelContainer;
             }
 
-            return var10000;
+            return subContainer;
         }
     }
 
@@ -534,6 +529,22 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
         this.world.playSound(null, d, e, f, soundEvent, SoundCategory.BLOCKS, 0.5f, this.world.random.nextFloat() * 0.1f + 0.9f);
     }
 
+    public boolean canProcess(RecipeType<?> recipeType) {
+        return recipeType == RecipeType.SMELTING;
+    }
+
+    public KitchenOperation processRecipe(Recipe<?> recipe, List<IngredientToken> ingredientTokens) {
+        for (IngredientToken ingredientToken : ingredientTokens) {
+            ItemStack itemStack = ingredientToken.consume();
+            ItemStack restStack = ContainerUtils.insertItemStacked(this.inputContainer, itemStack, false);
+            if (!restStack.isEmpty()) {
+                ingredientToken.restore(restStack);
+            }
+        }
+
+        return KitchenOperation.EMPTY;
+    }
+
 
     @Override
     public StoveScreenHandler.StoveData getScreenOpeningData(ServerPlayerEntity serverPlayerEntity) {
@@ -543,22 +554,5 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
     @Override
     public PacketCodec<RegistryByteBuf, StoveScreenHandler.StoveData> getScreenStreamCodec() {
         return StoveScreenHandler.PACKET_CODEC;
-    }
-
-    @Override
-    public boolean canProcess(RecipeType<?> recipeType) {
-        return recipeType == RecipeType.SMELTING;
-    }
-
-    @Override
-    public KitchenOperation processRecipe(Recipe<?> recipe, List<IngredientToken> ingredientTokens) {
-        for (IngredientToken ingredientToken : ingredientTokens) {
-            ItemStack itemStack = ingredientToken.consume();
-            ItemStack restStack = ContainerUtils.insertItemStacked(this.inputContainer, itemStack, false);
-            if (!restStack.isEmpty()) {
-                ingredientToken.restore(restStack);
-            }
-        }
-        return KitchenOperation.EMPTY;
     }
 }

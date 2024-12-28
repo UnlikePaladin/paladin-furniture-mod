@@ -147,6 +147,18 @@ if (rootProject.jei_compatibility == "true") {
     }
 }
 
+if (rootProject.cookingfor_blockheads_compatibility_fabric == "true") {
+    dependencies {
+        modImplementation "curse.maven:balm-fabric-500525:${rootProject.balm_version_fabric}"
+        modImplementation "curse.maven:cooking-for-blockheads-fabric-634546:${rootProject.cookingforblockheads_version_fabric}"
+    }
+} else {
+    dependencies {
+        modCompileOnly "curse.maven:balm-fabric-500525:${rootProject.balm_version_fabric}"
+        modCompileOnly "curse.maven:cooking-for-blockheads-fabric-634546:${rootProject.cookingforblockheads_version_fabric}"
+    }
+}
+
 
 dependencies {
     // To change the versions see the gradle.properties file
@@ -168,10 +180,6 @@ dependencies {
     modCompileOnlyApi("mezz.jei:jei-${rootProject.minecraft_version}-fabric:${rootProject.jei_version}") {
         exclude group: "mezz.jei"
     }
-
-
-    modCompileOnly "curse.maven:balm-fabric-500525:${rootProject.balm_version_fabric}"
-    modCompileOnly "curse.maven:cooking-for-blockheads-fabric-634546:${rootProject.cookingforblockheads_version_fabric}"
 
     modCompileOnly("com.github.iPortalTeam:ImmersivePortalsMod:${rootProject.immersive_portals_version_fabric}"){
         exclude(group: "net.fabricmc.fabric-api")
