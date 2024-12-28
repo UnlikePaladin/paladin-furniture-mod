@@ -1,4 +1,4 @@
-package com.unlikepaladin.pfm.compat.jei.neoforge;
+/*package com.unlikepaladin.pfm.compat.jei.neoforge;
 
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.compat.jei.FreezingCategory;
@@ -58,10 +58,11 @@ public class PaladinFurnitureModJEIPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(PaladinFurnitureModBlocksItems.IRON_FREEZER), PaladinFurnitureModJEI.FREEZING_RECIPE);
         registration.addRecipeCatalyst(new ItemStack(PaladinFurnitureModBlocksItems.GRAY_FREEZER), PaladinFurnitureModJEI.FREEZING_RECIPE);
         registration.addRecipeCatalyst(new ItemStack(PaladinFurnitureModBlocksItems.WORKING_TABLE), PaladinFurnitureModJEI.FURNITURE_RECIPE);
-    }*/
+    }
 
     @Override
     public Identifier getPluginUid() {
         return Identifier.of(PaladinFurnitureMod.MOD_ID, "jei_plugin");
     }
 }
+*/

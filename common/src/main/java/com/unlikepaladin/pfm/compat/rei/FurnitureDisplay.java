@@ -84,9 +84,30 @@ public class FurnitureDisplay implements Display {
     }
 
     public FurnitureDisplay(FurnitureRecipe furnitureRecipe) {
-        this.input = EntryIngredients.ofIngredients(furnitureRecipe.getIngredients());
         this.output = Collections.singletonList(EntryIngredients.of(furnitureRecipe.result()));
         this.location = Optional.empty();
+        List<Ingredient> ingredients = furnitureRecipe.getIngredients();
+        HashMap<Item, Integer> containedItems = new HashMap<>();
+        for (Ingredient ingredient : ingredients) {
+            for (RegistryEntry<Item> item : ingredient.getMatchingItems().toList()) {
+                if (!containedItems.containsKey(item.value())) {
+                    containedItems.put(item.value(), 1);
+                } else {
+                    containedItems.put(item.value(), containedItems.get(item.value()) + 1);
+                }
+            }
+        }
+        List<ItemStack> finalList = new ArrayList<>();
+        for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
+            finalList.add(new ItemStack(entry.getKey(), entry.getValue()));
+        }
+        finalList.sort(Comparator.comparing(ItemStack::toString));
+
+        List<EntryIngredient> entryIngredients = new ArrayList<>();
+        for (final ItemStack stack : finalList) {
+            entryIngredients.add(EntryIngredients.of(stack));
+        }
+        this.input = entryIngredients;
     }
 
 
