@@ -49,7 +49,7 @@ public class FurnitureDisplay implements Display {
     public List<EntryIngredient> output;
     public Optional<Identifier> location;
     public FurnitureDisplay(RecipeEntry<FurnitureRecipe> recipe) {
-        this.output = Collections.singletonList(EntryIngredients.of(recipe.value().result()));
+        this.output = Collections.singletonList(EntryIngredients.of(this.recipe.value().result()));
         this.location = Optional.of(recipe.id().getValue());
         List<Ingredient> ingredients = recipe.value().getIngredients();
         HashMap<Item, Integer> containedItems = new HashMap<>();
