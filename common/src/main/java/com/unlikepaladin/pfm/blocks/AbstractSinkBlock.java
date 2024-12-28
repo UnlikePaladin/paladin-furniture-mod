@@ -146,7 +146,7 @@ public abstract class AbstractSinkBlock extends CauldronBlock implements BlockEn
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockView world) {
-        return new SinkBlockEntity();
+        return SinkBlockEntity.getFactory().create();
     }
 
     protected float getFluidHeight(BlockState state) {
