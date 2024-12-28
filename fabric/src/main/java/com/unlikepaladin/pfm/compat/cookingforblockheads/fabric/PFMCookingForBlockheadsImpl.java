@@ -44,7 +44,6 @@ public class PFMCookingForBlockheadsImpl extends PFMCookingForBlockheads {
             clientModCompatibility = new PFMCookingForBlockheadsClient(this);
         return Optional.of(clientModCompatibility);
     }
-
     @Override
     public String getModId() {
         return "cookingforblockheads";
@@ -64,6 +63,9 @@ public class PFMCookingForBlockheadsImpl extends PFMCookingForBlockheads {
     @Override
     public void generateTags() {
         super.generateTags();
+
+        PFMTagProvider.getOrCreateTagBuilder(BlockTags.PICKAXE_MINEABLE)
+                .add(PFMCookingForBlockHeadsCompat.COOKING_TABLE_BLOCK);
 
         List<Block> storageBlocks = new ArrayList<>(PaladinFurnitureMod.furnitureEntryMap.get(KitchenDrawerBlock.class).getAllBlocks());
         storageBlocks.addAll(PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerBlock.class).getAllBlocks());
