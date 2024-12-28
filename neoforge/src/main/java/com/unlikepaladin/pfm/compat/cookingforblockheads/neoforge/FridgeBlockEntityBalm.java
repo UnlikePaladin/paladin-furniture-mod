@@ -15,7 +15,7 @@ import java.util.List;
 
 public class FridgeBlockEntityBalm extends FridgeBlockEntity implements BalmContainerProvider, BalmProviderHolder {
 
-    private final KitchenItemProvider itemProvider;
+    public final KitchenItemProvider itemProvider;
 
     public FridgeBlockEntityBalm(BlockPos pos, BlockState state) {
         super(pos, state);

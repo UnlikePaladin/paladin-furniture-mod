@@ -44,7 +44,6 @@ public class PFMCookingForBlockheadsImpl extends PFMCookingForBlockheads {
             clientModCompatibility = new PFMCookingForBlockheadsClient(this);
         return Optional.of(clientModCompatibility);
     }
-
     @Override
     public String getModId() {
         return "cookingforblockheads";
