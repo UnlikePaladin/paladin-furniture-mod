@@ -27,7 +27,7 @@ public class GenericStorageBlockEntityBalm3x3 extends GenericStorageBlockEntity3
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(KitchenItemProvider.class, this.itemProvider)});
+        return List.of(new BalmProvider<>(KitchenItemProvider.class, this.itemProvider));
     }
 
 }

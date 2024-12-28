@@ -1,49 +1,43 @@
-package com.unlikepaladin.pfm.compat.cookingforblockheads.forge;
+package com.unlikepaladin.pfm.compat.cookingforblockheads.neoforge;
 
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
 import com.mojang.datafixers.util.Pair;
-import com.unlikepaladin.pfm.blocks.blockentities.CounterOvenBlockEntity;
+import com.unlikepaladin.pfm.blocks.blockentities.SinkBlockEntity;
 import net.blay09.mods.balm.api.Balm;
-import net.blay09.mods.balm.api.container.BalmContainerProvider;
 import net.blay09.mods.balm.api.energy.EnergyStorage;
 import net.blay09.mods.balm.api.fluid.FluidTank;
 import net.blay09.mods.balm.api.provider.BalmProvider;
 import net.blay09.mods.balm.api.provider.BalmProviderHolder;
-import net.blay09.mods.balm.forge.energy.ForgeEnergyStorage;
-import net.blay09.mods.balm.forge.fluid.ForgeFluidTank;
-import net.blay09.mods.balm.forge.provider.ForgeBalmProviders;
-import net.blay09.mods.cookingforblockheads.api.KitchenItemProvider;
-import net.blay09.mods.cookingforblockheads.kitchen.ContainerKitchenItemProvider;
+import net.blay09.mods.balm.neoforge.energy.NeoForgeEnergyStorage;
+import net.blay09.mods.balm.neoforge.fluid.NeoForgeFluidTank;
+import net.blay09.mods.balm.neoforge.provider.NeoForgeBalmProviders;
+import net.blay09.mods.cookingforblockheads.api.capability.DefaultKitchenConnector;
+import net.blay09.mods.cookingforblockheads.api.capability.IKitchenConnector;
 import net.minecraft.block.BlockState;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraftforge.common.capabilities.Capability;
-import net.minecraftforge.common.capabilities.ForgeCapabilities;
-import net.minecraftforge.common.util.LazyOptional;
-import net.minecraftforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.common.capabilities.Capabilities;
+import net.neoforged.neoforge.common.capabilities.Capability;
+import net.neoforged.neoforge.common.util.LazyOptional;
+import net.neoforged.neoforge.items.wrapper.InvWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class CounterOvenBlockEntityBalm extends CounterOvenBlockEntity implements BalmContainerProvider, BalmProviderHolder, BlockEntityContract {
-    private final KitchenItemProvider itemProvider;
+public class SinkBlockEntityBalm extends SinkBlockEntity implements BalmProviderHolder, BlockEntityContract {
+    private final DefaultKitchenConnector connector;
 
-    public CounterOvenBlockEntityBalm(BlockPos pos, BlockState state) {
+    public SinkBlockEntityBalm(BlockPos pos, BlockState state) {
         super(pos, state);
-        this.itemProvider = new ContainerKitchenItemProvider(this);
+        this.connector = new DefaultKitchenConnector();
     }
 
-    @Override
-    public Inventory getContainer() {
-        return this;
-    }
 
     public List<BalmProvider<?>> getProviders() {
-        return List.of(new BalmProvider<>(KitchenItemProvider.class, this.itemProvider));
+        return List.of(new BalmProvider<>(IKitchenConnector.class, this.connector));
     }
 
     private boolean capabilitiesInitialized;
@@ -83,22 +77,22 @@ public class CounterOvenBlockEntityBalm extends CounterOvenBlockEntity implement
     private final Map<Capability<?>, LazyOptional<?>> capabilities = new HashMap<>();
     private final Table<Capability<?>, Direction, LazyOptional<?>> sidedCapabilities = HashBasedTable.create();
     private void addCapabilities(BalmProvider<?> provider, Map<Capability<?>, LazyOptional<?>> capabilities) {
-        ForgeBalmProviders forgeProviders = (ForgeBalmProviders) Balm.getProviders();
+        NeoForgeBalmProviders forgeProviders = (NeoForgeBalmProviders) Balm.getProviders();
         Capability<?> capability = forgeProviders.getCapability(provider.getProviderClass());
         Objects.requireNonNull(provider);
         capabilities.put(capability, LazyOptional.of(provider::getInstance));
         if (provider.getProviderClass() == Inventory.class) {
-            capabilities.put(ForgeCapabilities.ITEM_HANDLER, LazyOptional.of(() -> new InvWrapper((Inventory)provider.getInstance())));
+            capabilities.put(Capabilities.ITEM_HANDLER, LazyOptional.of(() -> new InvWrapper((Inventory)provider.getInstance())));
         } else if (provider.getProviderClass() == FluidTank.class) {
-            capabilities.put(ForgeCapabilities.FLUID_HANDLER, LazyOptional.of(() -> new ForgeFluidTank((FluidTank)provider.getInstance())));
+            capabilities.put(Capabilities.FLUID_HANDLER, LazyOptional.of(() -> new NeoForgeFluidTank((FluidTank)provider.getInstance())));
         } else if (provider.getProviderClass() == EnergyStorage.class) {
-            capabilities.put(ForgeCapabilities.ENERGY, LazyOptional.of(() -> new ForgeEnergyStorage((EnergyStorage)provider.getInstance())));
+            capabilities.put(Capabilities.ENERGY, LazyOptional.of(() -> new NeoForgeEnergyStorage((EnergyStorage)provider.getInstance())));
         }
     }
 
     @Override
     public <T> T getProvider(Class<T> clazz) {
-        ForgeBalmProviders forgeProviders = (ForgeBalmProviders)Balm.getProviders();
+        NeoForgeBalmProviders forgeProviders = (NeoForgeBalmProviders)Balm.getProviders();
         Capability<?> capability = forgeProviders.getCapability(clazz);
         return (T) this.getCapability(capability).resolve().orElse(null);
     }

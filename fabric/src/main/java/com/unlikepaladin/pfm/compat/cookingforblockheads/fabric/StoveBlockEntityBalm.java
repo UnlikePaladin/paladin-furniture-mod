@@ -390,24 +390,19 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
         if (side == null) {
             return this.getContainer();
         } else {
-            SubContainer var10000;
+            SubContainer subContainer;
             switch (side) {
-                case UP:
-                    var10000 = this.inputContainer;
-                    break;
-                case DOWN:
-                    var10000 = this.outputContainer;
-                    break;
-                default:
-                    var10000 = this.fuelContainer;
+                case UP -> subContainer = this.inputContainer;
+                case DOWN -> subContainer = this.outputContainer;
+                default -> subContainer = this.fuelContainer;
             }
 
-            return var10000;
+            return subContainer;
         }
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider<>(KitchenItemProvider.class, this.itemProvider), new BalmProvider<>(KitchenItemProcessor.class, this));
+        return List.of(new BalmProvider<>(KitchenItemProvider.class, this.itemProvider), new BalmProvider<>(KitchenItemProcessor.class, this));
     }
 
     public Inventory getInputContainer() {

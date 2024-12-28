@@ -70,6 +70,6 @@ public class FreezerBlockEntityBalm extends FreezerBlockEntityImpl implements Ba
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider<>(KitchenItemProvider.class, this.itemProvider)});
+        return List.of(new BalmProvider<>(KitchenItemProvider.class, this.itemProvider));
     }
 }

@@ -56,7 +56,7 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
             if (slot < 3) {
                 return !StoveBlockEntityBalm.this.getSmeltingResult(itemStack).isEmpty();
             } else {
-                return slot == 3 ? StoveBlockEntityBalm.isItemFuel(itemStack) : true;
+                return slot != 3 || StoveBlockEntityBalm.isItemFuel(itemStack);
             }
         }
 
@@ -215,7 +215,7 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
                             firstTransferSlot = i;
                         } else {
                             if (this.furnaceBurnTime > 0) {
-                                int var10002 = this.slotCookTime[i]++;
+                                this.slotCookTime[i]++;
                             }
 
                             if ((double)this.slotCookTime[i] >= maxCookTime) {
@@ -385,19 +385,14 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements KitchenItem
         if (side == null) {
             return this.getContainer();
         } else {
-            SubContainer var10000;
+            SubContainer subContainer;
             switch (side) {
-                case UP:
-                    var10000 = this.inputContainer;
-                    break;
-                case DOWN:
-                    var10000 = this.outputContainer;
-                    break;
-                default:
-                    var10000 = this.fuelContainer;
+                case UP -> subContainer = this.inputContainer;
+                case DOWN -> subContainer = this.outputContainer;
+                default -> subContainer = this.fuelContainer;
             }
 
-            return var10000;
+            return subContainer;
         }
     }
 

@@ -170,7 +170,7 @@ public abstract class AbstractSinkBlock extends AbstractCauldronBlock implements
     @Nullable
     @Override
     public BlockEntity createBlockEntity(BlockPos pos, BlockState state) {
-        return new SinkBlockEntity(pos, state);
+        return SinkBlockEntity.getFactory().create(pos, state);
     }
 
     @Override

@@ -1,12 +1,10 @@
 package com.unlikepaladin.pfm.compat.cookingforblockheads.forge;
 
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Table;
 import com.mojang.datafixers.util.Pair;
-import com.unlikepaladin.pfm.blocks.blockentities.CounterOvenBlockEntity;
+import com.unlikepaladin.pfm.blocks.blockentities.SinkBlockEntity;
 import net.blay09.mods.balm.api.Balm;
-import net.blay09.mods.balm.api.container.BalmContainerProvider;
 import net.blay09.mods.balm.api.energy.EnergyStorage;
 import net.blay09.mods.balm.api.fluid.FluidTank;
 import net.blay09.mods.balm.api.provider.BalmProvider;
@@ -14,8 +12,8 @@ import net.blay09.mods.balm.api.provider.BalmProviderHolder;
 import net.blay09.mods.balm.forge.energy.ForgeEnergyStorage;
 import net.blay09.mods.balm.forge.fluid.ForgeFluidTank;
 import net.blay09.mods.balm.forge.provider.ForgeBalmProviders;
-import net.blay09.mods.cookingforblockheads.api.KitchenItemProvider;
-import net.blay09.mods.cookingforblockheads.kitchen.ContainerKitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.api.capability.DefaultKitchenConnector;
+import net.blay09.mods.cookingforblockheads.api.capability.IKitchenConnector;
 import net.minecraft.block.BlockState;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.util.math.BlockPos;
@@ -29,21 +27,17 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class CounterOvenBlockEntityBalm extends CounterOvenBlockEntity implements BalmContainerProvider, BalmProviderHolder, BlockEntityContract {
-    private final KitchenItemProvider itemProvider;
+public class SinkBlockEntityBalm extends SinkBlockEntity implements BalmProviderHolder, BlockEntityContract {
+    private final DefaultKitchenConnector connector;
 
-    public CounterOvenBlockEntityBalm(BlockPos pos, BlockState state) {
+    public SinkBlockEntityBalm(BlockPos pos, BlockState state) {
         super(pos, state);
-        this.itemProvider = new ContainerKitchenItemProvider(this);
+        this.connector = new DefaultKitchenConnector();
     }
 
-    @Override
-    public Inventory getContainer() {
-        return this;
-    }
 
     public List<BalmProvider<?>> getProviders() {
-        return List.of(new BalmProvider<>(KitchenItemProvider.class, this.itemProvider));
+        return List.of(new BalmProvider<>(IKitchenConnector.class, this.connector));
     }
 
     private boolean capabilitiesInitialized;
