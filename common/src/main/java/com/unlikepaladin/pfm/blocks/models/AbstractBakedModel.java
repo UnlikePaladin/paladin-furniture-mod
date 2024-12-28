@@ -100,7 +100,7 @@ public abstract class AbstractBakedModel implements BakedModel {
             VariantBase<?> variant = WoodVariantRegistry.OAK;
             SpriteIdentifier mainTexture = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, ModelHelper.getTextureId(variant.getBaseBlock()));
             SpriteIdentifier secondTexture = new SpriteIdentifier(PlayerScreenHandler.BLOCK_ATLAS_TEXTURE, ModelHelper.getTextureId(variant.getSecondaryBlock()));
-            return List.of(mainTexture.getSprite(), secondTexture.getSprite());
+            return Arrays.asList(mainTexture.getSprite(), secondTexture.getSprite());
         }
         return spriteList;
     }

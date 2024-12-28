@@ -8,6 +8,7 @@ import net.minecraft.resource.metadata.ResourceMetadataReader;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -32,14 +33,14 @@ public class PathPackRPWrapper implements ResourcePack {
         if (PFMRuntimeResources.ready && fileName.equals("pack.png")) {
             return delegate.get().openRoot(fileName);
         }
-        return InputStream.nullInputStream();
+        return new ByteArrayInputStream(new byte[0]);
     }
 
     @Override
     public InputStream open(ResourceType type, Identifier id) throws IOException {
         if (PFMRuntimeResources.ready)
             return delegate.get().open(type, id);
-        return InputStream.nullInputStream();
+        return new ByteArrayInputStream(new byte[0]);
     }
 
     @Override
@@ -60,7 +61,9 @@ public class PathPackRPWrapper implements ResourcePack {
     public Set<String> getNamespaces(ResourceType type) {
         if (PFMRuntimeResources.ready)
             return delegate.get().getNamespaces(type);
-        return Set.of("pfm");
+        Set<String> namespaces = new HashSet<>();
+        namespaces.add("pfm");
+        return namespaces;
     }
 
     @Nullable
