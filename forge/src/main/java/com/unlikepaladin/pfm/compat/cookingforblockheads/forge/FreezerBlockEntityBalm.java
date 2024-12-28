@@ -82,31 +82,23 @@ public class FreezerBlockEntityBalm extends FreezerBlockEntityImpl implements Ba
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(IKitchenItemProvider.class, this.itemProvider)});
+        return List.of(new BalmProvider<>(IKitchenItemProvider.class, this.itemProvider));
     }
 
     private boolean capabilitiesInitialized;
     public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (!this.capabilitiesInitialized) {
-            List<BalmProviderHolder> providers = new ArrayList();
+            List<BalmProviderHolder> providers = new ArrayList<>();
             this.balmBuildProviders(providers);
-            Iterator var4 = providers.iterator();
 
-            while(var4.hasNext()) {
-                BalmProviderHolder providerHolder = (BalmProviderHolder)var4.next();
-                Iterator var6 = providerHolder.getProviders().iterator();
-
-                while(var6.hasNext()) {
-                    BalmProvider<?> provider = (BalmProvider)var6.next();
+            for (BalmProviderHolder providerHolder : providers) {
+                for (BalmProvider<?> provider : providerHolder.getProviders()) {
                     this.addCapabilities(provider, this.capabilities);
                 }
 
-                var6 = providerHolder.getSidedProviders().iterator();
-
-                while(var6.hasNext()) {
-                    Pair<Direction, BalmProvider<?>> pair = (Pair)var6.next();
-                    Direction direction = pair.getFirst();
-                    BalmProvider<?> provider = pair.getSecond();
+                for(Pair<Direction, BalmProvider<?>> providerPair : providerHolder.getSidedProviders()) {
+                    Direction direction = providerPair.getFirst();
+                    BalmProvider<?> provider = providerPair.getSecond();
                     Map<Capability<?>, LazyOptional<?>> sidedCapabilities = this.sidedCapabilities.column(direction);
                     this.addCapabilities(provider, sidedCapabilities);
                 }
@@ -141,7 +133,6 @@ public class FreezerBlockEntityBalm extends FreezerBlockEntityImpl implements Ba
         } else if (provider.getProviderClass() == EnergyStorage.class) {
             capabilities.put(CapabilityEnergy.ENERGY, LazyOptional.of(() -> new ForgeEnergyStorage((EnergyStorage)provider.getInstance())));
         }
-
     }
 
     @Override
