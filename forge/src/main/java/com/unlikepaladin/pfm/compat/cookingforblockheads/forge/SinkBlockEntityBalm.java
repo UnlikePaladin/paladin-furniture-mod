@@ -3,7 +3,7 @@ package com.unlikepaladin.pfm.compat.cookingforblockheads.forge;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import com.mojang.datafixers.util.Pair;
-import com.unlikepaladin.pfm.blocks.blockentities.GenericStorageBlockEntity9x3;
+import com.unlikepaladin.pfm.blocks.blockentities.SinkBlockEntity;
 import net.blay09.mods.balm.api.Balm;
 import net.blay09.mods.balm.api.block.BalmBlockEntityContract;
 import net.blay09.mods.balm.api.container.BalmContainerProvider;
@@ -14,11 +14,15 @@ import net.blay09.mods.balm.api.provider.BalmProviderHolder;
 import net.blay09.mods.balm.forge.energy.ForgeEnergyStorage;
 import net.blay09.mods.balm.forge.fluid.ForgeFluidTank;
 import net.blay09.mods.balm.forge.provider.ForgeBalmProviders;
+import net.blay09.mods.cookingforblockheads.api.capability.DefaultKitchenConnector;
 import net.blay09.mods.cookingforblockheads.api.capability.DefaultKitchenItemProvider;
+import net.blay09.mods.cookingforblockheads.api.capability.IKitchenConnector;
 import net.blay09.mods.cookingforblockheads.api.capability.IKitchenItemProvider;
 import net.minecraft.block.BlockState;
 import net.minecraft.inventory.Inventory;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Direction;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.util.LazyOptional;
@@ -31,28 +35,49 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class GenericStorageBlockEntityBalm9x3 extends GenericStorageBlockEntity9x3 implements BalmContainerProvider, BalmProviderHolder, BalmBlockEntityContract {
-    private final DefaultKitchenItemProvider itemProvider;
+public class SinkBlockEntityBalm extends SinkBlockEntity implements BalmProviderHolder, BalmBlockEntityContract {
+    private final DefaultKitchenConnector connector;
 
-    public GenericStorageBlockEntityBalm9x3(BlockPos pos, BlockState state) {
+    public SinkBlockEntityBalm(BlockPos pos, BlockState state) {
         super(pos, state);
-        this.itemProvider = new DefaultKitchenItemProvider(this);
+        this.connector = new DefaultKitchenConnector();
+    }
+
+
+    @Override
+    public Box balmGetRenderBoundingBox() {
+        return super.getRenderBoundingBox();
     }
 
     @Override
-    public Inventory getContainer() {
-        return this;
+    public void balmOnLoad() {
+
+    }
+
+    @Override
+    public void balmFromClientTag(NbtCompound nbtCompound) {
+
+    }
+
+    @Override
+    public NbtCompound balmToClientTag(NbtCompound nbtCompound) {
+        return nbtCompound;
+    }
+
+    @Override
+    public void balmSync() {
+
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return List.of(new BalmProvider<>(IKitchenItemProvider.class, this.itemProvider));
+        return List.of(new BalmProvider<>(IKitchenConnector.class, this.connector));
     }
 
     private boolean capabilitiesInitialized;
     public <T> @NotNull LazyOptional<T> getCapability(@NotNull Capability<T> cap, @Nullable Direction side) {
         if (!this.capabilitiesInitialized) {
             List<BalmProviderHolder> providers = new ArrayList<>();
-            this.buildProviders(providers);
+            this.balmBuildProviders(providers);
 
             for (BalmProviderHolder providerHolder : providers) {
                 for (BalmProvider<?> provider : providerHolder.getProviders()) {
@@ -96,12 +121,5 @@ public class GenericStorageBlockEntityBalm9x3 extends GenericStorageBlockEntity9
         } else if (provider.getProviderClass() == EnergyStorage.class) {
             capabilities.put(CapabilityEnergy.ENERGY, LazyOptional.of(() -> new ForgeEnergyStorage((EnergyStorage)provider.getInstance())));
         }
-    }
-
-    @Override
-    public <T> T getProvider(Class<T> clazz) {
-        ForgeBalmProviders forgeProviders = (ForgeBalmProviders)Balm.getProviders();
-        Capability<?> capability = forgeProviders.getCapability(clazz);
-        return (T) this.getCapability(capability).resolve().orElse(null);
     }
 }
