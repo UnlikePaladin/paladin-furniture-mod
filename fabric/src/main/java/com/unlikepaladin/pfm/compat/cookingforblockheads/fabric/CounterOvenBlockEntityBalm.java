@@ -1,7 +1,5 @@
 package com.unlikepaladin.pfm.compat.cookingforblockheads.fabric;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Lists;
 import com.mojang.datafixers.util.Pair;
 import com.unlikepaladin.pfm.blocks.blockentities.CounterOvenBlockEntity;
 import net.blay09.mods.balm.api.block.BalmBlockEntityContract;
@@ -14,8 +12,6 @@ import net.minecraft.block.BlockState;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -33,7 +29,7 @@ public class CounterOvenBlockEntityBalm extends CounterOvenBlockEntity implement
     }
 
     public List<BalmProvider<?>> getProviders() {
-        return Lists.newArrayList(new BalmProvider[]{new BalmProvider(IKitchenItemProvider.class, this.itemProvider)});
+        return List.of(new BalmProvider<>(IKitchenItemProvider.class, this.itemProvider));
     }
 
     private final Map<Class<?>, BalmProvider<?>> providers = new HashMap<>();
@@ -46,17 +42,10 @@ public class CounterOvenBlockEntityBalm extends CounterOvenBlockEntity implement
             this.buildProviders(providers);
 
             for (BalmProviderHolder providerHolder : providers) {
-                Iterator var5 = providerHolder.getProviders().iterator();
-
-                while (var5.hasNext()) {
-                    BalmProvider<?> provider = (BalmProvider) var5.next();
+                for (BalmProvider<?> provider : providerHolder.getProviders()) {
                     this.providers.put(provider.getProviderClass(), provider);
                 }
-
-                var5 = providerHolder.getSidedProviders().iterator();
-
-                while (var5.hasNext()) {
-                    Pair<Direction, BalmProvider<?>> pair = (Pair) var5.next();
+                for (Pair<Direction, BalmProvider<?>> pair : providerHolder.getSidedProviders()) {
                     Direction direction = pair.getFirst();
                     BalmProvider<?> provider = pair.getSecond();
                     this.sidedProviders.put(Pair.of(direction, provider.getProviderClass()), provider);

@@ -32,14 +32,14 @@ public class PathPackRPWrapper implements ResourcePack {
         if (PFMRuntimeResources.ready && fileName.equals("pack.png")) {
             return delegate.get().openRoot(fileName);
         }
-        return null;
+        return InputStream.nullInputStream();
     }
 
     @Override
     public InputStream open(ResourceType type, Identifier id) throws IOException {
         if (PFMRuntimeResources.ready)
             return delegate.get().open(type, id);
-        return null;
+        return InputStream.nullInputStream();
     }
 
     @Override
@@ -60,7 +60,7 @@ public class PathPackRPWrapper implements ResourcePack {
     public Set<String> getNamespaces(ResourceType type) {
         if (PFMRuntimeResources.ready)
             return delegate.get().getNamespaces(type);
-        return new HashSet<>();
+        return Set.of("pfm");
     }
 
     @Nullable
