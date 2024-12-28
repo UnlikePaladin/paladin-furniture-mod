@@ -349,11 +349,9 @@ public class StoveBlockEntityBalm extends BalmBlockEntity implements IKitchenSme
         }
     }
 
-    public void balmFromClientTag(NbtCompound tag) {
-    }
-
-    public NbtCompound balmToClientTag(NbtCompound tag) {
-        return tag;
+    @Override
+    public void writeUpdateTag(NbtCompound tag) {
+        this.writeNbt(tag);
     }
 
     public boolean hasPowerUpgrade() {
