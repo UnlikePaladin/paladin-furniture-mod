@@ -42,7 +42,7 @@ public abstract class AbstractSinkBlock extends CauldronBlock implements BlockEn
     final Map<Item, SinkBehavior> behaviorMap;
 
     public AbstractSinkBlock(Settings settings, Map<Item, SinkBehavior> behaviorMap) {
-        super(settings);
+        super(settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         this.behaviorMap = behaviorMap;
         this.setDefaultState(this.getDefaultState().with(Properties.HORIZONTAL_FACING, Direction.NORTH).with(LEVEL_4, 0));
 

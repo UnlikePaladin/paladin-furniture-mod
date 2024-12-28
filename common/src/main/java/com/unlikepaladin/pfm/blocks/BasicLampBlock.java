@@ -37,7 +37,7 @@ public class BasicLampBlock extends PowerableBlock implements BlockEntityProvide
     private static final BooleanProperty LIT = Properties.LIT;
 
     public BasicLampBlock(AbstractBlock.Settings settings) {
-        super(settings);
+        super(settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         setDefaultState(this.getStateManager().getDefaultState().with(LIT, false).with(POWERLOCKED, false));
     }
 

@@ -39,7 +39,7 @@ public class SimpleBedBlock extends BedBlock implements DyeableFurnitureBlock, P
     private static final List<FurnitureBlock> SIMPLE_BEDS = new ArrayList<>();
     private final DyeColor color;
     public SimpleBedBlock(DyeColor color, Settings settings) {
-        super(color, settings);
+        super(color, settings.luminance((state) -> 0).emissiveLighting((blockstate, b, c) -> false));
         setDefaultState(this.getStateManager().getDefaultState().with(FACING, Direction.NORTH).with(PART, BedPart.FOOT).with(OCCUPIED, false));
         if(this.getClass().isAssignableFrom(SimpleBedBlock.class)){
             String bedColor = color.getName();
