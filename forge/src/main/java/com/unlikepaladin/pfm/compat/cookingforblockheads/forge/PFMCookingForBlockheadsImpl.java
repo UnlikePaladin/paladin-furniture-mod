@@ -52,9 +52,6 @@ public class PFMCookingForBlockheadsImpl extends PFMCookingForBlockheads {
                 .add(storageBlocks.toArray(new Block[0]));
 
         Block[] ovens = {PaladinFurnitureModBlocksItems.WHITE_STOVE, PaladinFurnitureModBlocksItems.GRAY_STOVE, PaladinFurnitureModBlocksItems.IRON_STOVE};
-        PFMTagProvider.getOrCreateTagBuilder(ModBlockTags.OVENS)
-                .add(ovens);
-
         Block[] freezers = {PaladinFurnitureModBlocksItems.GRAY_FREEZER, PaladinFurnitureModBlocksItems.IRON_FREEZER, PaladinFurnitureModBlocksItems.WHITE_FREEZER};
 
         PFMTag<Block> builder = PFMTagProvider.getOrCreateTagBuilder(ModBlockTags.KITCHEN_CONNECTORS);
