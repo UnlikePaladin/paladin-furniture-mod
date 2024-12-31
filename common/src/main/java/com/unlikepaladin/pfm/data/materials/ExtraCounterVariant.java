@@ -18,6 +18,10 @@ public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
     public static ExtraCounterVariant DARK_CONCRETE = new ExtraCounterVariant(Blocks.GRAY_CONCRETE, Blocks.WHITE_CONCRETE, "dark_concrete");
     public static ExtraCounterVariant CONCRETE = new ExtraCounterVariant(Blocks.WHITE_CONCRETE, null, "concrete");
     public static ExtraCounterVariant SMOOTH_STONE = new ExtraCounterVariant(Blocks.WHITE_CONCRETE, Blocks.SMOOTH_STONE,"smooth_stone");
+    public static ExtraCounterVariant GRANITE_TERRACOTTA = new ExtraCounterVariant(Blocks.WHITE_TERRACOTTA, Blocks.POLISHED_GRANITE,"granite_terracotta");
+    public static ExtraCounterVariant ANDESITE_OAK = new ExtraCounterVariant(Blocks.STRIPPED_OAK_LOG, Blocks.POLISHED_ANDESITE,"andesite_oak");
+    public static ExtraCounterVariant BLACKSTONE_CRIMSON = new ExtraCounterVariant(Blocks.CRIMSON_PLANKS, Blocks.POLISHED_BLACKSTONE,"blackstone_crimson");
+
     private final String name;
     private final Block baseBlock;
     static final List<ExtraCounterVariant> DEFAULT_VARIANTS = new ArrayList<>();
@@ -25,13 +29,14 @@ public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
     private final Block secondaryBlock;
 
     public static List<ExtraCounterVariant> values() {
-        if (DEFAULT_VARIANTS.isEmpty()){
-        DEFAULT_VARIANTS.add(DARK_CONCRETE);
-        DEFAULT_VARIANTS.add(CONCRETE);
-        DEFAULT_VARIANTS.add(SMOOTH_STONE);
-    }
-
-
+        if (DEFAULT_VARIANTS.isEmpty()) {
+            DEFAULT_VARIANTS.add(DARK_CONCRETE);
+            DEFAULT_VARIANTS.add(CONCRETE);
+            DEFAULT_VARIANTS.add(SMOOTH_STONE);
+            DEFAULT_VARIANTS.add(GRANITE_TERRACOTTA);
+            DEFAULT_VARIANTS.add(ANDESITE_OAK);
+            DEFAULT_VARIANTS.add(BLACKSTONE_CRIMSON);
+        }
         return DEFAULT_VARIANTS;
     }
 
@@ -105,7 +110,7 @@ public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
 
     @Override
     public Block mainChild() {
-        return DARK_CONCRETE.baseBlock;
+        return this.baseBlock;
     }
 
     @Environment(EnvType.CLIENT)

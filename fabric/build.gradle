@@ -89,7 +89,7 @@ if (rootProject.rei_compatibility == "true"){
             exclude(group: "net.fabricmc.fabric-api")
         }
         modRuntimeOnly("me.shedaniel.cloth.api:cloth-api:${rootProject.cloth_api_version}") {
-            transitive(false)
+            exclude(group: "net.fabricmc.fabric-api")
         }
     }
 }

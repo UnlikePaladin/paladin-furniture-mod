@@ -323,24 +323,24 @@ public class BasicBathtubBlock extends BedBlock {
         if (world.isClient) {
             int x = pos.getX(), y = pos.getY(), z = pos.getZ();
             if (facing == Direction.EAST) {
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.76, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.76, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.76, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.76, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.76, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.76, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
             }
             else if (facing == Direction.SOUTH){
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.5, y + 0.8, z + 0.76, 0.0, 0.0, 0.0);
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.5, y + 0.8, z + 0.76, 0.0, 0.0, 0.0);
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.5, y + 0.8, z + 0.76, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.5, y + 0.8, z + 0.76, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.5, y + 0.8, z + 0.76, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.5, y + 0.8, z + 0.76, 0.0, 0.0, 0.0);
             }
             else if (facing == Direction.NORTH){
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.5, y + 0.8, z + 0.24, 0.0, 0.0, 0.0);
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.5, y + 0.8, z + 0.24, 0.0, 0.0, 0.0);
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.5, y + 0.8, z + 0.24, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.5, y + 0.8, z + 0.24, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.5, y + 0.8, z + 0.24, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.5, y + 0.8, z + 0.24, 0.0, 0.0, 0.0);
             }
             else {
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.24, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.24, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
-                world.addParticle(ParticleIDs.WATER_DROP, x + 0.24, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.24, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.24, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
+                world.addParticle(ParticleIDs.WATER_DROP, true, x + 0.24, y + 0.8, z + 0.5, 0.0, 0.0, 0.0);
             }
         }
     }

@@ -4,6 +4,7 @@
   "package": "com.unlikepaladin.pfm.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "AbstractBlock$Settings",
     "PFMAbstractTagProvider$ObjectBuilderMixin",
     "PFMIngredientMatchingStacksAccessor",
     "PFMPlayerInventoryMixin",
