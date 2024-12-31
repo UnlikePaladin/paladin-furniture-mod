@@ -93,7 +93,10 @@ if (rootProject.rei_compatibility == "true"){
         modRuntimeOnly("me.shedaniel:RoughlyEnoughItems-fabric:${rootProject.rei_version}"){
             transitive(false)
         }
-        modRuntimeOnly("me.shedaniel.cloth:cloth-config-api:${rootProject.cloth_config_version}") {
+        modRuntimeOnly("me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_config_version}") {
+            exclude(group: "net.fabricmc.fabric-api")
+        }
+        modRuntimeOnly("dev.architectury:architectury-fabric:${rootProject.architectury_version}") {
             exclude(group: "net.fabricmc.fabric-api")
         }
     }
