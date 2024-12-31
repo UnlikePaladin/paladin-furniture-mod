@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "pfm:block/pale_oak_herringbone_planks"
+  }
+}

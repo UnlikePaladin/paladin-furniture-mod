@@ -72,6 +72,7 @@ public class PaladinFurnitureModBlocksItems {
     public static final Block MANGROVE_HERRINGBONE_PLANKS = new HerringbonePlankBlock(AbstractBlock.Settings.copy(Blocks.MANGROVE_PLANKS).sounds(BlockSoundGroup.WOOD).registryKey(LateBlockRegistry.getBlockRegistryKey("mangrove_herringbone_planks")));
     public static final Block BAMBOO_HERRINGBONE_PLANKS = new HerringbonePlankBlock(AbstractBlock.Settings.copy(Blocks.BAMBOO_PLANKS).sounds(BlockSoundGroup.BAMBOO_WOOD).registryKey(LateBlockRegistry.getBlockRegistryKey("bamboo_herringbone_planks")));
     public static final Block CHERRY_HERRINGBONE_PLANKS = new HerringbonePlankBlock(AbstractBlock.Settings.copy(Blocks.CHERRY_PLANKS).sounds(BlockSoundGroup.CHERRY_WOOD).registryKey(LateBlockRegistry.getBlockRegistryKey("cherry_herringbone_planks")));
+    public static final Block PALE_OAK_HERRINGBONE_PLANKS = new HerringbonePlankBlock(AbstractBlock.Settings.copy(Blocks.PALE_OAK_PLANKS).sounds(BlockSoundGroup.WOOD).registryKey(LateBlockRegistry.getBlockRegistryKey("pale_oak_herringbone_planks")));
 
     public static final Block RAW_CONCRETE = new Block(AbstractBlock.Settings.copy(Blocks.GRAY_CONCRETE).sounds(BlockSoundGroup.STONE).registryKey(LateBlockRegistry.getBlockRegistryKey("raw_concrete")));
     public static final Block RAW_CONCRETE_POWDER = new ConcretePowderBlock(RAW_CONCRETE, AbstractBlock.Settings.copy(Blocks.GRAY_CONCRETE_POWDER).sounds(BlockSoundGroup.SAND).registryKey(LateBlockRegistry.getBlockRegistryKey("raw_concrete_powder")));
