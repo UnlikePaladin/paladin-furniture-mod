@@ -314,6 +314,11 @@
   "block.pfm.variant.gray_dark_oak": "Серый тёмный дуб",
   "block.pfm.variant.white": "Белый",
   "block.pfm.variant.gray": "Серый",
-  "block.pfm.variant.light_gray_dark_oak": "Светло-серый тёмный дуб"
+  "block.pfm.variant.light_gray_dark_oak": "Светло-серый тёмный дуб",
+
+  "block.pfm.variant.granite_terracotta": "Гранит Терракота",
+  "block.pfm.variant.andesite_oak": "Дуб андезитовый полосатый",
+  "block.pfm.variant.deepslate_dark_oak": "Дуб темный",
+  "block.pfm.variant.blackstone_crimson": "Блэкстоун Кримсон"
 
 }
