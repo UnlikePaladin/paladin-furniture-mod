@@ -190,7 +190,7 @@ public class ModelHelper {
                     }
                 }
             }
-        } else if (postfix.equals("top") && !PFMDataGenerator.areAssetsRunning()) {
+        } else if (postfix.equals("_top") && !PFMDataGenerator.areAssetsRunning()) {
             BakedModel model = MinecraftClient.getInstance().getBakedModelManager().getBlockModels().getModel(block.getDefaultState());
             if (model != null) {
                 List<BakedQuad> quadList = model.getQuads(block.getDefaultState(), Direction.UP, Random.create(42L));

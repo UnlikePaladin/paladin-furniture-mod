@@ -89,7 +89,7 @@ public class BasicShowerHeadBlock extends HorizontalFacingBlockWithEntity {
     @Override
     protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (stack.getItem() instanceof ShowerHandleItem)
-            return ActionResult.SUCCESS;
+            return ActionResult.PASS;
 
         return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
     }

@@ -141,7 +141,7 @@ public class BasicLampBlock extends PowerableBlock implements BlockEntityProvide
     @Override
     protected ActionResult onUseWithItem(ItemStack stack, BlockState state, World world, BlockPos pos, PlayerEntity player, Hand hand, BlockHitResult hit) {
         if (stack.getItem() instanceof LightSwitchItem)
-            return ActionResult.CONSUME;
+            return ActionResult.PASS;
 
         return ActionResult.PASS_TO_DEFAULT_BLOCK_ACTION;
     }
