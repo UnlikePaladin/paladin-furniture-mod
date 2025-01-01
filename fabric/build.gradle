@@ -96,7 +96,9 @@ if (rootProject.rei_compatibility == "true"){
         modRuntimeOnly("me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_config_version}") {
             exclude(group: "net.fabricmc.fabric-api")
         }
-        modRuntimeOnly( "dev.architectury:architectury-fabric:${rootProject.architectury_version}")
+        modRuntimeOnly("dev.architectury:architectury-fabric:${rootProject.architectury_version}") {
+            exclude(group: "net.fabricmc.fabric-api")
+        }
     }
 }
 if (rootProject.emi_compatibility == "true"){
