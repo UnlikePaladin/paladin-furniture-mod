@@ -22,6 +22,11 @@ public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
     public static ExtraCounterVariant CONCRETE = new ExtraCounterVariant(Blocks.WHITE_CONCRETE, null, "concrete");
     public static ExtraCounterVariant SMOOTH_STONE = new ExtraCounterVariant(Blocks.WHITE_CONCRETE, Blocks.SMOOTH_STONE,"smooth_stone");
     public static ExtraCounterVariant DEEPSLATE_TILE = new ExtraCounterVariant(Blocks.QUARTZ_BLOCK, Blocks.DEEPSLATE_TILES,"deepslate_tile");
+    public static ExtraCounterVariant GRANITE_TERRACOTTA = new ExtraCounterVariant(Blocks.WHITE_TERRACOTTA, Blocks.POLISHED_GRANITE,"granite_terracotta");
+    public static ExtraCounterVariant ANDESITE_OAK = new ExtraCounterVariant(Blocks.STRIPPED_OAK_LOG, Blocks.POLISHED_ANDESITE,"andesite_oak");
+    public static ExtraCounterVariant DEEPSLATE_DARK_OAK = new ExtraCounterVariant(Blocks.DARK_OAK_PLANKS, Blocks.POLISHED_DEEPSLATE,"deepslate_dark_oak");
+    public static ExtraCounterVariant BLACKSTONE_CRIMSON = new ExtraCounterVariant(Blocks.CRIMSON_PLANKS, Blocks.POLISHED_BLACKSTONE,"blackstone_crimson");
+
     private final String name;
     private final Block baseBlock;
     static final List<ExtraCounterVariant> DEFAULT_VARIANTS = new ArrayList<>();
@@ -34,6 +39,10 @@ public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
             DEFAULT_VARIANTS.add(CONCRETE);
             DEFAULT_VARIANTS.add(SMOOTH_STONE);
             DEFAULT_VARIANTS.add(DEEPSLATE_TILE);
+            DEFAULT_VARIANTS.add(GRANITE_TERRACOTTA);
+            DEFAULT_VARIANTS.add(ANDESITE_OAK);
+            DEFAULT_VARIANTS.add(DEEPSLATE_DARK_OAK);
+            DEFAULT_VARIANTS.add(BLACKSTONE_CRIMSON);
         }
         return DEFAULT_VARIANTS;
     }
@@ -105,7 +114,7 @@ public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
 
     @Override
     public Block mainChild() {
-        return baseBlock;
+        return this.baseBlock;
     }
 
     @Environment(EnvType.CLIENT)
