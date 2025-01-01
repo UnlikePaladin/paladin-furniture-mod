@@ -13,7 +13,7 @@ A Brand-New Furniture mod for Modern Minecraft where things are functional!
 '''
 itemIcon = "pfm:oak_chair"
 logoFile = "icon.png"
-credits = "Translators: lzyzl6, MIHONO, WrenXing"
+credits = "Translators: lzyzl6, MIHONO, WrenXing, j-tap"
 
 [[dependencies.pfm]]
 modId = "forge"

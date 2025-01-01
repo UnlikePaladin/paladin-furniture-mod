@@ -309,6 +309,10 @@
   "block.pfm.variant.gray_dark_oak": "Gray Dark Oak",
   "block.pfm.variant.white": "White",
   "block.pfm.variant.gray": "Gray",
+  "block.pfm.variant.granite_terracotta": "Granite Terracotta",
+  "block.pfm.variant.andesite_oak": "Andesite Stripped Oak",
+  "block.pfm.variant.deepslate_dark_oak": "Deepslate Dark Oak",
+  "block.pfm.variant.blackstone_crimson": "Blackstone Crimson",
   "block.pfm.variant.light_gray_dark_oak": "Light Gray Dark Oak"
 
 }
