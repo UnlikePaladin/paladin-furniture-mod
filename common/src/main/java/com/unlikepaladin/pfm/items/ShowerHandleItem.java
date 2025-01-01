@@ -69,6 +69,10 @@ public class ShowerHandleItem extends BlockItem {
         Direction playerFacing = context.getHorizontalPlayerFacing();
         Direction placeDirection = context.getSide();
 
+        boolean canPlace = state.canPlaceAt(world, pos) && placeDirection.getAxis().isHorizontal();
+        if (!canPlace) {
+            return false;
+        }
         if (showerHeadLong != null) {
             BlockPos headPos = BlockPos.fromLong(showerHeadLong.longValue());
             BlockPos placedPos = pos.offset(playerFacing);
@@ -85,7 +89,7 @@ public class ShowerHandleItem extends BlockItem {
             }
             return state.canPlaceAt(world, pos) && placeDirection.getAxis().isHorizontal();
         }
-        return state.canPlaceAt(world, pos) && placeDirection.getAxis().isHorizontal();
+        return true;
     }
 
     private void setShowerHeadPosNBT(ItemStack stack, BlockPos pos) {
