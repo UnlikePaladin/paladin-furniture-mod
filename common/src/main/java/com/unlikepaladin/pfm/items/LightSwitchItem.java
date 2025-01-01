@@ -82,7 +82,9 @@ public class LightSwitchItem extends BlockItem {
         WorldView world = context.getWorld();
         Direction side = context.getSide();
         NbtList lights = getLights(context.getStack());
-        if (!side.getAxis().isHorizontal()) {
+        boolean canPlace = state.getBlock().canPlaceAt(state, world, pos) && side.getAxis().isHorizontal();
+
+        if (!canPlace) {
             return false;
         }
         if (lights != null) {
@@ -108,7 +110,7 @@ public class LightSwitchItem extends BlockItem {
                 context.getPlayer().sendMessage(Text.translatable("message.pfm.light_switch_far", removedLights.toString()), false);
             }
         }
-        return state.getBlock().canPlaceAt(state, world, pos) && side.getAxis().isHorizontal();
+        return true;
     }
 
     private void addLight(ItemStack stack, BlockPos pos)
