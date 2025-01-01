@@ -7,7 +7,7 @@ import java.lang.reflect.Field;
 
 public class PaladinFurnitureModClientImpl {
     public static boolean areShadersOn() {
-        if (PaladinFurnitureMod.getModList().contains("oculus"))
+        if (PaladinFurnitureMod.getModList().contains("oculus") || PaladinFurnitureMod.getModList().contains("iris"))
             return IrisApi.getInstance().isShaderPackInUse();
         try
             {
