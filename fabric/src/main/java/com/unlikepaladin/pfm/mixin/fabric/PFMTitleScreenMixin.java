@@ -1,6 +1,9 @@
 package com.unlikepaladin.pfm.mixin.fabric;
 
 import net.fabricmc.loader.api.FabricLoader;
+import net.fabricmc.loader.api.Version;
+import net.fabricmc.loader.api.VersionParsingException;
+import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConfirmScreen;
 import net.minecraft.client.gui.screen.TitleScreen;
@@ -33,6 +36,13 @@ public class PFMTitleScreenMixin {
 
         if (FabricLoader.getInstance().isModLoaded("sodium") && !FabricLoader.getInstance().isModLoaded("indium")) {
             reason = "pfm.compat.failure.reason.indiumNotFound";
+            try {
+                if (FabricLoader.getInstance().getModContainer("sodium").get().getMetadata().getVersion().compareTo(Version.parse("0.6")) > 0) {
+                    return;
+                }
+            } catch (VersionParsingException e) {
+
+            }
         }
         else {
             return;
@@ -42,7 +52,7 @@ public class PFMTitleScreenMixin {
                 (boolean accepted) -> {
                     if (accepted) {
                         try {
-                            Util.getOperatingSystem().open(new URI("https://modrinth.com/mod/indium/versions?g=1.17.1"));
+                            Util.getOperatingSystem().open(new URI("https://modrinth.com/mod/indium/versions?g="+ SharedConstants.VERSION_NAME));
                         } catch (URISyntaxException e) {
                             throw new IllegalStateException(e);
                         }
@@ -52,7 +62,7 @@ public class PFMTitleScreenMixin {
                 },
                 new TranslatableText("pfm.compat.failure.title").formatted(Formatting.RED),
                 new TranslatableText(reason),
-                new TranslatableText("pfm.compat.failure.indiumNotFound"),
+                new TranslatableText("pfm.compat.failure.indiumDownload"),
                 new TranslatableText("menu.quit")));
     }
 }
