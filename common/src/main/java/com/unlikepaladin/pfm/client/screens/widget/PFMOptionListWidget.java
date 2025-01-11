@@ -65,15 +65,13 @@ public class PFMOptionListWidget extends ElementListWidget<PFMOptionListWidget.E
         this.addEntry(new ButtonEntry(Side.CLIENT, new TranslatableText("pfm.option.regenAssets"), new TranslatableText("pfm.config.regen"), new TranslatableText("pfm.option.regenAssets.tooltip"), button -> {
             PFMFileUtil.deleteDir(PFMRuntimeResources.getAssetPackDirectory().toFile());
             PFMAssetGenerator.FROZEN = false;
-            PFMRuntimeResources.prepareAsyncAssetGen(true);
-            PFMRuntimeResources.runAsyncResourceGen();
+            PFMRuntimeResources.prepareAndRunAssetGen(true);
             MinecraftClient.getInstance().reloadResourcesConcurrently();
         }));
         ButtonEntry entry = new ButtonEntry(Side.SERVER, new TranslatableText("pfm.option.regenData"), new TranslatableText("pfm.config.regen"), new TranslatableText("pfm.option.regenData.tooltip"), button -> {
             PFMFileUtil.deleteDir(PFMRuntimeResources.getDataPackDirectory().toFile());
             PFMDataGenerator.FROZEN = false;
-            PFMRuntimeResources.prepareAsyncDataGen(true);
-            PFMRuntimeResources.runAsyncResourceGen();
+            PFMRuntimeResources.prepareAndRunDataGen(true);
         });
         entry.button.active = !PFMConfigScreen.isOnServer;
         this.addEntry(entry);

@@ -12,28 +12,29 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.data.DataCache;
 import net.minecraft.resource.ResourcePack;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.util.Util;
 import org.apache.logging.log4j.LogManager;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class PFMAssetGenerator extends PFMGenerator {
     public static boolean FROZEN = false;
-    private int count;
-    private String progress;
 
     public PFMAssetGenerator(Path output, boolean logOrDebug) {
         super(output, logOrDebug, LogManager.getLogger("PFM-Asset-Generation"));
-        count = 3;
     }
 
     public void run() throws IOException {
         if (!FROZEN) {
-            count = 0;
             setAssetsRunning(true);
             log("Packs:");
             for (ResourcePack pack : PFMRuntimeResources.RESOURCE_PACK_LIST) {
@@ -58,6 +59,7 @@ public class PFMAssetGenerator extends PFMGenerator {
             List<String> oldHash = Files.readAllLines(hashPath);
             List<String> modList = Files.readAllLines(modListPath);
             if (!hashToCompare.toString().equals(oldHash.toString()) || !modList.toString().replace("[", "").replace("]", "").equals(PaladinFurnitureMod.getVersionMap().toString())) {
+                List<PFMProvider> providers = new ArrayList<>();
                 //MinecraftClient.getInstance().setOverlay(new PFMGeneratingOverlay(MinecraftClient.getInstance().getOverlay(), this, MinecraftClient.getInstance(), true));
                 getLogger().info("Starting PFM Asset Generation");
                 PFMFileUtil.deleteDir(output.toFile());
@@ -65,30 +67,34 @@ public class PFMAssetGenerator extends PFMGenerator {
                 DataCache dataCache = new DataCache(this.output, "cache");
                 dataCache.ignore(this.output.resolve("version.json"));
                 Stopwatch stopwatch = Stopwatch.createStarted();
-                Stopwatch stopwatch2 = Stopwatch.createUnstarted();
 
-                log("Starting provider: {}", "PFM Asset MC Meta");
-                stopwatch2.start();
-                new PFMMCMetaProvider(this).run(PackType.RESOURCE, "PFM-Assets");
-                count++;
-                stopwatch2.stop();
-                log("{} finished after {} ms", "PFM Asset MC Meta", stopwatch2.elapsed(TimeUnit.MILLISECONDS));
 
-                log("Starting provider: {}", "PFM Blockstates and Models");
-                stopwatch2.start();
-                new PFMBlockstateModelProvider(this).run(dataCache);
-                count++;
-                stopwatch2.stop();
-                log("{} finished after {} ms", "PFM Blockstates and Models", stopwatch2.elapsed(TimeUnit.MILLISECONDS));
-                stopwatch2.reset();
+                PFMMCMetaProvider metaProvider = new PFMMCMetaProvider(this);
+                metaProvider.setInfo(new PFMMCMetaProvider.PackInfo(PackType.RESOURCE, "PFM-Assets"));
+                providers.add(metaProvider);
+                providers.add(new PFMBlockstateModelProvider(this));
+                providers.add(new PFMLangProvider(this));
+                this.setTotalCount(providers.size());
 
-                log("Starting provider: {}", "PFM Lang");
-                stopwatch2.start();
-                new PFMLangProvider(this).run();
-                count++;
-                stopwatch2.stop();
-                log("{} finished after {} ms", "PFM Lang", stopwatch2.elapsed(TimeUnit.MILLISECONDS));
-                stopwatch2.reset();
+                MinecraftClient client = MinecraftClient.getInstance();
+                PFMGeneratingOverlay overlay = new PFMGeneratingOverlay(client.getOverlay(), this, client, true);
+                client.setOverlay(overlay);
+                boolean allDone = false;
+
+                ExecutorService executor = Executors.newFixedThreadPool(providers.size());
+                List<? extends Future<?>> futures = providers.stream()
+                        .map(provider -> executor.submit(() -> provider.run(dataCache)))
+                        .toList();
+
+                while (!allDone) {
+                    allDone = futures.stream().allMatch(Future::isDone);
+
+                    int completedTasks = (int) futures.stream().filter(Future::isDone).count();
+                    this.setCount(completedTasks);
+                    long i = Util.getMeasuringTimeNano();
+                    client.gameRenderer.render(1, i, false);
+                }
+                executor.shutdown();
 
                 getLogger().info("Asset providers took: {} ms", stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 dataCache.write();
@@ -106,20 +112,5 @@ public class PFMAssetGenerator extends PFMGenerator {
             }
             setAssetsRunning(false);
         }
-    }
-
-    @Override
-    public float getProgress() {
-        return (float) count / 3;
-    }
-
-    @Override
-    public void setProgress(String progress) {
-        this.progress = progress;
-    }
-
-    @Override
-    public String getProgressString() {
-        return progress;
     }
 }

@@ -38,11 +38,12 @@ public class PFMLootTableProvider extends PFMProvider {
     private final List<Pair<Supplier<Consumer<BiConsumer<Identifier, LootTable.Builder>>>, LootContextType>> lootTypeGenerators = ImmutableList.of(Pair.of(PFMLootTableGenerator::new, LootContextTypes.BLOCK));
 
     public PFMLootTableProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Drops");
         parent.setProgress("Generating Loot Tables");
     }
 
     public void run(DataCache cache) {
+        startProviderRun();
         Path path = getParent().getOutput();
         HashMap<Identifier, LootTable> map = Maps.newHashMap();
         this.lootTypeGenerators.forEach((pair) -> pair.getFirst().get().accept((identifier, builder) -> {
@@ -59,6 +60,7 @@ public class PFMLootTableProvider extends PFMProvider {
                 getParent().getLogger().error("Couldn't save loot table {}", path2, iOException);
             }
         });
+        endProviderRun();
     }
 
     private static Path getOutput(Path rootOutput, Identifier lootTableId) {

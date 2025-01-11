@@ -20,6 +20,7 @@ import net.minecraft.client.resource.language.LanguageDefinition;
 import net.minecraft.client.resource.language.LanguageManager;
 import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.client.resource.metadata.LanguageResourceMetadata;
+import net.minecraft.data.DataCache;
 import net.minecraft.resource.*;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
@@ -38,11 +39,12 @@ import java.util.stream.Stream;
 public class PFMLangProvider extends PFMProvider {
 
     public PFMLangProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Lang");
         parent.setProgress("Generating Language Resources");
     }
 
-    public void run() {
+    public void run(DataCache dataCache) {
+        startProviderRun();
         try (ReloadableResourceManagerImpl resourceManager = new ReloadableResourceManagerImpl(ResourceType.CLIENT_RESOURCES)) {
             PFMRuntimeResources.RESOURCE_PACK_LIST.forEach(resourceManager::addPack);
             loadLanguages(resourceManager);
@@ -151,6 +153,7 @@ public class PFMLangProvider extends PFMProvider {
             getParent().getLogger().error("Writer exception: " + e);
             e.printStackTrace();
         }
+        endProviderRun();
     }
 
     public String simpleStrippedFurnitureTranslation(Block block, String furnitureKey, String strippedKey, String translatedVariantName) {

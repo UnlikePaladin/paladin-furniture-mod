@@ -38,11 +38,12 @@ public class PFMBlockstateModelProvider extends PFMProvider {
     public static Map<Block, Identifier> modelPathMap = new HashMap<>();
 
     public PFMBlockstateModelProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Blockstates and Models");
         parent.setProgress("Generating Blockstates and Models");
     }
 
     public void run(DataCache cache) {
+        startProviderRun();
         Path path = getParent().getOutput();
         HashMap<Block, BlockStateSupplier> blockstates = Maps.newHashMap();
         Consumer<BlockStateSupplier> blockStateSupplierConsumer = blockStateSupplier -> {
@@ -78,6 +79,7 @@ public class PFMBlockstateModelProvider extends PFMProvider {
         });
         this.writeJsons(cache, path, blockstates, PFMBlockstateModelProvider::getBlockStateJsonPath);
         this.writeJsons(cache, path, models, PFMBlockstateModelProvider::getModelJsonPath);
+        endProviderRun();
     }
 
     private static Path getBlockStateJsonPath(Path root, Block block) {

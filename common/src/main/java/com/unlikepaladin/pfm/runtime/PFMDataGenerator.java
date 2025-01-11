@@ -2,6 +2,7 @@ package com.unlikepaladin.pfm.runtime;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.hash.HashCode;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.bridge.game.PackType;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.client.screens.PFMGeneratingOverlay;
@@ -13,29 +14,28 @@ import com.unlikepaladin.pfm.runtime.data.PFMRecipeProvider;
 import com.unlikepaladin.pfm.runtime.data.PFMTagProvider;
 import com.unlikepaladin.pfm.utilities.PFMFileUtil;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.data.DataCache;
 import net.minecraft.resource.ResourcePack;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.util.Util;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class PFMDataGenerator extends PFMGenerator {
     public static boolean FROZEN = false;
-    private int count;
-    private String progress;
 
     public PFMDataGenerator(Path output, boolean logOrDebug) {
         super(output, logOrDebug, LogManager.getLogger("PFM-DataGen"));
-        count = 4;
     }
+
     public void run() throws IOException {
         if (!FROZEN) {
-            count = 0;
             setDataRunning(true);
             log("Packs:");
             for (ResourcePack pack : PFMRuntimeResources.RESOURCE_PACK_LIST) {
@@ -59,44 +59,42 @@ public class PFMDataGenerator extends PFMGenerator {
             List<String> oldHash = Files.readAllLines(hashPath);
             List<String> modList = Files.readAllLines(modListPath);
             if (!hashToCompare.toString().equals(oldHash.toString()) || !modList.toString().replace("[", "").replace("]", "").equals(PaladinFurnitureMod.getVersionMap().toString())) {
+                List<PFMProvider> providers = new ArrayList<>();
                 getLogger().info("Starting PFM Data Generation");
                 //MinecraftClient.getInstance().setOverlay(new PFMGeneratingOverlay(MinecraftClient.getInstance().getOverlay(), this, MinecraftClient.getInstance(), true));
                 PFMFileUtil.deleteDir(output.toFile());
                 DataCache dataCache = new DataCache(output, "cache");
                 dataCache.ignore(output.resolve("version.json"));
                 Stopwatch stopwatch = Stopwatch.createStarted();
-                Stopwatch stopwatch2 = Stopwatch.createUnstarted();
 
-                log("Starting provider: {}", "PFM PFMTags");
-                stopwatch2.start();
-                new PFMTagProvider(this).run(dataCache);
-                count++;
-                stopwatch2.stop();
-                log("{} finished after {} ms", "PFM PFMTags", stopwatch2.elapsed(TimeUnit.MILLISECONDS));
-                stopwatch2.reset();
+                providers.add(new PFMTagProvider(this));
+                providers.add(new PFMLootTableProvider(this));
+                providers.add(new PFMRecipeProvider(this));
 
-                log("Starting provider: {}", "PFM Drops");
-                stopwatch2.start();
-                new PFMLootTableProvider(this).run(dataCache);
-                count++;
-                stopwatch2.stop();
-                log("{} finished after {} ms", "PFM Drops", stopwatch2.elapsed(TimeUnit.MILLISECONDS));
-                stopwatch2.reset();
+                PFMMCMetaProvider metaProvider = new PFMMCMetaProvider(this);
+                metaProvider.setInfo(new PFMMCMetaProvider.PackInfo(PackType.DATA, "PFM-Data"));
+                providers.add(metaProvider);
+                this.setTotalCount(providers.size());
 
-                log("Starting provider: {}", "PFM Recipes");
-                stopwatch2.start();
-                new PFMRecipeProvider(this).run(dataCache);
-                count++;
-                stopwatch2.stop();
-                log("{} finished after {} ms", "PFM Recipes", stopwatch2.elapsed(TimeUnit.MILLISECONDS));
-                stopwatch2.reset();
+                MinecraftClient client = MinecraftClient.getInstance();
+                PFMGeneratingOverlay overlay = new PFMGeneratingOverlay(client.getOverlay(), this, client, true);
+                client.setOverlay(overlay);
+                boolean allDone = false;
 
-                log("Starting provider: {}", "PFM MC Meta");
-                stopwatch2.start();
-                new PFMMCMetaProvider(this).run(PackType.DATA, "PFM-Data");
-                count++;
-                stopwatch2.stop();
-                log("{} finished after {} ms", "PFM MC Meta", stopwatch2.elapsed(TimeUnit.MILLISECONDS));
+                ExecutorService executor = Executors.newFixedThreadPool(providers.size());
+                List<? extends Future<?>> futures = providers.stream()
+                        .map(provider -> executor.submit(() -> provider.run(dataCache)))
+                        .toList();
+
+                while (!allDone) {
+                    allDone = futures.stream().allMatch(Future::isDone);
+
+                    int completedTasks = (int) futures.stream().filter(Future::isDone).count();
+                    this.setCount(completedTasks);
+                    long i = Util.getMeasuringTimeNano();
+                    client.gameRenderer.render(1, i, false);
+                }
+                executor.shutdown();
 
                 getLogger().info("Data providers took: {} ms", stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
@@ -115,20 +113,5 @@ public class PFMDataGenerator extends PFMGenerator {
             }
             setDataRunning(false);
         }
-    }
-
-    @Override
-    public float getProgress() {
-        return (float) count / 4;
-    }
-
-    @Override
-    public void setProgress(String progress) {
-        this.progress = progress;
-    }
-
-    @Override
-    public String getProgressString() {
-        return progress;
     }
 }

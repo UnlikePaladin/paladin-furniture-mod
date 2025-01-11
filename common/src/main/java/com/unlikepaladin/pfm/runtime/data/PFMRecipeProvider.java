@@ -49,11 +49,12 @@ import java.util.function.Consumer;
 public class PFMRecipeProvider extends PFMProvider {
 
     public PFMRecipeProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Recipes");
         parent.setProgress("Generating Recipes");
     }
 
     public void run(DataCache cache) {
+        startProviderRun();
         Path path = getParent().getOutput();
         HashSet<Identifier> set = Sets.newHashSet();
         generateRecipes(recipeJsonProvider -> {
@@ -72,6 +73,7 @@ public class PFMRecipeProvider extends PFMProvider {
             }
         });
         saveRecipeAdvancement(cache, Advancement.Task.create().criterion("has_planks", conditionsFromTag(ItemTags.PLANKS)).toJson(), path.resolve("data/pfm/advancements/recipes/root.json"));
+        endProviderRun();
     }
 
     private void saveRecipe(DataCache cache, JsonObject json, Path path) {

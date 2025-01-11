@@ -12,7 +12,6 @@ import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
-import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import net.minecraft.block.Block;
 import net.minecraft.data.DataCache;
 import net.minecraft.data.server.AbstractTagProvider;
@@ -35,7 +34,7 @@ import java.util.stream.Collectors;
 
 public class PFMTagProvider extends PFMProvider {
     public PFMTagProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Tags");
         parent.setProgress("Generating Tags");
     }
 
@@ -254,6 +253,7 @@ public class PFMTagProvider extends PFMProvider {
     }
 
     public void run(DataCache cache) {
+        startProviderRun();
         tagBuilders.clear();
         this.generateTags();
         tagBuilders.forEach((id, builder) -> {
@@ -278,6 +278,7 @@ public class PFMTagProvider extends PFMProvider {
                 getParent().getLogger().error("Couldn't save tags to {}", path, iOException);
             }
         });
+        endProviderRun();
     }
 
     protected Path getOutput(Identifier id) {
