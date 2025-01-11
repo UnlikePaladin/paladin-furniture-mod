@@ -175,23 +175,23 @@ public class FabricBasicTableModel extends PFMFabricBakedModel {
 
     @Override
     public void emitItemQuads(QuadEmitter context, Supplier<Random> randomSupplier) {
-        if (blockState != null) {
-            pushTextureTransform(context, getSpriteList(blockState).get(0));
-            // base
-            getTemplateBakedModels().get(0).emitItemQuads(context, randomSupplier);
-            context.popTransform();
+        if (blockState == null) return;
 
-            pushTextureTransform(context, getSpriteList(blockState).get(1));
-            // legs
-            getTemplateBakedModels().get(1).emitItemQuads(context, randomSupplier);
-            getTemplateBakedModels().get(2).emitItemQuads(context, randomSupplier);
-            getTemplateBakedModels().get(3).emitItemQuads(context, randomSupplier);
-            getTemplateBakedModels().get(4).emitItemQuads(context, randomSupplier);
-            // in between pieces
-            getTemplateBakedModels().get(8).emitItemQuads(context, randomSupplier);
-            getTemplateBakedModels().get(7).emitItemQuads(context, randomSupplier);
-            context.popTransform();
-        }
+        pushTextureTransform(context, getSpriteList(blockState).get(0));
+        // base
+        getTemplateBakedModels().get(0).emitItemQuads(context, randomSupplier);
+        context.popTransform();
+
+        pushTextureTransform(context, getSpriteList(blockState).get(1));
+        // legs
+        getTemplateBakedModels().get(1).emitItemQuads(context, randomSupplier);
+        getTemplateBakedModels().get(2).emitItemQuads(context, randomSupplier);
+        getTemplateBakedModels().get(3).emitItemQuads(context, randomSupplier);
+        getTemplateBakedModels().get(4).emitItemQuads(context, randomSupplier);
+        // in between pieces
+        getTemplateBakedModels().get(8).emitItemQuads(context, randomSupplier);
+        getTemplateBakedModels().get(7).emitItemQuads(context, randomSupplier);
+        context.popTransform();
     }
 
     @Override

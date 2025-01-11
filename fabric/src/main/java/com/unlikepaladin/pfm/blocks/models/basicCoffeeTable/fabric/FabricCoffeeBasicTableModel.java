@@ -173,23 +173,23 @@ public class FabricCoffeeBasicTableModel extends PFMFabricBakedModel {
 
     @Override
     public void emitItemQuads(QuadEmitter emitter, Supplier<Random> randomSupplier) {
-        if (blockState != null) {
-            pushTextureTransform(emitter, getSpriteList(blockState).get(0));
-            // base
-            getTemplateBakedModels().get(0).emitItemQuads(emitter, randomSupplier);
-            emitter.popTransform();
+        if (blockState == null) return;
 
-            pushTextureTransform(emitter, getSpriteList(blockState).get(1));
-            // legs
-            getTemplateBakedModels().get(1).emitItemQuads(emitter, randomSupplier);
-            getTemplateBakedModels().get(2).emitItemQuads(emitter, randomSupplier);
-            getTemplateBakedModels().get(3).emitItemQuads(emitter, randomSupplier);
-            getTemplateBakedModels().get(4).emitItemQuads(emitter, randomSupplier);
-            // in between pieces
-            getTemplateBakedModels().get(8).emitItemQuads(emitter, randomSupplier);
-            getTemplateBakedModels().get(7).emitItemQuads(emitter, randomSupplier);
-            emitter.popTransform();
-        }
+        pushTextureTransform(emitter, getSpriteList(blockState).get(0));
+        // base
+        getTemplateBakedModels().get(0).emitItemQuads(emitter, randomSupplier);
+        emitter.popTransform();
+
+        pushTextureTransform(emitter, getSpriteList(blockState).get(1));
+        // legs
+        getTemplateBakedModels().get(1).emitItemQuads(emitter, randomSupplier);
+        getTemplateBakedModels().get(2).emitItemQuads(emitter, randomSupplier);
+        getTemplateBakedModels().get(3).emitItemQuads(emitter, randomSupplier);
+        getTemplateBakedModels().get(4).emitItemQuads(emitter, randomSupplier);
+        // in between pieces
+        getTemplateBakedModels().get(8).emitItemQuads(emitter, randomSupplier);
+        getTemplateBakedModels().get(7).emitItemQuads(emitter, randomSupplier);
+        emitter.popTransform();
     }
 
     @Override

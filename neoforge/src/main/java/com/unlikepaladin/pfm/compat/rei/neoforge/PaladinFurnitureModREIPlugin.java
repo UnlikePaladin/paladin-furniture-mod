@@ -17,4 +17,10 @@ public class PaladinFurnitureModREIPlugin implements REICommonPlugin {
         registry.beginRecipeFiller(FurnitureRecipe.class).filterType(RecipeTypes.FURNITURE_RECIPE).fill(FurnitureDisplay::new);
         registry.beginRecipeFiller(FreezingRecipe.class).filterType(RecipeTypes.FREEZING_RECIPE).fill(FreezingDisplay::new);
     }
+
+    @Override
+    public void registerDisplaySerializer(DisplaySerializerRegistry registry) {
+        registry.register(RecipeTypes.FURNITURE_ID, FurnitureDisplay.SERIALIZER);
+        registry.register(RecipeTypes.FREEZING_ID, FreezingDisplay.SERIALIZER);
+    }
 }

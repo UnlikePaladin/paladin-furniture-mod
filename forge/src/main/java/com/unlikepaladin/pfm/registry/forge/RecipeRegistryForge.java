@@ -34,7 +34,7 @@ public class RecipeRegistryForge {
     @SubscribeEvent
     public static void registerRecipeTypes(RegisterEvent event){
         event.register(ForgeRegistries.Keys.RECIPE_TYPES, recipeTypeRegisterHelper -> {
-            recipeTypeRegisterHelper.register(Identifier.of(PaladinFurnitureMod.MOD_ID, "freezing"), RecipeTypes.FREEZING_RECIPE = new RecipeType<FreezingRecipe>() {
+            recipeTypeRegisterHelper.register(RecipeTypes.FREEZING_ID, RecipeTypes.FREEZING_RECIPE = new RecipeType<FreezingRecipe>() {
                 @Override
                 public String toString() {return "freezing";}
             });

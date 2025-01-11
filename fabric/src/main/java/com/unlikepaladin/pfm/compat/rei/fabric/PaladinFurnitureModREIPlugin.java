@@ -21,7 +21,7 @@ public class PaladinFurnitureModREIPlugin implements REICommonPlugin {
 
     @Override
     public void registerDisplaySerializer(DisplaySerializerRegistry registry) {
-        registry.register(FurnitureDisplay.IDENTIFIER.getIdentifier(), FurnitureDisplay.SERIALIZER);
-        registry.register(FreezingDisplay.IDENTIFIER.getIdentifier(), FreezingDisplay.SERIALIZER);
+        registry.register(RecipeTypes.FURNITURE_ID, FurnitureDisplay.SERIALIZER);
+        registry.register(RecipeTypes.FREEZING_ID, FreezingDisplay.SERIALIZER);
     }
 }

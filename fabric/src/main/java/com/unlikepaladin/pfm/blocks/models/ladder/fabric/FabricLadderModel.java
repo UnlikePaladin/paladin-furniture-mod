@@ -48,6 +48,8 @@ public class FabricLadderModel extends PFMFabricBakedModel {
 
     @Override
     public void emitItemQuads(QuadEmitter context, Supplier<Random> randomSupplier) {
+        if (blockState == null) return;
+
         Sprite sprite = getSpriteList(blockState).get(0);
         pushTextureTransform(context, sprite);
         getTemplateBakedModels().get(0).emitItemQuads(context, randomSupplier);

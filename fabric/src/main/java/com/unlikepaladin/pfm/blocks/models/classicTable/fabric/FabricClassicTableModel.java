@@ -63,6 +63,8 @@ public class FabricClassicTableModel extends PFMFabricBakedModel {
 
     @Override
     public void emitItemQuads(QuadEmitter context, Supplier<Random> randomSupplier) {
+        if (blockState == null) return;
+
         pushTextureTransform(context, getSpriteList(blockState).get(0));
         getTemplateBakedModels().get(0).emitItemQuads(context, randomSupplier);
         context.popTransform();

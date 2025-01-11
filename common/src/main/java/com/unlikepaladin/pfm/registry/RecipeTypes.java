@@ -20,5 +20,5 @@ public class RecipeTypes {
     public static RegistryKey<RecipePropertySet> FURNITURE_INPUT = RegistryKey.of(RecipePropertySet.REGISTRY, Identifier.of(PaladinFurnitureMod.MOD_ID, "furniture"));
 
     public static final Identifier FURNITURE_ID = Identifier.of(PaladinFurnitureMod.MOD_ID,"furniture");
-
+    public static final Identifier FREEZING_ID = Identifier.of(PaladinFurnitureMod.MOD_ID,"freezing");
 }

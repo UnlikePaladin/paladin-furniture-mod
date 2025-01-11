@@ -85,6 +85,8 @@ public class FabricKitchenWallDrawerModel extends PFMFabricBakedModel {
 
     @Override
     public void emitItemQuads(QuadEmitter context, Supplier<Random> randomSupplier) {
+        if (blockState == null) return;
+
         List<Sprite> spriteList = getSpriteList(blockState);
         pushTextureTransform(context, ModelHelper.getOakPlankLogSprites(), spriteList);
         getTemplateBakedModels().get((0)).emitItemQuads(context, randomSupplier);
