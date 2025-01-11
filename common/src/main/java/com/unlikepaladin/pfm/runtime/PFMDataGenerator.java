@@ -1,26 +1,17 @@
 package com.unlikepaladin.pfm.runtime;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.hash.HashCode;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.bridge.game.PackType;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
-import com.unlikepaladin.pfm.client.screens.PFMGeneratingOverlay;
-import com.unlikepaladin.pfm.runtime.assets.PFMBlockstateModelProvider;
-import com.unlikepaladin.pfm.runtime.assets.PFMLangProvider;
 import com.unlikepaladin.pfm.runtime.data.PFMLootTableProvider;
 import com.unlikepaladin.pfm.runtime.data.PFMMCMetaProvider;
 import com.unlikepaladin.pfm.runtime.data.PFMRecipeProvider;
 import com.unlikepaladin.pfm.runtime.data.PFMTagProvider;
 import com.unlikepaladin.pfm.utilities.PFMFileUtil;
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.data.DataCache;
 import net.minecraft.resource.ResourcePack;
 import net.minecraft.resource.ResourceType;
-import net.minecraft.util.Util;
 import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.*;
 import java.nio.file.*;
@@ -76,9 +67,8 @@ public class PFMDataGenerator extends PFMGenerator {
                 providers.add(metaProvider);
                 this.setTotalCount(providers.size());
 
-                MinecraftClient client = MinecraftClient.getInstance();
-                PFMGeneratingOverlay overlay = new PFMGeneratingOverlay(client.getOverlay(), this, client, true);
-                client.setOverlay(overlay);
+                if (PaladinFurnitureMod.isClient)
+                    ClientOverlaySetter.setOverlayToPFMOverlay(this);
                 boolean allDone = false;
 
                 ExecutorService executor = Executors.newFixedThreadPool(providers.size());
@@ -91,8 +81,8 @@ public class PFMDataGenerator extends PFMGenerator {
 
                     int completedTasks = (int) futures.stream().filter(Future::isDone).count();
                     this.setCount(completedTasks);
-                    long i = Util.getMeasuringTimeNano();
-                    client.gameRenderer.render(1, i, false);
+                    if (PaladinFurnitureMod.isClient)
+                        ClientOverlaySetter.updateScreen();
                 }
                 executor.shutdown();
 

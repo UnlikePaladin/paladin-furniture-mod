@@ -76,9 +76,8 @@ public class PFMAssetGenerator extends PFMGenerator {
                 providers.add(new PFMLangProvider(this));
                 this.setTotalCount(providers.size());
 
-                MinecraftClient client = MinecraftClient.getInstance();
-                PFMGeneratingOverlay overlay = new PFMGeneratingOverlay(client.getOverlay(), this, client, true);
-                client.setOverlay(overlay);
+                if (PaladinFurnitureMod.isClient)
+                    ClientOverlaySetter.setOverlayToPFMOverlay(this);
                 boolean allDone = false;
 
                 ExecutorService executor = Executors.newFixedThreadPool(providers.size());
@@ -92,7 +91,8 @@ public class PFMAssetGenerator extends PFMGenerator {
                     int completedTasks = (int) futures.stream().filter(Future::isDone).count();
                     this.setCount(completedTasks);
                     long i = Util.getMeasuringTimeNano();
-                    client.gameRenderer.render(1, i, false);
+                    if (PaladinFurnitureMod.isClient)
+                        ClientOverlaySetter.updateScreen();
                 }
                 executor.shutdown();
 
