@@ -26,6 +26,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
 
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -95,9 +97,17 @@ public class PFMBlockstateModelProvider extends PFMProvider {
     private <T> void writeJsons(DataCache cache, Path root, Map<T, ? extends Supplier<JsonElement>> jsons, BiFunction<Path, T, Path> locator) {
         jsons.forEach((object, supplier) -> {
             Path path2 = locator.apply(root, object);
-            if (supplier != null && object != null && path2 != null)
+            if (supplier != null && supplier.get() != null && object != null && path2 != null)
                 try {
-                    DataProvider.writeToPath(PFMDataGenerator.GSON, cache, supplier.get(), path2);
+                    String string = PFMDataGenerator.GSON.toJson(supplier.get());
+                    String string2 = PFMDataGenerator.SHA1.hashUnencodedChars(string).toString();
+                    if (!Objects.equals(cache.getOldSha1(path2), string2) || !Files.exists(path2)) {
+                        if (!Files.exists(path2.getParent()))
+                            Files.createDirectories(path2.getParent());
+
+                        Files.writeString(path2, string);
+                    }
+                    cache.updateSha1(path2, string2);
                 }
                 catch (Exception exception) {
                     getParent().getLogger().error("Couldn't save {}", path2, exception);

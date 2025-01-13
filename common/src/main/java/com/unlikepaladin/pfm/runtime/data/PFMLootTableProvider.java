@@ -25,6 +25,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -54,7 +56,16 @@ public class PFMLootTableProvider extends PFMProvider {
         map.forEach((identifier, lootTable) -> {
             Path path2 = getOutput(path, identifier);
             try {
-                DataProvider.writeToPath(PFMDataGenerator.GSON, cache, LootManager.toJson(lootTable), path2);
+                String string = PFMDataGenerator.GSON.toJson(LootManager.toJson(lootTable));
+                String string2 = PFMDataGenerator.SHA1.hashUnencodedChars(string).toString();
+
+                if (!Objects.equals(cache.getOldSha1(path2), string2) || !Files.exists(path2)) {
+                    if (!Files.exists(path2.getParent()))
+                        Files.createDirectories(path2.getParent());
+
+                    Files.writeString(path2, string);
+                }
+                cache.updateSha1(path2, string2);
             }
             catch (IOException iOException) {
                 getParent().getLogger().error("Couldn't save loot table {}", path2, iOException);

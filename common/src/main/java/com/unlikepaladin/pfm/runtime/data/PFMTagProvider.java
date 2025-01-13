@@ -267,10 +267,10 @@ public class PFMTagProvider extends PFMProvider {
                 String string = PFMDataGenerator.GSON.toJson(jsonObject);
                 String string2 = PFMDataGenerator.SHA1.hashUnencodedChars(string).toString();
                 if (!Objects.equals(cache.getOldSha1(path), string2) || !Files.exists(path, new LinkOption[0])) {
-                    Files.createDirectories(path.getParent(), new FileAttribute[0]);
-                    try (BufferedWriter bufferedWriter = Files.newBufferedWriter(path, new OpenOption[0]);){
-                        bufferedWriter.write(string);
-                    }
+                    if (!Files.exists(path.getParent()))
+                        Files.createDirectories(path.getParent());
+
+                    Files.writeString(path, string);
                 }
                 cache.updateSha1(path, string2);
             }

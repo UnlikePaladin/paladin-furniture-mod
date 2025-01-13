@@ -37,6 +37,7 @@ import net.minecraft.util.registry.Registry;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -80,29 +81,11 @@ public class PFMRecipeProvider extends PFMProvider {
         try {
             String string = PFMDataGenerator.GSON.toJson(json);
             String string2 = PFMDataGenerator.SHA1.hashUnencodedChars(string).toString();
-            if (!Objects.equals(cache.getOldSha1(path), string2) || !Files.exists(path, new LinkOption[0])) {
-                Files.createDirectories(path.getParent());
-                BufferedWriter bufferedWriter = Files.newBufferedWriter(path);
+            if (!Objects.equals(cache.getOldSha1(path), string2) || !Files.exists(path)) {
+                if (!Files.exists(path.getParent()))
+                    Files.createDirectories(path.getParent());
 
-                try {
-                    bufferedWriter.write(string);
-                } catch (Throwable var9) {
-                    getParent().getLogger().error("Error when saving recipes");
-                    if (bufferedWriter != null) {
-                        try {
-                            getParent().getLogger().error("broken var9, {}", var9);
-                            bufferedWriter.close();
-                        } catch (Throwable var8) {
-                            getParent().getLogger().error("broken var8, {}", var8);
-                            var9.addSuppressed(var8);
-                        }
-                    }
-                    throw var9;
-                }
-
-                if (bufferedWriter != null) {
-                    bufferedWriter.close();
-                }
+                Files.writeString(path, string);
             }
 
             cache.updateSha1(path, string2);
@@ -115,28 +98,11 @@ public class PFMRecipeProvider extends PFMProvider {
         try {
             String string = PFMDataGenerator.GSON.toJson(json);
             String string2 = PFMDataGenerator.SHA1.hashUnencodedChars(string).toString();
-            if (!Objects.equals(cache.getOldSha1(path), string2) || !Files.exists(path, new LinkOption[0])) {
-                Files.createDirectories(path.getParent());
-                BufferedWriter bufferedWriter = Files.newBufferedWriter(path);
+            if (!Objects.equals(cache.getOldSha1(path), string2) || !Files.exists(path)) {
+                if (!Files.exists(path.getParent()))
+                    Files.createDirectories(path.getParent());
 
-                try {
-                    bufferedWriter.write(string);
-                } catch (Throwable var9) {
-                    getParent().getLogger().error("Error when saving recipes");
-                    if (bufferedWriter != null) {
-                        try {
-                            bufferedWriter.close();
-                        } catch (Throwable var8) {
-                            var9.addSuppressed(var8);
-                        }
-                    }
-
-                    throw var9;
-                }
-
-                if (bufferedWriter != null) {
-                    bufferedWriter.close();
-                }
+                Files.writeString(path, string);
             }
 
             cache.updateSha1(path, string2);
