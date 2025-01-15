@@ -39,7 +39,7 @@ public class PathPackRPWrapper implements ResourcePack {
     public InputStream open(ResourceType type, Identifier id) throws IOException {
         if (PFMRuntimeResources.ready)
             return delegate.get().open(type, id);
-        return InputStream.nullInputStream();
+        return null;
     }
 
     @Override
