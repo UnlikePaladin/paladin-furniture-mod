@@ -24,6 +24,7 @@ public abstract class PFMGenerator implements PFMResourceProgress {
     private static boolean assetsRunning = false;
     private static boolean dataRunning = false;
     private String progress;
+    private String notification = null;
 
     private int progressCount = 0;
     private int totalCount = 0;
@@ -32,12 +33,17 @@ public abstract class PFMGenerator implements PFMResourceProgress {
         this.totalCount = totalCount;
     }
 
+    public synchronized void setNotification(String notification) {
+        this.notification = notification;
+    }
+
     public synchronized void incrementCount() {
         progressCount++;
     }
 
     public void setCount(int count) {
         this.progressCount = count;
+        this.setProgress("Progress: " + progressCount + " / " + totalCount);
     }
 
     protected PFMGenerator(Path output, boolean logOrDebug, Logger logger) {
@@ -94,7 +100,7 @@ public abstract class PFMGenerator implements PFMResourceProgress {
     }
 
     public synchronized void log(String s, Object p0, Object p1) {
-        if (true)
+        if (logOrDebug)
             logger.info(s, p0, p1);
         else
             logger.debug(s, p0, p1);
@@ -151,5 +157,10 @@ public abstract class PFMGenerator implements PFMResourceProgress {
     @Override
     public String getProgressString() {
         return progress;
+    }
+
+    @Override
+    public String getNotificationProgressString() {
+        return notification;
     }
 }

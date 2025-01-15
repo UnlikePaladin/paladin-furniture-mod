@@ -22,7 +22,9 @@ public abstract class PFMProvider {
 
     protected void endProviderRun() {
         stopwatch.stop();
-        parent.log( "{} finished after {} ms", providerName, stopwatch.elapsed(TimeUnit.MILLISECONDS));
+        String notification = String.format("%s finished after %s ms", providerName, stopwatch.elapsed(TimeUnit.MILLISECONDS));
+        parent.log(notification);
+        parent.setNotification(notification);
         parent.incrementCount();
     }
 

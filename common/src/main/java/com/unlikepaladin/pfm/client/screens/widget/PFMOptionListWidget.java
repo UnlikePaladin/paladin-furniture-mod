@@ -3,7 +3,6 @@ package com.unlikepaladin.pfm.client.screens.widget;
 import com.google.common.collect.ImmutableList;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.client.screens.PFMConfigScreen;
-import com.unlikepaladin.pfm.client.screens.PFMGeneratingOverlay;
 import com.unlikepaladin.pfm.config.option.AbstractConfigOption;
 import com.unlikepaladin.pfm.config.option.BooleanConfigOption;
 import com.unlikepaladin.pfm.config.option.Side;

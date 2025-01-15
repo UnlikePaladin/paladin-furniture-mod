@@ -1,7 +1,7 @@
 package com.unlikepaladin.pfm.runtime;
 
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.unlikepaladin.pfm.client.screens.PFMGeneratingOverlay;
+import com.unlikepaladin.pfm.client.screens.overlay.PFMGeneratingOverlay;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.Util;
 
