@@ -44,7 +44,8 @@ public class PFMLootTableProvider extends PFMProvider {
         parent.setProgress("Generating Loot Tables");
     }
 
-    public void run(DataCache cache) {
+    @Override
+    public void run() {
         startProviderRun();
         Path path = getParent().getOutput();
         HashMap<Identifier, LootTable> map = Maps.newHashMap();
@@ -57,15 +58,10 @@ public class PFMLootTableProvider extends PFMProvider {
             Path path2 = getOutput(path, identifier);
             try {
                 String string = PFMDataGenerator.GSON.toJson(LootManager.toJson(lootTable));
-                String string2 = PFMDataGenerator.SHA1.hashUnencodedChars(string).toString();
+                if (!Files.exists(path2.getParent()))
+                    Files.createDirectories(path2.getParent());
 
-                if (!Objects.equals(cache.getOldSha1(path2), string2) || !Files.exists(path2)) {
-                    if (!Files.exists(path2.getParent()))
-                        Files.createDirectories(path2.getParent());
-
-                    Files.writeString(path2, string);
-                }
-                cache.updateSha1(path2, string2);
+                Files.writeString(path2, string);
             }
             catch (IOException iOException) {
                 getParent().getLogger().error("Couldn't save loot table {}", path2, iOException);

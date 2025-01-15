@@ -3,13 +3,17 @@ package com.unlikepaladin.pfm.runtime;
 import com.google.common.base.Stopwatch;
 import com.mojang.bridge.game.PackType;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
+import com.unlikepaladin.pfm.data.materials.StoneVariantRegistry;
+import com.unlikepaladin.pfm.data.materials.WoodVariantRegistry;
 import com.unlikepaladin.pfm.runtime.assets.PFMBlockstateModelProvider;
 import com.unlikepaladin.pfm.runtime.assets.PFMLangProvider;
 import com.unlikepaladin.pfm.runtime.data.PFMMCMetaProvider;
 import com.unlikepaladin.pfm.utilities.PFMFileUtil;
+import com.unlikepaladin.pfm.utilities.Version;
 import net.minecraft.data.DataCache;
 import net.minecraft.resource.ResourcePack;
 import net.minecraft.resource.ResourceType;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import org.apache.logging.log4j.LogManager;
 
@@ -43,27 +47,26 @@ public class PFMAssetGenerator extends PFMGenerator {
             }
             FROZEN = true;
 
-            Path modListPath = output.resolve("modsList");
-            Path hashPath = output.resolve("dataHash");
-            if (!modListPath.toFile().isFile()) {
-                Files.deleteIfExists(modListPath);
-                Files.createFile(modListPath);
+            Path pfmCacheDataFile = output.resolve("pfmCacheData.json");
+            if (!pfmCacheDataFile.toFile().isFile()) {
+                Files.deleteIfExists(pfmCacheDataFile);
+                Files.createFile(pfmCacheDataFile);
+                Files.writeString(pfmCacheDataFile, "{}");
             }
-            if (!hashPath.toFile().isFile()) {
-                Files.deleteIfExists(hashPath);
-                Files.createFile(hashPath);
-            }
+            PFMCache cached = PFMCache.fromJson(JSON_PARSER.parse(Files.readString(pfmCacheDataFile)));
             List<String> hashToCompare = hashDirectory(output.toFile(), false);
-            List<String> oldHash = Files.readAllLines(hashPath);
-            List<String> modList = Files.readAllLines(modListPath);
-            if (!hashToCompare.toString().equals(oldHash.toString()) || !modList.toString().replace("[", "").replace("]", "").equals(PaladinFurnitureMod.getVersionMap().toString())) {
+            List<Identifier> variants = new ArrayList<>();
+
+            WoodVariantRegistry.getVariants().stream().sorted().forEach(woodVariant -> variants.add(woodVariant.identifier));
+            StoneVariantRegistry.getVariants().stream().sorted().forEach(stoneVariant -> variants.add(stoneVariant.identifier));
+            PFMCache current = new PFMCache(Version.getCurrentVersion(), PFMFileUtil.getModLoader(), hashToCompare, variants);
+
+            if (!cached.equals(current)) {
                 List<PFMProvider> providers = new ArrayList<>();
                 //MinecraftClient.getInstance().setOverlay(new PFMGeneratingOverlay(MinecraftClient.getInstance().getOverlay(), this, MinecraftClient.getInstance(), true));
                 getLogger().info("Starting PFM Asset Generation");
                 PFMFileUtil.deleteDir(output.toFile());
                 PFMRuntimeResources.createDirIfNeeded(output);
-                DataCache dataCache = new DataCache(this.output, "cache");
-                dataCache.ignore(this.output.resolve("version.json"));
                 Stopwatch stopwatch = Stopwatch.createStarted();
 
 
@@ -80,7 +83,7 @@ public class PFMAssetGenerator extends PFMGenerator {
 
                 ExecutorService executor = Executors.newFixedThreadPool(providers.size());
                 List<? extends Future<?>> futures = providers.stream()
-                        .map(provider -> executor.submit(() -> provider.run(dataCache)))
+                        .map(provider -> executor.submit(provider::run))
                         .toList();
 
                 while (!allDone) {
@@ -95,18 +98,15 @@ public class PFMAssetGenerator extends PFMGenerator {
                 executor.shutdown();
 
                 getLogger().info("Asset providers took: {} ms", stopwatch.elapsed(TimeUnit.MILLISECONDS));
-                dataCache.write();
                 this.createPackIcon();
-                Files.deleteIfExists(hashPath);
-                Files.createFile(hashPath);
-                List<String> newDataHash = hashDirectory(output.toFile(), false);
-                Files.writeString(PFMRuntimeResources.createDirIfNeeded(hashPath), newDataHash.toString().replace("[", "").replace("]", ""), StandardOpenOption.APPEND);
 
-                Files.deleteIfExists(modListPath);
-                Files.createFile(modListPath);
-                Files.writeString(PFMRuntimeResources.createDirIfNeeded(modListPath), PaladinFurnitureMod.getVersionMap().toString().replace("[", "").replace("]", ""), StandardOpenOption.APPEND);
+                Files.deleteIfExists(pfmCacheDataFile);
+                Files.createFile(pfmCacheDataFile);
+                List<String> newDataHash = hashDirectory(output.toFile(), false);
+                PFMCache cache = new PFMCache(Version.getCurrentVersion(), PFMFileUtil.getModLoader(), newDataHash, variants);
+                Files.writeString(pfmCacheDataFile, GSON.toJson(cache.toJson()), StandardOpenOption.APPEND);
             } else {
-                log("Data Hash and Mod list matched, skipping generation");
+                getLogger().info("Data Hash for Assets and Variant List matched, skipping generation");
             }
             setAssetsRunning(false);
         }

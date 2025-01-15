@@ -54,7 +54,8 @@ public class PFMRecipeProvider extends PFMProvider {
         parent.setProgress("Generating Recipes");
     }
 
-    public void run(DataCache cache) {
+    @Override
+    public void run() {
         startProviderRun();
         Path path = getParent().getOutput();
         HashSet<Identifier> set = Sets.newHashSet();
@@ -67,45 +68,35 @@ public class PFMRecipeProvider extends PFMProvider {
                 getParent().getLogger().error("Recipe Json Provider is null");
                 throw new IllegalStateException("Recipe Json Provider is null");
             }
-            saveRecipe(cache, recipeJsonProvider.toJson(), path.resolve("data/" + recipeJsonProvider.getRecipeId().getNamespace() + "/recipes/" + recipeJsonProvider.getRecipeId().getPath() + ".json"));
+            saveRecipe(recipeJsonProvider.toJson(), path.resolve("data/" + recipeJsonProvider.getRecipeId().getNamespace() + "/recipes/" + recipeJsonProvider.getRecipeId().getPath() + ".json"));
             JsonObject jsonObject = recipeJsonProvider.toAdvancementJson();
             if (jsonObject != null) {
-                saveRecipeAdvancement(cache, jsonObject, path.resolve("data/" + recipeJsonProvider.getRecipeId().getNamespace() + "/advancements/" + recipeJsonProvider.getAdvancementId().getPath() + ".json"));
+                saveRecipeAdvancement(jsonObject, path.resolve("data/" + recipeJsonProvider.getRecipeId().getNamespace() + "/advancements/" + recipeJsonProvider.getAdvancementId().getPath() + ".json"));
             }
         });
-        saveRecipeAdvancement(cache, Advancement.Task.create().criterion("has_planks", conditionsFromTag(ItemTags.PLANKS)).toJson(), path.resolve("data/pfm/advancements/recipes/root.json"));
+        saveRecipeAdvancement(Advancement.Task.create().criterion("has_planks", conditionsFromTag(ItemTags.PLANKS)).toJson(), path.resolve("data/pfm/advancements/recipes/root.json"));
         endProviderRun();
     }
 
-    private void saveRecipe(DataCache cache, JsonObject json, Path path) {
+    private void saveRecipe(JsonObject json, Path path) {
         try {
             String string = PFMDataGenerator.GSON.toJson(json);
-            String string2 = PFMDataGenerator.SHA1.hashUnencodedChars(string).toString();
-            if (!Objects.equals(cache.getOldSha1(path), string2) || !Files.exists(path)) {
-                if (!Files.exists(path.getParent()))
-                    Files.createDirectories(path.getParent());
+            if (!Files.exists(path.getParent()))
+                Files.createDirectories(path.getParent());
 
-                Files.writeString(path, string);
-            }
-
-            cache.updateSha1(path, string2);
+            Files.writeString(path, string);
         } catch (IOException var10) {
             getParent().getLogger().error("Couldn't save recipe {}", path, var10);
         }
     }
 
-    private void saveRecipeAdvancement(DataCache cache, JsonObject json, Path path) {
+    private void saveRecipeAdvancement(JsonObject json, Path path) {
         try {
             String string = PFMDataGenerator.GSON.toJson(json);
-            String string2 = PFMDataGenerator.SHA1.hashUnencodedChars(string).toString();
-            if (!Objects.equals(cache.getOldSha1(path), string2) || !Files.exists(path)) {
-                if (!Files.exists(path.getParent()))
-                    Files.createDirectories(path.getParent());
+            if (!Files.exists(path.getParent()))
+                Files.createDirectories(path.getParent());
 
-                Files.writeString(path, string);
-            }
-
-            cache.updateSha1(path, string2);
+            Files.writeString(path, string);
         } catch (IOException var10) {
             getParent().getLogger().error("Couldn't save recipe advancement {}", path, var10);
         }

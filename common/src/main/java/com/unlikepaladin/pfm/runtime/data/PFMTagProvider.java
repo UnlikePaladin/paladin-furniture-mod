@@ -252,7 +252,8 @@ public class PFMTagProvider extends PFMProvider {
         return tagBuilders.computeIfAbsent(tag.getId(), (id) -> new Tag.Builder());
     }
 
-    public void run(DataCache cache) {
+    @Override
+    public void run() {
         startProviderRun();
         tagBuilders.clear();
         this.generateTags();
@@ -265,14 +266,10 @@ public class PFMTagProvider extends PFMProvider {
             Path path = this.getOutput(id);
             try {
                 String string = PFMDataGenerator.GSON.toJson(jsonObject);
-                String string2 = PFMDataGenerator.SHA1.hashUnencodedChars(string).toString();
-                if (!Objects.equals(cache.getOldSha1(path), string2) || !Files.exists(path, new LinkOption[0])) {
-                    if (!Files.exists(path.getParent()))
-                        Files.createDirectories(path.getParent());
+                if (!Files.exists(path.getParent()))
+                    Files.createDirectories(path.getParent());
 
-                    Files.writeString(path, string);
-                }
-                cache.updateSha1(path, string2);
+                Files.writeString(path, string);
             }
             catch (IOException iOException) {
                 getParent().getLogger().error("Couldn't save tags to {}", path, iOException);

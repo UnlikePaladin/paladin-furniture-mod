@@ -44,7 +44,8 @@ public class PFMBlockstateModelProvider extends PFMProvider {
         parent.setProgress("Generating Blockstates and Models");
     }
 
-    public void run(DataCache cache) {
+    @Override
+    public void run() {
         startProviderRun();
         Path path = getParent().getOutput();
         HashMap<Block, BlockStateSupplier> blockstates = Maps.newHashMap();
@@ -79,8 +80,8 @@ public class PFMBlockstateModelProvider extends PFMProvider {
                 }
             }
         });
-        this.writeJsons(cache, path, blockstates, PFMBlockstateModelProvider::getBlockStateJsonPath);
-        this.writeJsons(cache, path, models, PFMBlockstateModelProvider::getModelJsonPath);
+        this.writeJsons(path, blockstates, PFMBlockstateModelProvider::getBlockStateJsonPath);
+        this.writeJsons(path, models, PFMBlockstateModelProvider::getModelJsonPath);
         endProviderRun();
     }
 
@@ -94,20 +95,16 @@ public class PFMBlockstateModelProvider extends PFMProvider {
     }
 
 
-    private <T> void writeJsons(DataCache cache, Path root, Map<T, ? extends Supplier<JsonElement>> jsons, BiFunction<Path, T, Path> locator) {
+    private <T> void writeJsons(Path root, Map<T, ? extends Supplier<JsonElement>> jsons, BiFunction<Path, T, Path> locator) {
         jsons.forEach((object, supplier) -> {
             Path path2 = locator.apply(root, object);
             if (supplier != null && supplier.get() != null && object != null && path2 != null)
                 try {
                     String string = PFMDataGenerator.GSON.toJson(supplier.get());
-                    String string2 = PFMDataGenerator.SHA1.hashUnencodedChars(string).toString();
-                    if (!Objects.equals(cache.getOldSha1(path2), string2) || !Files.exists(path2)) {
-                        if (!Files.exists(path2.getParent()))
-                            Files.createDirectories(path2.getParent());
+                    if (!Files.exists(path2.getParent()))
+                        Files.createDirectories(path2.getParent());
 
-                        Files.writeString(path2, string);
-                    }
-                    cache.updateSha1(path2, string2);
+                    Files.writeString(path2, string);
                 }
                 catch (Exception exception) {
                     getParent().getLogger().error("Couldn't save {}", path2, exception);

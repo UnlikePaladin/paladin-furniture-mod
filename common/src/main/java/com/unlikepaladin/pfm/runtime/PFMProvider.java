@@ -28,7 +28,7 @@ public abstract class PFMProvider {
         parent.incrementCount();
     }
 
-    public abstract void run(DataCache cache);
+    public abstract void run();
 
     public PFMGenerator getParent() {
         return parent;

@@ -28,7 +28,7 @@ public class PFMMCMetaProvider extends PFMProvider {
     }
 
     @Override
-    public void run(DataCache cache) {
+    public void run() {
         startProviderRun();
         try(BufferedWriter writer = IOUtils.buffer(new FileWriter(new File(PFMRuntimeResources.createDirIfNeeded(getParent().getOutput()).toFile(), "pack.mcmeta")))) {
             writer.write("{\n");

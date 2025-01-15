@@ -43,7 +43,8 @@ public class PFMLangProvider extends PFMProvider {
         parent.setProgress("Generating Language Resources");
     }
 
-    public void run(DataCache dataCache) {
+    @Override
+    public void run() {
         startProviderRun();
         try (ReloadableResourceManagerImpl resourceManager = new ReloadableResourceManagerImpl(ResourceType.CLIENT_RESOURCES)) {
             PFMRuntimeResources.RESOURCE_PACK_LIST.forEach(resourceManager::addPack);
