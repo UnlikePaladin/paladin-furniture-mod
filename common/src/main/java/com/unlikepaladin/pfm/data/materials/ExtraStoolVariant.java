@@ -13,6 +13,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ExtraStoolVariant extends VariantBase<ExtraStoolVariant> {
     public static ExtraStoolVariant GRAY_DARK_OAK = new ExtraStoolVariant(Blocks.GRAY_CONCRETE, Blocks.STRIPPED_DARK_OAK_LOG, "gray_dark_oak");
@@ -62,6 +63,11 @@ public class ExtraStoolVariant extends VariantBase<ExtraStoolVariant> {
     public Block getSecondaryBlock() {
         return secondaryBlock;
     }
+
+    public static Optional<ExtraStoolVariant> getOptionalVariant(Identifier name) {
+        return ExtraStoolVariant.DEFAULT_VARIANTS.stream().filter(extraStoolVariant -> extraStoolVariant.identifier.equals(name)).findFirst();
+    }
+
 
     @Override
     public boolean isNetherWood() {

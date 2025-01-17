@@ -3,6 +3,7 @@ package com.unlikepaladin.pfm.compat.jei;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.recipes.FreezingRecipe;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
+import com.unlikepaladin.pfm.recipes.SimpleFurnitureRecipe;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
 import mezz.jei.api.IModPlugin;
@@ -32,8 +33,8 @@ public class PaladinFurnitureModJEIPlugin implements IModPlugin {
         Collection<FreezingRecipe> freezingRecipes = world.getRecipeManager().listAllOfType(RecipeTypes.FREEZING_RECIPE);
         registration.addRecipes(freezingRecipes, FreezingCategory.IDENTIFIER);
 
-        Collection<FurnitureRecipe> furnitureRecipes = world.getRecipeManager().listAllOfType(RecipeTypes.FURNITURE_RECIPE);
-        registration.addRecipes(furnitureRecipes, FurnitureCategory.IDENTIFIER);
+        Collection<FurnitureRecipe> simpleFurnitureRecipes = world.getRecipeManager().listAllOfType(RecipeTypes.FURNITURE_RECIPE);
+        registration.addRecipes(simpleFurnitureRecipes, FurnitureCategory.IDENTIFIER);
     }
 
     @Override

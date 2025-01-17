@@ -13,6 +13,7 @@ import net.minecraft.util.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
     public static ExtraCounterVariant DARK_CONCRETE = new ExtraCounterVariant(Blocks.GRAY_CONCRETE, Blocks.WHITE_CONCRETE, "dark_concrete");
@@ -71,6 +72,11 @@ public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
 
         return secondaryBlock;
     }
+
+    public static Optional<ExtraStoolVariant> getOptionalVariant(Identifier name) {
+        return ExtraStoolVariant.DEFAULT_VARIANTS.stream().filter(extraStoolVariant -> extraStoolVariant.identifier.equals(name)).findFirst();
+    }
+
 
     @Override
     public boolean isNetherWood() {

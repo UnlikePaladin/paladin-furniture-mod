@@ -24,6 +24,10 @@ public class WoodVariantRegistry extends VariantRegistryBase<WoodVariant> {
         return INSTANCE.variants.getOrDefault(name, OAK);
     }
 
+    public static Optional<WoodVariant> getOptionalVariant(Identifier name) {
+        return INSTANCE.variants.containsKey(name) ? Optional.of(INSTANCE.variants.get(name)) : Optional.empty();
+    }
+
     @Nullable
     public static WoodVariant getVariantFromVanillaWoodType(BoatEntity.Type type) {
         for (WoodVariant woodVariant : INSTANCE.variants.values()) {

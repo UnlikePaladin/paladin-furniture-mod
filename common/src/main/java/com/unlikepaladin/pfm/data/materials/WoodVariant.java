@@ -10,6 +10,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
 import net.minecraft.client.render.block.BlockModels;
 import net.minecraft.entity.vehicle.BoatEntity;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.Nullable;
@@ -183,6 +184,17 @@ public class WoodVariant extends VariantBase<WoodVariant> {
         Object child = this.getChild("stripped_log");
         return child != null && child != this.getBaseBlock();
     }
+
+    public @Nullable ItemConvertible getItemForRecipe(String key, boolean stripped) {
+        if (stripped) {
+            if (key.equals("base")) {
+                return (ItemConvertible) getChild("stripped_log");
+            } else if (key.equals("secondary"))
+                return getBaseBlock();
+        }
+        return super.getItemForRecipe(key);
+    }
+
     @Override
     public Block mainChild() {
         return this.plankBlock;

@@ -8,15 +8,16 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Material;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.Items;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.StringIdentifiable;
-import net.minecraft.util.registry.DefaultedRegistry;
 import net.minecraft.util.registry.Registry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -106,6 +107,17 @@ public abstract class VariantBase<T> implements StringIdentifiable, Comparable<V
     public Object getChild(String key) {
         if (this.children.get(key) != null)
             return this.children.get(key);
+        return getBaseBlock();
+    }
+
+    @Nullable
+    public ItemConvertible getItemForRecipe(String key) {
+        if (Objects.equals(key, "base"))
+            return getBaseBlock();
+        else if (Objects.equals(key, "secondary"))
+            return getSecondaryBlock();
+        else if (this.children.get(key) != null)
+            return (ItemConvertible) this.children.get(key);
         return getBaseBlock();
     }
 

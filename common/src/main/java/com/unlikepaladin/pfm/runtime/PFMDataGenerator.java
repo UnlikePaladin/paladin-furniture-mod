@@ -58,7 +58,6 @@ public class PFMDataGenerator extends PFMGenerator {
             if (!cached.equals(current)) {
                 List<PFMProvider> providers = new ArrayList<>();
                 getLogger().info("Starting PFM Data Generation");
-                //MinecraftClient.getInstance().setOverlay(new PFMGeneratingOverlay(MinecraftClient.getInstance().getOverlay(), this, MinecraftClient.getInstance(), true));
                 PFMFileUtil.deleteDir(output.toFile());
                 Stopwatch stopwatch = Stopwatch.createStarted();
 
