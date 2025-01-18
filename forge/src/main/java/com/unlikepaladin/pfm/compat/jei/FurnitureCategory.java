@@ -2,7 +2,6 @@ package com.unlikepaladin.pfm.compat.jei;
 
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
-import com.unlikepaladin.pfm.recipes.SimpleFurnitureRecipe;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.IRecipeLayout;
@@ -44,8 +43,8 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
     }
 
     @Override
-    public @NotNull Class<SimpleFurnitureRecipe> getRecipeClass() {
-        return SimpleFurnitureRecipe.class;
+    public @NotNull Class<FurnitureRecipe> getRecipeClass() {
+        return FurnitureRecipe.class;
     }
 
     @Override
