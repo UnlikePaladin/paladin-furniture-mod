@@ -14,6 +14,7 @@ import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
@@ -197,7 +198,10 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     @Override
     public CraftableFurnitureRecipe getInnerRecipeFromOutput(ItemStack stack) {
         constructInnerRecipes();
-        return outputToInnerRecipe.get(stack);
+        if(outputToInnerRecipe.containsKey(stack)) {
+            return outputToInnerRecipe.get(stack);
+        }
+        return outputItemToInnerRecipe.get(stack.getItem());
     }
 
     @Override
@@ -206,6 +210,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     Map<ItemStack, FurnitureInnerRecipe> outputToInnerRecipe = new HashMap<>();
+    Map<Item, FurnitureInnerRecipe> outputItemToInnerRecipe = new HashMap<>();
     public static final class FurnitureInnerRecipe implements CraftableFurnitureRecipe {
         private final DynamicFurnitureRecipe parentRecipe;
         private final ItemStack output;
@@ -219,6 +224,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             this.combinedIngredients.addAll(ingredients);
             this.combinedIngredients.addAll(parentRecipe.ingredients.vanillaIngredients);
             parentRecipe.outputToInnerRecipe.put(output, this);
+            parentRecipe.outputItemToInnerRecipe.put(output.getItem(), this);
         }
 
         public ItemStack getOutput() {
