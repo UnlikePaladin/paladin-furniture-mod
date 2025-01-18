@@ -9,7 +9,9 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.Material;
 import net.minecraft.client.render.block.BlockModels;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,8 +75,8 @@ public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
         return secondaryBlock;
     }
 
-    public static Optional<ExtraStoolVariant> getOptionalVariant(Identifier name) {
-        return ExtraStoolVariant.DEFAULT_VARIANTS.stream().filter(extraStoolVariant -> extraStoolVariant.identifier.equals(name)).findFirst();
+    public static Optional<ExtraCounterVariant> getOptionalVariant(Identifier name) {
+        return DEFAULT_VARIANTS.stream().filter(extraStoolVariant -> extraStoolVariant.identifier.equals(name)).findFirst();
     }
 
 

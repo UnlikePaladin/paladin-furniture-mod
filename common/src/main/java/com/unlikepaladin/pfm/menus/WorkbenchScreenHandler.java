@@ -80,7 +80,7 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         this.addProperty(this.selectedRecipe);
         if (ALL_RECIPES.isEmpty()) {
            world.getRecipeManager().listAllOfType(RecipeTypes.FURNITURE_RECIPE).forEach(recipe -> {
-               ALL_RECIPES.addAll(recipe.getOutputs());
+               ALL_RECIPES.addAll(recipe.getInnerRecipes());
            });
            ALL_RECIPES.sort(FurnitureRecipe.CraftableFurnitureRecipe::compareTo);
         }

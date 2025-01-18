@@ -18,12 +18,16 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
         return RecipeTypes.FURNITURE_RECIPE;
     }
 
-    List<CraftableFurnitureRecipe> getOutputs();
+    List<CraftableFurnitureRecipe> getInnerRecipes();
 
     String outputClass();
 
     default List<CraftableFurnitureRecipe> getAvailableOutputs(PlayerInventory inventory) {
-        return getOutputs();
+        return getInnerRecipes();
+    }
+
+    default CraftableFurnitureRecipe getInnerRecipeFromOutput(ItemStack stack) {
+        return getInnerRecipes().get(0);
     }
 
     static int getSlotWithStackIgnoreNBT(PlayerInventory inventory, ItemStack stack) {
@@ -33,6 +37,10 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
             }
         }
         return -1;
+    }
+
+    default int getMaxInnerRecipeSize() {
+        return getIngredients().size();
     }
 
     interface CraftableFurnitureRecipe extends Comparable<CraftableFurnitureRecipe> {

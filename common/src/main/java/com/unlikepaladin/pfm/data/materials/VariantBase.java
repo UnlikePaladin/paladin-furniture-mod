@@ -111,7 +111,7 @@ public abstract class VariantBase<T> implements StringIdentifiable, Comparable<V
     }
 
     @Nullable
-    public ItemConvertible getItemForRecipe(String key) {
+    public ItemConvertible getItemForRecipe(String key, Class<? extends Block> blockClass) {
         if (Objects.equals(key, "base"))
             return getBaseBlock();
         else if (Objects.equals(key, "secondary"))

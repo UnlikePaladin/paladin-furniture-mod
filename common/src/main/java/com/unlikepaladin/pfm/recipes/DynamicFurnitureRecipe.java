@@ -12,7 +12,6 @@ import com.unlikepaladin.pfm.data.materials.VariantHelper;
 import com.unlikepaladin.pfm.data.materials.WoodVariant;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
-import com.unlikepaladin.pfm.runtime.data.PFMRecipeProvider;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
@@ -25,7 +24,6 @@ import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
-import net.minecraft.util.Pair;
 import net.minecraft.world.World;
 
 import java.util.*;
@@ -79,13 +77,10 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
                 output.setNbt(outputCompound.copy());
 
             Map<String, Integer> childrenToCountMap = ingredients.variantChildren;
+
             List<Ingredient> stacks = Lists.newArrayList();
             for (Map.Entry<String, Integer> entry : childrenToCountMap.entrySet()) {
-                stacks.add(Ingredient.ofStacks(new ItemStack(variant.getItemForRecipe(entry.getKey()), entry.getValue())));
-            }
-
-            if ((id.getPath().equals("calcite") || id.getPath().equals("netherite")) && outputClass().contains("Kitchen")) {
-                Collections.reverse(stacks);
+                stacks.add(Ingredient.ofStacks(new ItemStack(variant.getItemForRecipe(entry.getKey(), getOutputBlockClass()), entry.getValue())));
             }
 
             List<FurnitureInnerRecipe> recipes = new ArrayList<>();
@@ -97,7 +92,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             if (variant instanceof WoodVariant woodVariant && woodVariant.hasStripped()) {
                 List<Ingredient> strippedIngredients = Lists.newArrayList();
                 for (Map.Entry<String, Integer> entry : childrenToCountMap.entrySet()) {
-                    strippedIngredients.add(Ingredient.ofStacks(new ItemStack(woodVariant.getItemForRecipe(entry.getKey(), true), entry.getValue())));
+                    strippedIngredients.add(Ingredient.ofStacks(new ItemStack(woodVariant.getItemForRecipe(entry.getKey(), getOutputBlockClass(), true), entry.getValue())));
                 }
                 if (getOutputBlockClass() == RawLogTableBlock.class) {
                     strippedIngredients.set(0, Ingredient.ofItems((Block)woodVariant.getChild("stripped_log")));
@@ -147,7 +142,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public List<CraftableFurnitureRecipe> getOutputs() {
+    public List<CraftableFurnitureRecipe> getInnerRecipes() {
         constructInnerRecipes();
         List<CraftableFurnitureRecipe> outputs = new ArrayList<>();
         for (List<FurnitureInnerRecipe> recipes : furnitureInnerRecipes.values())
@@ -199,6 +194,18 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         return supportedVariants;
     }
 
+    @Override
+    public CraftableFurnitureRecipe getInnerRecipeFromOutput(ItemStack stack) {
+        constructInnerRecipes();
+        return outputToInnerRecipe.get(stack);
+    }
+
+    @Override
+    public int getMaxInnerRecipeSize() {
+        return ingredients.vanillaIngredients.size()+ingredients.variantChildren.size();
+    }
+
+    Map<ItemStack, FurnitureInnerRecipe> outputToInnerRecipe = new HashMap<>();
     public static final class FurnitureInnerRecipe implements CraftableFurnitureRecipe {
         private final DynamicFurnitureRecipe parentRecipe;
         private final ItemStack output;
@@ -211,6 +218,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             this.combinedIngredients = Lists.newArrayList();
             this.combinedIngredients.addAll(ingredients);
             this.combinedIngredients.addAll(parentRecipe.ingredients.vanillaIngredients);
+            parentRecipe.outputToInnerRecipe.put(output, this);
         }
 
         public ItemStack getOutput() {

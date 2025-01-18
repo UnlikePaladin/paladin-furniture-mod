@@ -6,9 +6,7 @@ import com.unlikepaladin.pfm.registry.BlockItemRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
-import net.minecraft.client.render.block.BlockModels;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.util.Identifier;
@@ -185,14 +183,14 @@ public class WoodVariant extends VariantBase<WoodVariant> {
         return child != null && child != this.getBaseBlock();
     }
 
-    public @Nullable ItemConvertible getItemForRecipe(String key, boolean stripped) {
+    public @Nullable ItemConvertible getItemForRecipe(String key, Class<? extends Block> blockClass, boolean stripped) {
         if (stripped) {
             if (key.equals("base")) {
                 return (ItemConvertible) getChild("stripped_log");
             } else if (key.equals("secondary"))
                 return getBaseBlock();
         }
-        return super.getItemForRecipe(key);
+        return super.getItemForRecipe(key, blockClass);
     }
 
     @Override

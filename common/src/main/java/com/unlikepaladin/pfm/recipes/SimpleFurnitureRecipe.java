@@ -109,7 +109,7 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
     }
 
     @Override
-    public List<CraftableFurnitureRecipe> getOutputs() {
+    public List<CraftableFurnitureRecipe> getInnerRecipes() {
         return Collections.singletonList(this);
     }
 

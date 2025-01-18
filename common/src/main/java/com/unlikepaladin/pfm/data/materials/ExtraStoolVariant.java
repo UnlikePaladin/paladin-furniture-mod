@@ -65,7 +65,7 @@ public class ExtraStoolVariant extends VariantBase<ExtraStoolVariant> {
     }
 
     public static Optional<ExtraStoolVariant> getOptionalVariant(Identifier name) {
-        return ExtraStoolVariant.DEFAULT_VARIANTS.stream().filter(extraStoolVariant -> extraStoolVariant.identifier.equals(name)).findFirst();
+        return DEFAULT_VARIANTS.stream().filter(extraStoolVariant -> extraStoolVariant.identifier.equals(name)).findFirst();
     }
 
 
