@@ -196,6 +196,11 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
+    public int getOutputCount() {
+        return furnitureOutput.getOutputCount();
+    }
+
+    @Override
     public CraftableFurnitureRecipe getInnerRecipeFromOutput(ItemStack stack) {
         constructInnerRecipes();
         if(outputToInnerRecipe.containsKey(stack)) {
@@ -207,6 +212,21 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     @Override
     public int getMaxInnerRecipeSize() {
         return ingredients.vanillaIngredients.size()+ingredients.variantChildren.size();
+    }
+
+    @Override
+    public List<? extends CraftableFurnitureRecipe> getInnerRecipesForVariant(Identifier identifier){
+        constructInnerRecipes();
+        if (furnitureInnerRecipes.containsKey(identifier)) {
+            return furnitureInnerRecipes.get(identifier);
+        }
+        return List.of();
+    }
+
+
+    @Override
+    public String getName() {
+        return outputClass().replaceAll("(?<=[a-z])(?=[A-Z])", " ");
     }
 
     Map<ItemStack, FurnitureInnerRecipe> outputToInnerRecipe = new HashMap<>();

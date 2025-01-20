@@ -7,9 +7,11 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeType;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 
 public interface FurnitureRecipe extends Recipe<PlayerInventory> {
@@ -41,6 +43,18 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
 
     default int getMaxInnerRecipeSize() {
         return getIngredients().size();
+    }
+
+    default int getOutputCount() {
+        return getOutput().getCount();
+    }
+
+    default List<? extends CraftableFurnitureRecipe> getInnerRecipesForVariant(Identifier identifier) {
+        return Collections.singletonList(getInnerRecipes().get(0));
+    }
+
+    default String getName() {
+        return getOutput().getName().asString();
     }
 
     interface CraftableFurnitureRecipe extends Comparable<CraftableFurnitureRecipe> {

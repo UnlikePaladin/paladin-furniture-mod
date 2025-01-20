@@ -40,7 +40,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
-// TODO : Remake the JEI and REI and EMI screens to work with the new recipe system and fix the patchouli book as well
+// TODO : Remake EMI screen to work with the new recipe system
 public class PFMRecipeProvider extends PFMProvider {
 
     public PFMRecipeProvider(PFMGenerator parent) {
