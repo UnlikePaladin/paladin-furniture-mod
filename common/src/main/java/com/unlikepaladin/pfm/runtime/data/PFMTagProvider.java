@@ -13,7 +13,6 @@ import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
-import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import net.minecraft.block.Block;
 import net.minecraft.data.DataCache;
 import net.minecraft.data.server.AbstractTagProvider;
@@ -38,7 +37,7 @@ import java.util.stream.Collectors;
 
 public class PFMTagProvider extends PFMProvider {
     public PFMTagProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Tags");
         parent.setProgress("Generating Tags");
     }
 
@@ -256,7 +255,9 @@ public class PFMTagProvider extends PFMProvider {
         return tagBuilders.computeIfAbsent(tag.getId(), (id) -> new Tag.Builder());
     }
 
-    public void run(DataCache cache) {
+    @Override
+    public void run() {
+        startProviderRun();
         tagBuilders.clear();
         this.generateTags();
         Tag<Block> tag = SetTag.empty();
@@ -271,19 +272,16 @@ public class PFMTagProvider extends PFMProvider {
             Path path = this.getOutput(id);
             try {
                 String string = PFMDataGenerator.GSON.toJson(jsonObject);
-                String string2 = PFMDataGenerator.SHA1.hashUnencodedChars(string).toString();
-                if (!Objects.equals(cache.getOldSha1(path), string2) || !Files.exists(path, new LinkOption[0])) {
-                    Files.createDirectories(path.getParent(), new FileAttribute[0]);
-                    try (BufferedWriter bufferedWriter = Files.newBufferedWriter(path, new OpenOption[0]);){
-                        bufferedWriter.write(string);
-                    }
-                }
-                cache.updateSha1(path, string2);
+                if (!Files.exists(path.getParent()))
+                    Files.createDirectories(path.getParent());
+
+                Files.writeString(path, string);
             }
             catch (IOException iOException) {
                 getParent().getLogger().error("Couldn't save tags to {}", path, iOException);
             }
         });
+        endProviderRun();
     }
 
     protected Path getOutput(Identifier id) {

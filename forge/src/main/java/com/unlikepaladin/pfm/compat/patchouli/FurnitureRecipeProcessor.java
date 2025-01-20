@@ -1,5 +1,6 @@
 package com.unlikepaladin.pfm.compat.patchouli;
 
+import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.item.ItemStack;
@@ -7,44 +8,67 @@ import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeManager;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.NotNull;
 import vazkii.patchouli.api.IComponentProcessor;
 import vazkii.patchouli.api.IVariable;
 import vazkii.patchouli.api.IVariableProvider;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class FurnitureRecipeProcessor implements IComponentProcessor {
-    private Recipe<?> recipe;
+    private FurnitureRecipe recipe;
+    private Identifier variant;
+    private boolean isBase;
     @Override
     public void setup(IVariableProvider variables) {
         String recipeId = variables.get("recipe").asString();
         RecipeManager manager = MinecraftClient.getInstance().world.getRecipeManager();
-        recipe = manager.get(new Identifier(recipeId)).orElse(null);
+        Recipe<?> recipe = manager.get(new Identifier(recipeId)).orElse(null);
+        this.recipe = recipe instanceof FurnitureRecipe ? (FurnitureRecipe) recipe : null;
+        this.variant = variables.has("variant") ? Identifier.tryParse(variables.get("variant").asString()) : null;
+
     }
 
     @Override
-    public IVariable process(String key) {
+    public IVariable process(@NotNull String key) {
         if (recipe != null) {
+            List<? extends FurnitureRecipe.CraftableFurnitureRecipe> innerRecipeList;
+            if (variant != null) {
+                innerRecipeList = recipe.getInnerRecipesForVariant(variant);
+            } else {
+                innerRecipeList = recipe.getInnerRecipes();
+            }
             if (key.startsWith("item")) {
                 int index = Integer.parseInt(key.substring(4)) - 1;
-                if (index >= recipe.getIngredients().size()) {
-                    return IVariable.from(ItemStack.EMPTY);
+                ItemStack[] ingredientsArr = new ItemStack[innerRecipeList.size()];
+                for (int i = 0; i < innerRecipeList.size(); i++) {
+                    FurnitureRecipe.CraftableFurnitureRecipe innerRecipe = innerRecipeList.get(i);
+                    if (index >= innerRecipe.getIngredients().size()) {
+                        ingredientsArr[i] = ItemStack.EMPTY;
+                        continue;
+                    }
+                    Ingredient ingredient = innerRecipe.getIngredients().get(index);
+                    ItemStack[] stacks = ingredient.getMatchingStacksClient();
+                    ingredientsArr[i] = stacks.length == 0 ? ItemStack.EMPTY : stacks[0];
                 }
-                Ingredient ingredient = recipe.getIngredients().get(index);
-                ItemStack[] stacks = ingredient.getMatchingStacksClient();
-                ItemStack stack = stacks.length == 0 ? ItemStack.EMPTY : stacks[0];
-                return IVariable.from(stack);
+                return IVariable.from(ingredientsArr);
             } else if (key.equals("resultitem")) {
-                ItemStack result = recipe.getOutput();
-                return IVariable.from(result);
+                ItemStack[] resultsArr = new ItemStack[innerRecipeList.size()];
+                for (int i = 0; i < innerRecipeList.size(); i++) {
+                    FurnitureRecipe.CraftableFurnitureRecipe innerRecipe = innerRecipeList.get(i);
+                    resultsArr[i] = innerRecipe.getOutput();
+                }
+                return IVariable.from(resultsArr);
             } else if (key.equals("icon")) {
                 ItemStack icon = recipe.createIcon();
                 return IVariable.from(icon);
             } else if (key.equals("text")) {
-                ItemStack out = recipe.getOutput();
-                return IVariable.wrap(out.getCount() + "x$(br)" + out.getName());
+                return IVariable.wrap(recipe.getOutputCount() + "x$(br)" + recipe.getName());
             } else if (key.equals("icount")) {
-                return IVariable.wrap(recipe.getOutput().getCount());
+                return IVariable.wrap(recipe.getOutputCount());
             } else if (key.equals("iname")) {
-                return IVariable.wrap(recipe.getOutput().getName().getString());
+                return IVariable.wrap(recipe.getName());
             }
         }
         return null;

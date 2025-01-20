@@ -9,8 +9,10 @@
     },
     {
       "type": "furniturerecipe2template",
-      "recipe": "pfm:oak_red_simple_bed",
-      "recipe2": "pfm:spruce_cyan_classic_bed"
+      "recipe": "pfm:simple_bed_block_red",
+      "variant": "minecraft:oak",
+      "recipe2": "pfm:classic_bed_block_cyan",
+      "variant2": "minecraft:spruce"
     },
     {
       "type": "patchouli:text",
@@ -18,8 +20,10 @@
     },
     {
       "type": "furniturerecipe2template",
-      "recipe": "pfm:oak_simple_bunk_ladder",
-      "recipe2": "pfm:warped_simple_bunk_ladder"
+      "recipe": "pfm:simple_bunk_ladder_block",
+      "variant": "minecraft:oak",
+      "recipe2": "pfm:simple_bunk_ladder_block",
+      "variant2": "minecraft:warped"
     }
   ]
 }

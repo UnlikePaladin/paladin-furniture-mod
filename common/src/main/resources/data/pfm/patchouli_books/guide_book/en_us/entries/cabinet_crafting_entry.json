@@ -9,46 +9,23 @@
     },
     {
       "type": "furniturerecipe2template",
-      "recipe": "pfm:oak_kitchen_cabinet",
-      "recipe2": "pfm:stripped_oak_kitchen_cabinet"
+      "recipe": "pfm:kitchen_cabinet_block",
+      "variant": "minecraft:oak",
+      "recipe2": "kitchen_cabinet_block",
+      "variant2": "minecraft:stone"
     },
     {
       "type": "furniturerecipe2template",
-      "recipe": "pfm:concrete_kitchen_cabinet",
-      "recipe2": "pfm:dark_concrete_kitchen_cabinet"
+      "recipe": "pfm:kitchen_cabinet_block",
+      "variant": "concrete",
+      "recipe2": "pfm:dark_concrete_kitchen_cabinet",
+      "variant2": "dark_concrete"
     },
     {
       "type": "furniturerecipe2template",
-      "recipe": "pfm:light_wood_kitchen_cabinet",
-      "recipe2": "pfm:dark_wood_kitchen_cabinet"
-    },
-    {
-      "type": "furniturerecipe2template",
-      "recipe": "pfm:granite_kitchen_cabinet",
-      "recipe2": "pfm:calcite_kitchen_cabinet"
-    },
-    {
-      "type": "furniturerecipe2template",
-      "recipe": "pfm:netherite_kitchen_cabinet",
-      "recipe2": "pfm:andesite_kitchen_cabinet"
-    },
-    {
-      "type": "furniturerecipe2template",
-      "recipe": "pfm:diorite_kitchen_cabinet",
-      "recipe2": "pfm:stone_kitchen_cabinet"
-    },
-    {
-      "type": "furniturerecipe2template",
-      "recipe": "pfm:deepslate_tile_kitchen_cabinet",
-      "recipe2": "pfm:deepslate_kitchen_cabinet"
-    },
-    {
-      "type": "furniturerecipetemplate",
-      "recipe": "pfm:blackstone_kitchen_cabinet"
-    },
-    {
-      "type": "patchouli:empty",
-      "draw_filler": "false"
+      "recipe": "pfm:kitchen_cabinet_block",
+      "variant": "light_wood",
+      "recipe2": "kitchen_cabinet_block"
     }
   ]
 }

@@ -59,24 +59,44 @@ public class FurnitureCategory implements DisplayCategory<FurnitureDisplay>{
 
     @Override
     public @NotNull List<Widget> setupDisplay(FurnitureDisplay display, Rectangle bounds) {
+        Map<EntryStack<?>, Integer> stackToSlotIndex = new HashMap<>();
         Point startPoint = new Point(bounds.getCenterX() - 58, bounds.getCenterY() - 27);
         List<Widget> widgets = Lists.newArrayList();
         widgets.add(Widgets.createRecipeBase(bounds));
         widgets.add(Widgets.createArrow(new Point(startPoint.x + 60, startPoint.y + 18)));
         widgets.add(Widgets.createResultSlotBackground(new Point(startPoint.x + 95, startPoint.y + 19)));
         List<EntryIngredient> input = display.getInputEntries();
-        List<Slot> slots = Lists.newArrayList();
 
+        Slot output = Widgets.createSlot(new Point(startPoint.x + 95, startPoint.y + 19)).disableBackground().markOutput();
+        int recipeIndex = 0;
+        for (EntryIngredient ingredient : display.getOutputEntries()) {
+            output.entries(ingredient);
+            stackToSlotIndex.put(ingredient.get(0), recipeIndex);
+            recipeIndex++;
+        }
+
+        widgets.add(output);
+
+        List<Slot> slots = Lists.newArrayList();
+        int innerRecipeSize = display.itemsPerInnerRecipe();
         for (int y = 0; y < 3; ++y) {
             for (int x = 0; x < 3; ++x) {
-                slots.add(Widgets.createSlot(new Point(startPoint.x + 1 + x * 18, startPoint.y + 1 + y * 18)).markInput());
+                Slot inputSlot = Widgets.createSlot(new Point(startPoint.x + 1 + x * 18, startPoint.y + 1 + y * 18)).markInput();
+                slots.add(inputSlot);
             }
         }
-        for (int z = 0; z < input.size(); z++)
-            slots.get(z).entries(input.get(z));
 
+        for (int i = 0; i < innerRecipeSize; i++) {
+            int finalSlotIndex = i;
+            // many thanks to shedaniel for helping me figure this out :)
+            widgets.add(Widgets.createDrawableWidget((graphics, matrixStack, mouseX, mouseY, delta) -> {
+                Integer currentRecipe = stackToSlotIndex.get(output.getCurrentEntry());
+                if (currentRecipe != null && input.size() > finalSlotIndex+(currentRecipe*innerRecipeSize)) {
+                    slots.get(finalSlotIndex).clearEntries().entries(input.get(finalSlotIndex+(currentRecipe*innerRecipeSize)));
+                }
+            }));
+        }
         widgets.addAll(slots);
-        widgets.add(Widgets.createSlot(new Point(startPoint.x + 95, startPoint.y + 19)).entries(display.getOutputEntries().get(0)).disableBackground().markOutput());
         return widgets;
     }
 

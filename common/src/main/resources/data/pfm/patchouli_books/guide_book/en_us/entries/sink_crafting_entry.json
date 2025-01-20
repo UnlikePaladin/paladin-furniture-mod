@@ -9,46 +9,23 @@
     },
     {
       "type": "furniturerecipe2template",
-      "recipe": "pfm:oak_kitchen_sink",
+      "recipe": "pfm:kitchen_sink_block",
+      "variant": "oak",
       "recipe2": "pfm:basic_sink"
     },
     {
       "type": "furniturerecipe2template",
-      "recipe": "pfm:concrete_kitchen_sink",
-      "recipe2": "pfm:dark_concrete_kitchen_sink"
+      "recipe": "pfm:kitchen_sink_block",
+      "variant": "concrete",
+      "recipe2": "pfm:kitchen_sink_block",
+      "variant2": "stone"
     },
     {
       "type": "furniturerecipe2template",
-      "recipe": "pfm:light_wood_kitchen_sink",
-      "recipe2": "pfm:dark_wood_kitchen_sink"
-    },
-    {
-      "type": "furniturerecipe2template",
-      "recipe": "pfm:granite_kitchen_sink",
-      "recipe2": "pfm:calcite_kitchen_sink"
-    },
-    {
-      "type": "furniturerecipe2template",
-      "recipe": "pfm:netherite_kitchen_sink",
-      "recipe2": "pfm:andesite_kitchen_sink"
-    },
-    {
-      "type": "furniturerecipe2template",
-      "recipe": "pfm:diorite_kitchen_sink",
-      "recipe2": "pfm:stone_kitchen_sink"
-    },
-    {
-      "type": "furniturerecipe2template",
-      "recipe": "pfm:deepslate_tile_kitchen_sink",
-      "recipe2": "pfm:deepslate_kitchen_sink"
-    },
-    {
-      "type": "furniturerecipetemplate",
-      "recipe": "pfm:blackstone_kitchen_sink"
-    },
-    {
-      "type": "patchouli:empty",
-      "draw_filler": "false"
+      "recipe": "pfm:kitchen_sink_block",
+      "variant": "light_wood",
+      "recipe2": "pfm:kitchen_sink_block",
+      "variant2": "granite"
     }
   ]
 }

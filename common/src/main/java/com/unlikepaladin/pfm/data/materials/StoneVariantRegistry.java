@@ -25,6 +25,10 @@ public class StoneVariantRegistry extends VariantRegistryBase<StoneVariant> {
         return INSTANCE.variants.getOrDefault(name, STONE);
     }
 
+    public static Optional<StoneVariant> getOptionalVariant(Identifier name) {
+        return INSTANCE.variants.containsKey(name) ? Optional.of(INSTANCE.variants.get(name)) : Optional.empty();
+    }
+
     /**
      * Simplified Wood/Block detection based on MoonlightLib<a href="https://github.com/MehVahdJukaar/Moonlight/blob/multi-loader/common/src/main/java/net/mehvahdjukaar/moonlight/api/set/BlockTypeRegistry.java#L18">...</a>
      */

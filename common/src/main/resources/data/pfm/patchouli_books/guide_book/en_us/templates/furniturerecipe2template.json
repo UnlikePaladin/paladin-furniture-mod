@@ -5,6 +5,7 @@
       "as": "nn",
       "using": {
         "recipe": "#recipe",
+        "variant": "#variant",
         "custom_text": "#text"
       }
     },
@@ -13,6 +14,7 @@
       "as": "uu",
       "using": {
         "recipe": "#recipe2",
+        "variant": "#variant2",
         "custom_text": "#text"
       },
       "y": 75

@@ -1,31 +1,34 @@
 package com.unlikepaladin.pfm.recipes.forge;
 
 import com.google.gson.JsonObject;
-import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
+import com.unlikepaladin.pfm.recipes.SimpleFurnitureRecipe;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.util.Identifier;
 import net.minecraftforge.registries.ForgeRegistryEntry;
 import org.jetbrains.annotations.Nullable;
 
-public class FurnitureSerializerForge extends ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<FurnitureRecipe> {
-    public FurnitureSerializerForge() {
-        serializer = new FurnitureRecipe.Serializer();
+public class FurnitureSerializerForge <J extends Recipe<I>, T extends RecipeSerializer<J>, I extends Inventory> extends ForgeRegistryEntry<RecipeSerializer<?>> implements RecipeSerializer<J> {
+    public FurnitureSerializerForge(T recipeSerializer) {
+        this.serializer = recipeSerializer;
     }
-    FurnitureRecipe.Serializer serializer;
+
+    T serializer;
     @Override
-    public FurnitureRecipe read(Identifier id, JsonObject json) {
+    public J read(Identifier id, JsonObject json) {
         return serializer.read(id, json);
     }
 
     @Nullable
     @Override
-    public FurnitureRecipe read(Identifier id, PacketByteBuf buf) {
+    public J read(Identifier id, PacketByteBuf buf) {
         return serializer.read(id, buf);
     }
 
     @Override
-    public void write(PacketByteBuf buf, FurnitureRecipe recipe) {
+    public void write(PacketByteBuf buf, J recipe) {
         serializer.write(buf, recipe);
     }
 }

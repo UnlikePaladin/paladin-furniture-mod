@@ -13,7 +13,6 @@ import net.minecraft.inventory.CraftingResultInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.recipe.Ingredient;
 import net.minecraft.screen.*;
 import net.minecraft.screen.slot.Slot;
 import net.minecraft.sound.SoundCategory;
@@ -24,10 +23,10 @@ import java.util.stream.Collectors;
 
 public class WorkbenchScreenHandler extends ScreenHandler {
     private final ScreenHandlerContext context;
-    private final List<FurnitureRecipe> availableRecipes = Lists.newArrayList();
-    private static final List<FurnitureRecipe> allRecipes = Lists.newArrayList();
-    private final List<FurnitureRecipe> sortedRecipes = Lists.newArrayList();
-    private final List<FurnitureRecipe> searchableRecipes = Lists.newArrayList();
+    private final List<FurnitureRecipe.CraftableFurnitureRecipe> availableRecipes = Lists.newArrayList();
+    public static final List<FurnitureRecipe.CraftableFurnitureRecipe> ALL_RECIPES = Lists.newArrayList();
+    private final List<FurnitureRecipe.CraftableFurnitureRecipe> sortedRecipes = Lists.newArrayList();
+    private final List<FurnitureRecipe.CraftableFurnitureRecipe> searchableRecipes = Lists.newArrayList();
 
     private final Property selectedRecipe = Property.create();
     private final World world;
@@ -83,31 +82,21 @@ public class WorkbenchScreenHandler extends ScreenHandler {
             this.addSlot(new Slot(playerInventory, i, 8 + i * 18, 156));
         }
         this.addProperty(this.selectedRecipe);
-        if (allRecipes.isEmpty())
-            allRecipes.addAll(world.getRecipeManager().listAllOfType(RecipeTypes.FURNITURE_RECIPE).stream().sorted().collect(Collectors.toList()));
+        if (ALL_RECIPES.isEmpty()) {
+           world.getRecipeManager().listAllOfType(RecipeTypes.FURNITURE_RECIPE).forEach(recipe -> {
+               ALL_RECIPES.addAll(recipe.getInnerRecipes());
+           });
+           ALL_RECIPES.sort(FurnitureRecipe.CraftableFurnitureRecipe::compareTo);
+        }
         this.updateInput();
         selectedRecipe.set(-1);
     }
 
     boolean craft() {
         if (!this.availableRecipes.isEmpty() && this.isInBounds(this.availableRecipes, this.selectedRecipe.get())) {
-            FurnitureRecipe furnitureRecipe = this.sortedRecipes.get(this.selectedRecipe.get());
-            if (furnitureRecipe.matches(playerInventory, playerInventory.player.world)) {
-                List<Ingredient> ingredients = furnitureRecipe.getIngredients();
-                for (Ingredient ingredient : ingredients) {
-                    for (ItemStack stack : PFMRecipeProvider.pfm$getMatchingStacks(ingredient)) {
-                        if (FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, stack) != -1) {
-                            int indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, stack);
-                            if (playerInventory.getStack(indexOfStack).getCount() >= stack.getCount()) {
-                                ItemStack stack1 = playerInventory.getStack(indexOfStack);
-                                stack1.decrement(stack.getCount());
-                                playerInventory.setStack(indexOfStack, stack1);
-                                playerInventory.markDirty();
-                                break;
-                            }
-                        }
-                    }
-                }
+            FurnitureRecipe.CraftableFurnitureRecipe simpleFurnitureRecipe = this.sortedRecipes.get(this.selectedRecipe.get());
+            if (simpleFurnitureRecipe.matches(playerInventory, playerInventory.player.world)) {
+               simpleFurnitureRecipe.craftAndRemoveItems(playerInventory);
                 return true;
             }
         }
@@ -116,19 +105,19 @@ public class WorkbenchScreenHandler extends ScreenHandler {
 
     void populateResult(PlayerEntity player) {
         if (!this.availableRecipes.isEmpty() && this.isInBounds(this.availableRecipes, this.selectedRecipe.get())) {
-            FurnitureRecipe furnitureRecipe = this.sortedRecipes.get(this.selectedRecipe.get());
-            this.outputSlot.setStack(furnitureRecipe.craft(player.inventory));
+            FurnitureRecipe.CraftableFurnitureRecipe simpleFurnitureRecipe = this.sortedRecipes.get(this.selectedRecipe.get());
+            this.outputSlot.setStack(simpleFurnitureRecipe.craft(player.inventory));
         } else {
             this.outputSlot.setStack(ItemStack.EMPTY);
         }
         this.sendContentUpdates();
     }
 
-    public boolean isInBounds(List<FurnitureRecipe> furnitureRecipes, int id) {
-        if (id >= furnitureRecipes.size() || id < 0) {
+    public boolean isInBounds(List<FurnitureRecipe.CraftableFurnitureRecipe> simpleFurnitureRecipes, int id) {
+        if (id >= simpleFurnitureRecipes.size() || id < 0) {
             return false;
         }
-        return furnitureRecipes.contains(this.getSortedRecipes().get(id));
+        return simpleFurnitureRecipes.contains(this.getSortedRecipes().get(id));
     }
 
     @Override
@@ -145,16 +134,16 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         return this.selectedRecipe.get();
     }
 
-    public List<FurnitureRecipe> getAvailableRecipes() {
+    public List<FurnitureRecipe.CraftableFurnitureRecipe> getAvailableRecipes() {
         return this.availableRecipes;
     }
 
-    public List<FurnitureRecipe> getSortedRecipes() {
+    public List<FurnitureRecipe.CraftableFurnitureRecipe> getSortedRecipes() {
         return this.sortedRecipes;
     }
 
-    public List<FurnitureRecipe> getAllRecipes() {
-        return this.allRecipes;
+    public List<FurnitureRecipe.CraftableFurnitureRecipe> getAllRecipes() {
+        return ALL_RECIPES;
     }
 
     public int getAvailableRecipeCount() {
@@ -179,11 +168,11 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         }
         // Reset the available recipes list and add all recipes that can be crafted
         this.availableRecipes.clear();
-        this.availableRecipes.addAll(allRecipes.stream().filter(newFurnitureRecipe -> newFurnitureRecipe.matches(playerInventory, world)).collect(Collectors.toList()));
+        this.availableRecipes.addAll(ALL_RECIPES.stream().filter(newFurnitureRecipe -> newFurnitureRecipe.matches(playerInventory, world)).collect(Collectors.toList()));
         // Clear the visible recipe list and add the craft-able recipes first, then add the rest, checking that it's not present already so that it's not overridden.
         this.sortedRecipes.clear();
         this.sortedRecipes.addAll(availableRecipes);
-        this.sortedRecipes.addAll(allRecipes.stream().filter(furnitureRecipe -> !sortedRecipes.contains(furnitureRecipe)).collect(Collectors.toList()));
+        this.sortedRecipes.addAll(ALL_RECIPES.stream().filter(furnitureRecipe -> !sortedRecipes.contains(furnitureRecipe)).collect(Collectors.toList()));
     }
 
     public boolean canCraft() {
@@ -253,7 +242,7 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         return false;
     }
 
-    public List<FurnitureRecipe> getSearchableRecipes() {
+    public List<FurnitureRecipe.CraftableFurnitureRecipe> getSearchableRecipes() {
         return searchableRecipes;
     }
 }

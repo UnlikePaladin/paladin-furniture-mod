@@ -29,59 +29,77 @@ import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import com.unlikepaladin.pfm.runtime.data.PFMRecipeProvider;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
-import me.shedaniel.rei.api.common.display.SimpleGridMenuDisplay;
-import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
-import me.shedaniel.rei.api.common.entry.EntryStack;
-import me.shedaniel.rei.api.common.entry.InputIngredient;
-import me.shedaniel.rei.api.common.entry.type.VanillaEntryTypes;
-import me.shedaniel.rei.api.common.registry.RecipeManagerContext;
-import me.shedaniel.rei.api.common.transfer.info.MenuInfo;
-import me.shedaniel.rei.api.common.transfer.info.MenuSerializationContext;
-import me.shedaniel.rei.api.common.transfer.info.simple.SimpleGridMenuInfo;
-import me.shedaniel.rei.api.common.util.CollectionUtils;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.Recipe;
-import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class FurnitureDisplay extends BasicDisplay implements SimpleGridMenuDisplay {
     protected FurnitureRecipe recipe;
     public static final CategoryIdentifier<FurnitureDisplay> IDENTIFIER = CategoryIdentifier.of(new Identifier(PaladinFurnitureMod.MOD_ID, "furniture"));
-    public List<EntryIngredient> output;
+    private int itemsPerInnerRecipe;
     public FurnitureDisplay(FurnitureRecipe recipe) {
         super(Collections.emptyList(), Collections.singletonList(EntryIngredients.of(recipe.getOutput())));
         this.recipe = recipe;
-        output = Collections.singletonList(EntryIngredients.of(recipe.getOutput()));
+        this.itemsPerInnerRecipe = recipe.getIngredients().size();
     }
+
+    private final List<EntryIngredient> inputs = new ArrayList<>();
 
     @Override
     public List<EntryIngredient> getInputEntries() {
-        List<Ingredient> ingredients = recipe.getIngredients();
-        HashMap<Item, Integer> containedItems = new HashMap<>();
-        for (Ingredient ingredient : ingredients) {
-            for (ItemStack stack : PFMRecipeProvider.pfm$getMatchingStacks(ingredient)) {
-                if (!containedItems.containsKey(stack.getItem())) {
-                    containedItems.put(stack.getItem(), 1);
-                } else {
-                    containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + 1);
+        if (!inputs.isEmpty()) return inputs;
+
+        List<Ingredient> inputEntries = new ArrayList<>();
+        this.itemsPerInnerRecipe = recipe.getMaxInnerRecipeSize();
+        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes()) {
+            List<Ingredient> ingredients = innerRecipe.getIngredients();
+            HashMap<Item, Integer> containedItems = new HashMap<>();
+            for (Ingredient ingredient : ingredients) {
+                for (ItemStack stack : PFMRecipeProvider.pfm$getMatchingStacks(ingredient)) {
+                    if (!containedItems.containsKey(stack.getItem())) {
+                        containedItems.put(stack.getItem(), stack.getCount());
+                    } else {
+                        containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + stack.getCount());
+                    }
                 }
             }
-        }
-        List<Ingredient> finalList = new ArrayList<>();
-        for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            finalList.add(Ingredient.ofStacks(new ItemStack(entry.getKey(), entry.getValue())));
-        }
-        finalList.sort(Comparator.comparing(o -> PFMRecipeProvider.pfm$getMatchingStacks(o)[0].getItem().toString()));
+            List<Ingredient> finalList = new ArrayList<>();
+            for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
+                finalList.add(Ingredient.ofStacks(new ItemStack(entry.getKey(), entry.getValue())));
+            }
+            finalList.sort(Comparator.comparing(o -> PFMRecipeProvider.pfm$getMatchingStacks(o)[0].getItem().toString()));
 
-        return EntryIngredients.ofIngredients(finalList);
+            if (finalList.size() != itemsPerInnerRecipe) {
+                while (finalList.size() != itemsPerInnerRecipe) {
+                    finalList.add(Ingredient.EMPTY);
+                }
+            }
+            inputEntries.addAll(finalList);
+        }
+        for (Ingredient ingredient : inputEntries) {
+            if (!ingredient.isEmpty())
+                inputs.add(EntryIngredients.ofIngredient(ingredient));
+            else
+                inputs.add(EntryIngredient.empty());
+        }
+        return inputs;
+    }
+
+    public int itemsPerInnerRecipe() {
+        return itemsPerInnerRecipe;
+    }
+
+    private final List<EntryIngredient> outputs = new ArrayList<>();
+    @Override
+    public List<EntryIngredient> getOutputEntries() {
+        if (outputs.isEmpty())
+            outputs.addAll(recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getOutput).map(EntryIngredients::of).toList());
+        return outputs;
     }
 
     @Override
@@ -89,24 +107,8 @@ public class FurnitureDisplay extends BasicDisplay implements SimpleGridMenuDisp
         return IDENTIFIER;
     }
 
-
     @Override
-    public int getWidth() {
-        return getSize(getInputEntries().size());
-    }
-
-    @Override
-    public int getHeight() {
-        return getSize(getInputEntries().size());
-    }
-
-    private static int getSize(int total) {
-        if (total > 4) {
-            return 3;
-        } else if (total > 1) {
-            return 2;
-        } else {
-            return 1;
-        }
+    public Display provideInternalDisplay() {
+        return Display.super.provideInternalDisplay();
     }
 }

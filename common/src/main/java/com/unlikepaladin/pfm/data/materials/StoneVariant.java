@@ -7,8 +7,10 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.Block;
 import net.minecraft.block.Material;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -97,6 +99,18 @@ public class StoneVariant extends VariantBase<StoneVariant> {
         this.addChild("slab", this.findRelatedEntry("slab", Registry.BLOCK));
         this.addChild("stairs", this.findRelatedEntry("stairs", Registry.BLOCK));
         this.addChild("wall", this.findRelatedEntry("fence", Registry.BLOCK));
+    }
+
+    @Override
+    public @Nullable ItemConvertible getItemForRecipe(String key, Class<? extends Block> blockClass) {
+        ItemConvertible itemConvertible = super.getItemForRecipe(key, blockClass);
+        if ((identifier.getPath().equals("calcite") || identifier.getPath().equals("netherite")) && (key.equals("base") || key.equals("secondary")) && blockClass.getSimpleName().contains("Kitchen")) {
+            if (itemConvertible == getBaseBlock())
+                return getSecondaryBlock();
+            else
+                return getBaseBlock();
+        }
+        return itemConvertible;
     }
 
     @Override
