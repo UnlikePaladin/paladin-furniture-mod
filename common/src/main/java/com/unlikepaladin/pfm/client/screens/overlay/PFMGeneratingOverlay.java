@@ -104,7 +104,7 @@ public class PFMGeneratingOverlay extends Overlay {
 
         glText.gltViewport(this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
         float timeProgress = this.reloadCompleteTime > -1L ? (float)(l - this.reloadCompleteTime) / 1000.0f : -1.0f;
-/*
+
         int width = this.client.getWindow().getScaledWidth();
         int height = this.client.getWindow().getScaledHeight();
 
@@ -128,13 +128,14 @@ public class PFMGeneratingOverlay extends Overlay {
         int y = (height - logoHeight) / 2;
         this.client.getTextureManager().bindTexture(pfmLogo);
         RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
-        drawTexture(matrices, x, y, 0, 0, logoWidth, logoHeight, logoWidth, logoHeight);*/
+        drawTexture(matrices, x, y, 0, 0, logoWidth, logoHeight, logoWidth, logoHeight);
         RenderSystem.disableCull();
 
         try (Closeable ignored1 = glText.gltBeginDraw()) {
             float textScale = (float) (client.getWindow().getScaleFactor() / 2.0f) * 1.5f;
-            glText.gltColor(1.0f, 1.0f, 1.0f, 0.01f);
+            glText.gltColor(1.0f, 1.0f, 1.0f, 1.0f);
             GLText.gltSetText(progressText, this.resourceProgress.getProgressString());
+
             glText.gltDrawText2DAligned(
                     this.progressText,
                     this.client.getWindow().getFramebufferWidth() / 2.0f,
@@ -167,9 +168,9 @@ public class PFMGeneratingOverlay extends Overlay {
         }
         RenderSystem.enableCull();
 
-       /* if (timeProgress < 1.0f) {
+        if (timeProgress < 1.0f) {
             this.renderProgressBar(matrices, width / 2 - barWidth, barHeight - 5, width / 2 + barWidth, barHeight + 5, 1.0f - MathHelper.clamp(timeProgress, 0.0f, 1.0f));
-        }*/
+        }
         if (timeProgress >= 2.0f || (!PFMGenerator.areAssetsRunning() && !PFMGenerator.isDataRunning())) {
             this.client.setOverlay(parent);
             glText.gltTerminate();

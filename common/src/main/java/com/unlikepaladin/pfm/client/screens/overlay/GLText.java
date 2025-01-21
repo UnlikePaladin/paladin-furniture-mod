@@ -2,7 +2,10 @@ package com.unlikepaladin.pfm.client.screens.overlay;
 
 import net.minecraft.util.math.Vector4f;
 
+import java.io.BufferedWriter;
 import java.io.Closeable;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -41,6 +44,8 @@ freely, subject to the following restrictions:
    distribution.
 
  */
+
+// Backported to Immediate Mode / Compatibility by UnlikePaladin
 public class GLText {
 
     // #define _gltDrawText() \
@@ -64,15 +69,10 @@ public class GLText {
     public static final int GLT_BOTTOM = 2;
 
     // impl start
-
     private static final int NULL = 0;
-    private static final int _GLT_TEXT2D_POSITION_LOCATION = 0;
-    private static final int _GLT_TEXT2D_TEXCOORD_LOCATION = 1;
     private static final int _GLT_TEXT2D_POSITION_SIZE = 2;
     private static final int _GLT_TEXT2D_TEXCOORD_SIZE = 2;
     private static final int _GLT_TEXT2D_VERTEX_SIZE = (_GLT_TEXT2D_POSITION_SIZE + _GLT_TEXT2D_TEXCOORD_SIZE);
-    private static final int _GLT_TEXT2D_POSITION_OFFSET = 0;
-    private static final int _GLT_TEXT2D_TEXCOORD_OFFSET = _GLT_TEXT2D_POSITION_SIZE;
     private static int _GLT_MAT4_INDEX(int row, int column) {
         return (row) + (column) * 4;
     }
@@ -101,11 +101,7 @@ public class GLText {
 
     private _GLTglyph[] _gltFontGlyphs = new _GLTglyph[_gltFontGlyphCount];
     private _GLTglyph[] _gltFontGlyphs2 = new _GLTglyph[_gltFontGlyphMaxChar - _gltFontGlyphMinChar + 1];
-    private int _gltText2DShader = GLT_NULL_HANDLE;
     private int _gltText2DFontTexture = GLT_NULL_HANDLE;
-    private int _gltText2DShaderMVPUniformLocation = -1;
-    private int _gltText2DShaderColorUniformLocation = -1;
-    private int _gltText2DShaderDiffuseUniformLocation = -1;
 
     private float[] _gltText2DProjectionMatrix = new float[16];
 
@@ -226,12 +222,13 @@ public class GLText {
     }
 
     public Closeable gltBeginDraw() {
-        glUseProgram(_gltText2DShader);
+        // activate immediate mode and bind the texture
+        glUseProgram(0);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, _gltText2DFontTexture);
         return () -> {
-            glUseProgram(0);
+            // ubind the texture
             glBindTexture(GL_TEXTURE_2D, 0);
         };
     }
@@ -249,18 +246,42 @@ public class GLText {
             return;
         }
 
-        glUniformMatrix4fv(_gltText2DShaderMVPUniformLocation, false, mvp);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadIdentity();
+
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadMatrixf(mvp);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glBindBuffer(GL_ARRAY_BUFFER, text._vbo);
+
         glEnableClientState(GL_VERTEX_ARRAY);
-
-        glVertexPointer(2, GL_FLOAT, 4 * Float.BYTES, 0);
-
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glTexCoordPointer(2, GL_FLOAT, 4 * Float.BYTES, 2 * Float.BYTES);
 
+        // Configure pointers
+        glVertexPointer(2, GL_FLOAT, 4 * Float.BYTES, 0);           // Position (x, y)
+        glTexCoordPointer(2, GL_FLOAT, 4 * Float.BYTES, 2 * Float.BYTES); // Texture coordinates (u, v)
+
+        // Draw the text
         glDrawArrays(GL_TRIANGLES, 0, text.vertexCount);
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // Cleanup
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        glDisable(GL_BLEND);
+
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
     }
 
     // #define _gltDrawText() \
@@ -274,12 +295,6 @@ public class GLText {
             return;
         }
 
-        glUseProgram(_gltText2DShader);
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, _gltText2DFontTexture);
-        glUniform1i(_gltText2DShaderDiffuseUniformLocation, 0);
-
         if (text._dirty) {
             _gltUpdateBuffers(text);
         }
@@ -291,27 +306,48 @@ public class GLText {
         // manual viewpoint
 
         final float[] model = {
-            scale, 0.0f, 0.0f, 0.0f,
-            0.0f, scale, 0.0f, 0.0f,
-            0.0f, 0.0f, scale, 0.0f,
-            x, y, 0.0f, 1.0f,
+                scale, 0.0f, 0.0f, 0.0f,
+                0.0f, scale, 0.0f, 0.0f,
+                0.0f, 0.0f, scale, 0.0f,
+                x, y, 0.0f, 1.0f,
         };
 
-        final float[] mvp = new float[16];
-        _gltMat4Mult(_gltText2DProjectionMatrix, model, mvp);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadMatrixf(_gltText2DProjectionMatrix);
 
-        glUniformMatrix4fv(_gltText2DShaderMVPUniformLocation, false, mvp);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadMatrixf(model);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glBindBuffer(GL_ARRAY_BUFFER, text._vbo);
+
         glEnableClientState(GL_VERTEX_ARRAY);
-
-        glVertexPointer(2, GL_FLOAT, 4 * Float.BYTES, 0);
-
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glTexCoordPointer(2, GL_FLOAT, 4 * Float.BYTES, 2 * Float.BYTES);
 
+        // Configure pointers
+        glVertexPointer(2, GL_FLOAT, 4 * Float.BYTES, 0);           // Position (x, y)
+        glTexCoordPointer(2, GL_FLOAT, 4 * Float.BYTES, 2 * Float.BYTES); // Texture coordinates (u, v)
+
+        // Draw the text
         glDrawArrays(GL_TRIANGLES, 0, text.vertexCount);
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // Cleanup
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        glDisable(GL_BLEND);
+
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
     }
 
     public void gltDrawText2DAligned(GLTtext text, float x, float y, float scale, int horizontalAlignment, int verticalAlignment) {
@@ -388,31 +424,55 @@ public class GLText {
             x, y + (float) _gltFontGlyphHeight * scale, z, 1.0f,
         };
 
-        final float[] mvp = new float[16];
-        final float[] vp = new float[16];
-        _gltMat4Mult(projection, view, vp);
-        _gltMat4Mult(vp, model, mvp);
+        glMatrixMode(GL_PROJECTION);
+        glPushMatrix();
+        glLoadMatrixf(projection);
 
-        glUniformMatrix4fv(_gltText2DShaderMVPUniformLocation, false, mvp);
+        glMatrixMode(GL_MODELVIEW);
+        glPushMatrix();
+        glLoadMatrixf(model);
+
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         glBindBuffer(GL_ARRAY_BUFFER, text._vbo);
+
         glEnableClientState(GL_VERTEX_ARRAY);
-
-        glVertexPointer(2, GL_FLOAT, 4 * Float.BYTES, 0);
-
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glTexCoordPointer(2, GL_FLOAT, 4 * Float.BYTES, 2 * Float.BYTES);
 
+        // Configure pointers
+        glVertexPointer(2, GL_FLOAT, 4 * Float.BYTES, 0);           // Position (x, y)
+        glTexCoordPointer(2, GL_FLOAT, 4 * Float.BYTES, 2 * Float.BYTES); // Texture coordinates (u, v)
+
+        // Draw the text
         glDrawArrays(GL_TRIANGLES, 0, text.vertexCount);
+
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        // Cleanup
+        glDisableClientState(GL_VERTEX_ARRAY);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        glDisable(GL_BLEND);
+
+        glMatrixMode(GL_PROJECTION);
+        glPopMatrix();
+
+        glMatrixMode(GL_MODELVIEW);
+        glPopMatrix();
     }
 
     // GLT_API void gltColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
     //{
     //	glUniform4f(_gltText2DShaderColorUniformLocation, r, g, b, a);
     //}
+    private float[] rgba = new float[4];
     public void gltColor(float r, float g, float b, float a) {
-        glUniform4f(_gltText2DShaderColorUniformLocation, r, g, b, a);
+        rgba[0] = r;
+        rgba[1] = g;
+        rgba[2] = b;
+        rgba[3] = a;
+        glColor4f(r, g, b, a);
     }
 
     // GLT_API void gltGetColor(GLfloat *r, GLfloat *g, GLfloat *b, GLfloat *a)
@@ -426,10 +486,7 @@ public class GLText {
     //	if (a) (*a) = color[3];
     //}
     public Vector4f gltGetColor() {
-        final float[] color = new float[4];
-        glGetUniformfv(_gltText2DShader, _gltText2DShaderColorUniformLocation, color);
-
-        return new Vector4f(color[0], color[1], color[2], color[3]);
+        return new Vector4f(rgba[0], rgba[1], rgba[2], rgba[3]);
     }
 
     // GLT_API GLfloat gltGetLineHeight(GLfloat scale)
@@ -1004,7 +1061,6 @@ public class GLText {
         gltInit();
     };
     private void gltInit() {
-        _gltCreateText2DShader();
         _gltCreateText2DFontTexture();
     }
 
@@ -1025,159 +1081,10 @@ public class GLText {
     //	gltInitialized = GL_FALSE;
     //}
     public void gltTerminate() {
-        if (_gltText2DShader != GLT_NULL_HANDLE) {
-            glDeleteProgram(_gltText2DShader);
-            _gltText2DShader = GLT_NULL_HANDLE;
-        }
-
         if (_gltText2DFontTexture != GLT_NULL_HANDLE) {
             glDeleteTextures(_gltText2DFontTexture);
             _gltText2DFontTexture = GLT_NULL_HANDLE;
         }
-    }
-
-    private static final String _gltText2DVertexShaderSource =
-            "#version 120\n" +
-                    "\n" +
-                    "attribute vec2 position;\n" +
-                    "attribute vec2 texCoord;\n" +
-                    "\n" +
-                    "uniform mat4 mvp;\n" +
-                    "\n" +
-                    "varying vec2 fTexCoord;\n" +
-                    "\n" +
-                    "void main() {\n" +
-                    "    fTexCoord = texCoord;\n" +
-                    "    gl_Position = mvp * vec4(position, 0.0, 1.0);\n" +
-                    "}\n";
-
-    // static const GLchar* _gltText2DFragmentShaderSource =
-    //"#version 330 core\n"
-    //"\n"
-    //"out vec4 fragColor;\n"
-    //"\n"
-    //"uniform sampler2D diffuse;\n"
-    //"\n"
-    //"uniform vec4 color = vec4(1.0, 1.0, 1.0, 1.0);\n"
-    //"\n"
-    //"in vec2 fTexCoord;\n"
-    //"\n"
-    //"void main()\n"
-    //"{\n"
-    //"	fragColor = texture(diffuse, fTexCoord) * color;\n"
-    //"}\n";
-    private static final String _gltText2DFragmentShaderSource =
-            "#version 120\n" +
-                    "\n" +
-                    "varying vec2 fTexCoord;\n" +
-                    "uniform sampler2D diffuse;\n" +
-                    "uniform vec4 color;\n" +
-                    "\n" +
-                    "void main() {\n" +
-                    "    gl_FragColor = texture2D(diffuse, fTexCoord);\n"+
-                    "}\n";
-
-    public void _gltCreateText2DShader() {
-        int vertexShader, fragmentShader;
-        int compileStatus, linkStatus;
-
-        vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShader, _gltText2DVertexShaderSource);
-        glCompileShader(vertexShader);
-
-        compileStatus = glGetShaderi(vertexShader, GL_COMPILE_STATUS);
-
-        if (compileStatus != GL_TRUE) {
-            int infoLogLength = glGetShaderi(vertexShader, GL_INFO_LOG_LENGTH);
-
-            RuntimeException e;
-            if (infoLogLength > 1) {
-                final String infoLog = glGetShaderInfoLog(vertexShader, infoLogLength);
-
-                System.out.printf("Vertex Shader #%d <Info Log>:\n%s\n", vertexShader, infoLog);
-                e = new RuntimeException("Failed to compile vertex shader: " + infoLog);
-            } else {
-                e = new RuntimeException("Failed to compile vertex shader");
-            }
-
-            glDeleteShader(vertexShader);
-            gltTerminate();
-
-            throw e;
-        }
-
-        fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, _gltText2DFragmentShaderSource);
-        glCompileShader(fragmentShader);
-
-        compileStatus = glGetShaderi(fragmentShader, GL_COMPILE_STATUS);
-
-        if (compileStatus != GL_TRUE) {
-            int infoLogLength = glGetShaderi(fragmentShader, GL_INFO_LOG_LENGTH);
-
-            RuntimeException e;
-            if (infoLogLength > 1) {
-                final String infoLog = glGetShaderInfoLog(fragmentShader, infoLogLength);
-
-                System.out.printf("Fragment Shader #%d <Info Log>:\n%s\n", fragmentShader, infoLog);
-                e = new RuntimeException("Failed to compile fragment shader: " + infoLog);
-            } else {
-                e =  new RuntimeException("Failed to compile fragment shader");
-            }
-
-            glDeleteShader(vertexShader);
-            glDeleteShader(fragmentShader);
-            gltTerminate();
-
-            throw e;
-        }
-
-        _gltText2DShader = glCreateProgram();
-
-        glAttachShader(_gltText2DShader, vertexShader);
-        glAttachShader(_gltText2DShader, fragmentShader);
-
-        glBindAttribLocation(_gltText2DShader, _GLT_TEXT2D_POSITION_LOCATION, "position");
-        glBindAttribLocation(_gltText2DShader, _GLT_TEXT2D_TEXCOORD_LOCATION, "texCoord");
-
-        glLinkProgram(_gltText2DShader);
-
-        glDetachShader(_gltText2DShader, vertexShader);
-        glDeleteShader(vertexShader);
-
-        glDetachShader(_gltText2DShader, fragmentShader);
-        glDeleteShader(fragmentShader);
-
-        linkStatus = glGetProgrami(_gltText2DShader, GL_LINK_STATUS);
-
-        if (linkStatus != GL_TRUE) {
-            int infoLogLength = glGetProgrami(_gltText2DShader, GL_INFO_LOG_LENGTH);
-
-            RuntimeException e;
-            if (infoLogLength > 1) {
-                final String infoLog = glGetProgramInfoLog(_gltText2DShader, infoLogLength);
-
-                System.out.printf("Shader Program #%d <Info Log>:\n%s\n", _gltText2DShader, infoLog);
-                e = new RuntimeException("Failed to link shader program: " + infoLog);
-            } else {
-                e = new RuntimeException("Failed to link shader program");
-            }
-
-            gltTerminate();
-
-            throw e;
-        }
-
-        glUseProgram(_gltText2DShader);
-
-        _gltText2DShaderMVPUniformLocation = glGetUniformLocation(_gltText2DShader, "mvp");
-        _gltText2DShaderColorUniformLocation = glGetUniformLocation(_gltText2DShader, "color");
-
-        gltColor(1.0F, 1.0F, 1.0F, 1.0F);
-        _gltText2DShaderDiffuseUniformLocation = glGetUniformLocation(_gltText2DShader, "diffuse");
-        glUniform1i(_gltText2DShaderDiffuseUniformLocation, 0);
-
-        glUseProgram(0);
     }
 
     private static final long[] _gltFontGlyphRects = new long[] {
@@ -1426,7 +1333,7 @@ public class GLText {
                         r = 0;
                         g = 0;
                         b = 0;
-                        a = 255; // i didn't like the ugly black outline
+                        a = 0; // i didn't like the ugly black outline
                     } else {
                         throw new RuntimeException("Invalid glyph data");
                     }
@@ -1465,31 +1372,23 @@ public class GLText {
             _gltFontGlyphs2[glyph.c - _gltFontGlyphMinChar] = glyph;
         }
 
+        glUseProgram(0);
         _gltText2DFontTexture = glGenTextures();
+
         glBindTexture(GL_TEXTURE_2D, _gltText2DFontTexture);
 
-        System.out.println("Texture Data (First 16 Bytes):");
-        for (int z = 0; z < Math.min(texData.length, 256); z += 4) {
-            System.out.printf("R: %d, G: %d, B: %d, A: %d\n",
-                    texData[z] & 0xFF, texData[z + 1] & 0xFF, texData[z + 2] & 0xFF, texData[z + 3] & 0xFF);
-        }
         ByteBuffer buffer = ByteBuffer.allocateDirect(texData.length).put(texData);
         buffer.position(0);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
-        glUniform1i(_gltText2DShaderDiffuseUniformLocation, 0); // Assign the sampler to texture unit 0
+
+   //     glUniform1i(_gltText2DShaderDiffuseUniformLocation, 0); // Assign the sampler to texture unit 0
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glBindTexture(GL_TEXTURE_2D, 0);
-        int error = glGetError();
-        if (error != GL_NO_ERROR) {
-            System.err.println("OpenGL Error: " + error);
-        }
-
     }
 
 
