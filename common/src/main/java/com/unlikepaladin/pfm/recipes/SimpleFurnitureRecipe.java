@@ -3,6 +3,7 @@ package com.unlikepaladin.pfm.recipes;
 import com.google.gson.*;
 import com.mojang.serialization.JsonOps;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
+import com.unlikepaladin.pfm.mixin.PFMIngredientMatchingStacksAccessor;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
 import net.minecraft.entity.player.PlayerInventory;
@@ -47,7 +48,7 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
 
         for (int i = 0; i < ingredients.size(); i++) {
             Ingredient ingredient = ingredients.get(i);
-            for (ItemStack stack : ingredient.getMatchingStacks()) {
+            for (ItemStack stack : ((PFMIngredientMatchingStacksAccessor)(Object)ingredient).getMatchingStacks()) {
                 if (playerInventory.count(stack.getItem()) >= stack.getCount()) {
                     hasIngredients.set(i);
                     break;
@@ -60,9 +61,9 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
 
     @Override
     public ItemStack craft(PlayerInventory playerInventory) {
-        if (this.output.getNbt() != null && this.output.getNbt().isEmpty()) {
+        if (this.output.getTag() != null && this.output.getTag().isEmpty()) {
             ItemStack stack = this.output.copy();
-            stack.setNbt(null);
+            stack.setTag(null);
             return stack;
         }
         return this.output.copy();
@@ -156,7 +157,7 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
                     compound.put(nbtElementEntry.getKey(), nbtElementEntry.getValue());
                 }
             }
-            stack.setNbt(compound);
+            stack.setTag(compound);
             return stack;
         }
 

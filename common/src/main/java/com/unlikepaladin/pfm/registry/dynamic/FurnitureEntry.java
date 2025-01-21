@@ -44,7 +44,7 @@ public class FurnitureEntry<T extends Block> {
     public Optional<Block> getEntryFromVariantAndColor(VariantBase<?> variant, DyeColor color) {
         if (variantToBlockMapList.containsKey(variant)) {
             for (T block : variantToBlockMapList.get(variant)) {
-                if (block instanceof DyeableFurnitureBlock dyeableFurnitureBlock && dyeableFurnitureBlock.getPFMColor() == color) {
+                if (block instanceof DyeableFurnitureBlock && ((DyeableFurnitureBlock) block).getPFMColor() == color) {
                     return Optional.of(block);
                 }
             }
@@ -53,7 +53,7 @@ public class FurnitureEntry<T extends Block> {
     }
 
     public List<Identifier> getVariants() {
-        return variantToBlockMap.keySet().stream().map(variantBase -> variantBase.identifier).toList();
+        return variantToBlockMap.keySet().stream().map(variantBase -> variantBase.identifier).collect(Collectors.toList());
     }
 
     public Optional<Block> getEntryFromVariant(VariantBase<?> variant, boolean stripped) {

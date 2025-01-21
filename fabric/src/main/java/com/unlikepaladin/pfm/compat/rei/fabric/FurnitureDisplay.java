@@ -23,16 +23,14 @@ package com.unlikepaladin.pfm.compat.rei.fabric;
  * SOFTWARE.
  */
 
+
 import com.google.common.collect.Lists;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
-
 import com.unlikepaladin.pfm.runtime.data.PFMRecipeProvider;
 import me.shedaniel.rei.api.EntryStack;
-import me.shedaniel.rei.api.RecipeDisplay;
 import me.shedaniel.rei.api.TransferRecipeDisplay;
 import me.shedaniel.rei.server.ContainerInfo;
-import me.shedaniel.rei.utils.CollectionUtils;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
@@ -41,54 +39,85 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FurnitureDisplay implements TransferRecipeDisplay {
     protected FurnitureRecipe recipe;
     public static final Identifier IDENTIFIER = new Identifier(PaladinFurnitureMod.MOD_ID, "furniture");
-    public List<EntryStack> output;
+    private int itemsPerInnerRecipe;
     public FurnitureDisplay(FurnitureRecipe recipe) {
         this.recipe = recipe;
-        output = Collections.singletonList(EntryStack.create(recipe.getOutput()));
+        this.itemsPerInnerRecipe = recipe.getIngredients().size();
     }
 
-    @Override
-    public @NotNull List<List<EntryStack>> getResultingEntries() {
-        return CollectionUtils.map(output, Collections::singletonList);
-    }
+    private final List<List<EntryStack>> inputs = new ArrayList<>();
 
     @Override
     public @NotNull List<List<EntryStack>> getInputEntries() {
-        List<Ingredient> ingredients = recipe.getIngredients();
-        HashMap<Item, Integer> containedItems = new HashMap<>();
-        for (Ingredient ingredient : ingredients) {
-            for (ItemStack stack : PFMRecipeProvider.pfm$getMatchingStacks(ingredient)) {
-                if (!containedItems.containsKey(stack.getItem())) {
-                    containedItems.put(stack.getItem(), 1);
-                } else {
-                    containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + 1);
+        if (!inputs.isEmpty()) return inputs;
+
+        List<Ingredient> inputEntries = new ArrayList<>();
+        this.itemsPerInnerRecipe = recipe.getMaxInnerRecipeSize();
+        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes()) {
+            List<Ingredient> ingredients = innerRecipe.getIngredients();
+            HashMap<Item, Integer> containedItems = new HashMap<>();
+            for (Ingredient ingredient : ingredients) {
+                for (ItemStack stack : PFMRecipeProvider.pfm$getMatchingStacks(ingredient)) {
+                    if (!containedItems.containsKey(stack.getItem())) {
+                        containedItems.put(stack.getItem(), stack.getCount());
+                    } else {
+                        containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + stack.getCount());
+                    }
                 }
             }
-        }
-        List<Ingredient> finalList = new ArrayList<>();
-        for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            finalList.add(Ingredient.ofStacks(new ItemStack(entry.getKey(), entry.getValue())));
-        }
-        finalList.sort(Comparator.comparing(o -> PFMRecipeProvider.pfm$getMatchingStacks(o)[0].getItem().toString()));
+            List<Ingredient> finalList = new ArrayList<>();
+            for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
+                finalList.add(Ingredient.ofStacks(new ItemStack(entry.getKey(), entry.getValue())));
+            }
+            finalList.sort(Comparator.comparing(o -> PFMRecipeProvider.pfm$getMatchingStacks(o)[0].getItem().toString()));
 
-        return EntryStack.ofIngredients(finalList);
+            if (finalList.size() != itemsPerInnerRecipe) {
+                while (finalList.size() != itemsPerInnerRecipe) {
+                    finalList.add(Ingredient.EMPTY);
+                }
+            }
+            inputEntries.addAll(finalList);
+        }
+        for (Ingredient ingredient : inputEntries) {
+            if (!ingredient.isEmpty())
+                inputs.add(EntryStack.ofIngredient(ingredient));
+            else
+                inputs.add(Collections.singletonList(EntryStack.empty()));
+        }
+        return inputs;
     }
+
+    public int itemsPerInnerRecipe() {
+        return itemsPerInnerRecipe;
+    }
+
+    private final List<List<EntryStack>> outputs = new ArrayList<>();
+    @Override
+    public @NotNull List<List<EntryStack>> getResultingEntries() {
+        if (outputs.isEmpty())
+            outputs.addAll(recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getOutput).map(itemStack -> EntryStack.ofItemStacks(Collections.singletonList(itemStack))).collect(Collectors.toList()));
+        return outputs;
+    }
+
 
     @Override
     public @NotNull Identifier getRecipeCategory() {
         return IDENTIFIER;
     }
 
+    @Override
     public int getWidth() {
-        return getSize(getInputEntries().size());
+        return 3;
     }
 
+    @Override
     public int getHeight() {
-        return getSize(getInputEntries().size());
+        return 3;
     }
 
     @Override
@@ -100,24 +129,8 @@ public class FurnitureDisplay implements TransferRecipeDisplay {
         List<List<EntryStack>> inputs = getInputEntries();
         for (int i = 0; i < inputs.size(); i++) {
             List<EntryStack> stacks = inputs.get(i);
-            list.set(getSlotWithSize(this, i, containerInfo.getCraftingWidth(container)), stacks);
+            list.set(FurnitureCategory.getSlotWithSize(this, i, containerInfo.getCraftingWidth(container)), stacks);
         }
         return list;
-    }
-
-    public static int getSlotWithSize(FurnitureDisplay recipeDisplay, int num, int craftingGridWidth) {
-        int x = num % recipeDisplay.getWidth();
-        int y = (num - x) / recipeDisplay.getWidth();
-        return craftingGridWidth * y + x;
-    }
-
-    private static int getSize(int total) {
-        if (total > 4) {
-            return 3;
-        } else if (total > 1) {
-            return 2;
-        } else {
-            return 1;
-        }
     }
 }

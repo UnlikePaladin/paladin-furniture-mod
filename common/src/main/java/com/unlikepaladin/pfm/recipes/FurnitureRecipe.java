@@ -36,7 +36,7 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
 
     static int getSlotWithStackIgnoreNBT(PlayerInventory inventory, ItemStack stack) {
         for(int i = 0; i < inventory.main.size(); ++i) {
-            if (!inventory.main.get(i).isEmpty() && stack.isOf(inventory.main.get(i).getItem())) {
+            if (!inventory.main.get(i).isEmpty() && stack.getItem() == (inventory.main.get(i).getItem())) {
                 return i;
             }
         }
@@ -73,7 +73,7 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
             ItemStack output = getOutput().copy();
             List<Ingredient> ingredients = getIngredients();
             for (Ingredient ingredient : ingredients) {
-                for (ItemStack stack : ingredient.getMatchingStacks()) {
+                for (ItemStack stack : ((PFMIngredientMatchingStacksAccessor)(Object)ingredient).getMatchingStacks()) {
                     int indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, stack);
                     int count = stack.getCount();
                     if (indexOfStack != -1) {

@@ -17,12 +17,16 @@ import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.MathHelper;
+import org.lwjgl.opengl.GL14;
+import org.lwjgl.stb.STBEasyFont;
+import org.lwjgl.system.MemoryUtil;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Base64;
 import java.util.Objects;
 
@@ -44,6 +48,7 @@ public class PFMGeneratingOverlay extends Overlay {
     private final GLText.GLTtext progressText;
     private final GLText.GLTtext notificationText;
     private String lastNotification = null;
+    private static final float[] memorycolour = new float[]{1.0F, 1.0F, 1.0F};
 
     public PFMGeneratingOverlay(Overlay parent, PFMResourceProgress resourceProgress, MinecraftClient client, boolean reloading) {
         this.reloading = reloading;
@@ -99,7 +104,7 @@ public class PFMGeneratingOverlay extends Overlay {
 
         glText.gltViewport(this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
         float timeProgress = this.reloadCompleteTime > -1L ? (float)(l - this.reloadCompleteTime) / 1000.0f : -1.0f;
-
+/*
         int width = this.client.getWindow().getScaledWidth();
         int height = this.client.getWindow().getScaledHeight();
 
@@ -123,7 +128,8 @@ public class PFMGeneratingOverlay extends Overlay {
         int y = (height - logoHeight) / 2;
         this.client.getTextureManager().bindTexture(pfmLogo);
         RenderSystem.color4f(1.0f, 1.0f, 1.0f, 1.0f);
-        drawTexture(matrices, x, y, 0, 0, logoWidth, logoHeight, logoWidth, logoHeight);
+        drawTexture(matrices, x, y, 0, 0, logoWidth, logoHeight, logoWidth, logoHeight);*/
+        RenderSystem.disableCull();
 
         try (Closeable ignored1 = glText.gltBeginDraw()) {
             float textScale = (float) (client.getWindow().getScaleFactor() / 2.0f) * 1.5f;
@@ -159,10 +165,11 @@ public class PFMGeneratingOverlay extends Overlay {
         } catch (Exception ignored) {
 
         }
+        RenderSystem.enableCull();
 
-        if (timeProgress < 1.0f) {
+       /* if (timeProgress < 1.0f) {
             this.renderProgressBar(matrices, width / 2 - barWidth, barHeight - 5, width / 2 + barWidth, barHeight + 5, 1.0f - MathHelper.clamp(timeProgress, 0.0f, 1.0f));
-        }
+        }*/
         if (timeProgress >= 2.0f || (!PFMGenerator.areAssetsRunning() && !PFMGenerator.isDataRunning())) {
             this.client.setOverlay(parent);
             glText.gltTerminate();
@@ -208,5 +215,26 @@ public class PFMGeneratingOverlay extends Overlay {
 
             return textureData;
         }
+    }
+
+    void renderMessage(String message, float[] colour, int line, float alpha) {
+        GlStateManager.enableClientState(32884);
+        ByteBuffer charBuffer = MemoryUtil.memAlloc(message.length() * 270);
+        int quads = STBEasyFont.stb_easy_font_print(0.0F, 0.0F, message, (ByteBuffer)null, charBuffer);
+        GL14.glVertexPointer(2, 5126, 16, charBuffer);
+        RenderSystem.enableBlend();
+        RenderSystem.disableTexture();
+        RenderSystem.disableCull();
+        GL14.glBlendColor(0.0F, 0.0F, 0.0F, alpha);
+        RenderSystem.blendFunc(GlStateManager.SrcFactor.CONSTANT_ALPHA, GlStateManager.DstFactor.ONE_MINUS_CONSTANT_ALPHA);
+        RenderSystem.color3f(colour[0], colour[1], colour[2]);
+        RenderSystem.pushMatrix();
+        RenderSystem.translatef(10.0F, (float)(line * 10), 0.0F);
+        RenderSystem.scalef(1.0F, 1.0F, 0.0F);
+        RenderSystem.drawArrays(7, 0, quads * 4);
+        RenderSystem.popMatrix();
+        RenderSystem.enableCull();
+        GlStateManager.disableClientState(32884);
+        MemoryUtil.memFree(charBuffer);
     }
 }

@@ -24,6 +24,7 @@ import net.minecraft.util.registry.Registry;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.OpenOption;
@@ -275,7 +276,7 @@ public class PFMTagProvider extends PFMProvider {
                 if (!Files.exists(path.getParent()))
                     Files.createDirectories(path.getParent());
 
-                Files.writeString(path, string);
+                Files.write(path, string.getBytes(StandardCharsets.UTF_8));
             }
             catch (IOException iOException) {
                 getParent().getLogger().error("Couldn't save tags to {}", path, iOException);

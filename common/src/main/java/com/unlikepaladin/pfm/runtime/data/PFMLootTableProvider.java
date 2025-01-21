@@ -25,6 +25,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -61,7 +62,7 @@ public class PFMLootTableProvider extends PFMProvider {
                 if (!Files.exists(path2.getParent()))
                     Files.createDirectories(path2.getParent());
 
-                Files.writeString(path2, string);
+                Files.write(path2, string.getBytes(StandardCharsets.UTF_8));
             }
             catch (IOException iOException) {
                 getParent().getLogger().error("Couldn't save loot table {}", path2, iOException);

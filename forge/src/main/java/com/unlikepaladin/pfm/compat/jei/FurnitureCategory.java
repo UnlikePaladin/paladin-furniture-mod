@@ -24,6 +24,7 @@ import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
     private final IDrawable BACKGROUND;
@@ -103,12 +104,12 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
         }
         List<List<ItemStack>> listOfList = new ArrayList<>();
         for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            listOfList.add(List.of(new ItemStack(entry.getKey(), entry.getValue())));
+            listOfList.add(Collections.singletonList(new ItemStack(entry.getKey(), entry.getValue())));
         }
         if (listOfList.size() != itemsPerInnerRecipe) {
             while (listOfList.size() != itemsPerInnerRecipe) {
                 // this is sadly necessary
-                listOfList.add(List.of());
+                listOfList.add(new ArrayList<>());
             }
         }
 
@@ -119,7 +120,7 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
     private final Map<FurnitureRecipe, List<ItemStack>> outputs = new HashMap<>();
     public List<ItemStack> getOutputEntries(FurnitureRecipe recipe) {
         if (!outputs.containsKey(recipe))
-            outputs.put(recipe, recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getOutput).toList());
+            outputs.put(recipe, recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getOutput).collect(Collectors.toList()));
         return outputs.get(recipe);
     }
 
@@ -145,7 +146,7 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
                 boolean broke = false;
                 for (List<ItemStack> listOfOutputs : ingredients.getOutputs(VanillaTypes.ITEM)) {
                     for (ItemStack stack : listOfOutputs) {
-                        if (ItemStack.canCombine(stack, focused.getValue())) {
+                        if (ItemStack.areEqual(stack, focused.getValue())) {
                             focusToOutput.put(focused.getValue(), stack);
                             broke = true;
                             break;
@@ -154,7 +155,7 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
                     if (broke) break;
                 }
             }
-            output = List.of(focusToOutput.get(focused.getValue()));
+            output = Collections.singletonList(focusToOutput.get(focused.getValue()));
             inputs = collectIngredientsFromRecipe(recipe.getInnerRecipeFromOutput(focusToOutput.get(focused.getValue())));
             guiItemStacks.set(craftOutputSlot, output);
             craftingGridHelper.setInputs(guiItemStacks, inputs);

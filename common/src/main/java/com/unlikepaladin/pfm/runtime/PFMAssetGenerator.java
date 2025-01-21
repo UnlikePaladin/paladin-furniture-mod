@@ -27,6 +27,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class PFMAssetGenerator extends PFMGenerator {
     public static boolean FROZEN = false;
@@ -51,9 +52,14 @@ public class PFMAssetGenerator extends PFMGenerator {
             if (!pfmCacheDataFile.toFile().isFile()) {
                 Files.deleteIfExists(pfmCacheDataFile);
                 Files.createFile(pfmCacheDataFile);
-                Files.writeString(pfmCacheDataFile, "{}");
+                Files.write(
+                        pfmCacheDataFile,
+                        "{}".getBytes(StandardCharsets.UTF_8),
+                        StandardOpenOption.APPEND
+                );
             }
-            PFMCache cached = PFMCache.fromJson(JSON_PARSER.parse(Files.readString(pfmCacheDataFile)));
+            String fileContent = new String(Files.readAllBytes(pfmCacheDataFile), StandardCharsets.UTF_8);
+            PFMCache cached = PFMCache.fromJson(JSON_PARSER.parse(fileContent));
             List<String> hashToCompare = hashDirectory(output.toFile(), false);
             List<Identifier> variants = new ArrayList<>();
 
@@ -84,7 +90,7 @@ public class PFMAssetGenerator extends PFMGenerator {
                 ExecutorService executor = Executors.newFixedThreadPool(providers.size());
                 List<? extends Future<?>> futures = providers.stream()
                         .map(provider -> executor.submit(provider::run))
-                        .toList();
+                        .collect(Collectors.toList());
 
                 while (!allDone) {
                     allDone = futures.stream().allMatch(Future::isDone);
@@ -104,7 +110,11 @@ public class PFMAssetGenerator extends PFMGenerator {
                 Files.createFile(pfmCacheDataFile);
                 List<String> newDataHash = hashDirectory(output.toFile(), false);
                 PFMCache cache = new PFMCache(Version.getCurrentVersion(), PFMFileUtil.getModLoader(), newDataHash, variants);
-                Files.writeString(pfmCacheDataFile, GSON.toJson(cache.toJson()), StandardOpenOption.APPEND);
+                Files.write(
+                        pfmCacheDataFile,
+                        GSON.toJson(cache.toJson()).getBytes(StandardCharsets.UTF_8),
+                        StandardOpenOption.APPEND
+                );
             } else {
                 getLogger().info("Data Hash for Assets and Variant List matched, skipping generation");
             }

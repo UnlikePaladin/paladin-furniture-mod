@@ -6,6 +6,7 @@
     "PFMBlockDustParticleMixin",
     "PFMBlockModelsMixin",
     "PFMCrackParticleMixin",
+    "PFMEntryWidgetAccessor",
     "PFMTitleScreenMixin"
   ],
   "mixins": [

@@ -29,6 +29,8 @@ import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import com.unlikepaladin.pfm.runtime.data.PFMRecipeProvider;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
+import me.shedaniel.rei.api.common.display.SimpleGridMenuDisplay;
+import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.minecraft.item.Item;
@@ -37,6 +39,7 @@ import net.minecraft.recipe.Ingredient;
 import net.minecraft.util.Identifier;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FurnitureDisplay extends BasicDisplay implements SimpleGridMenuDisplay {
     protected FurnitureRecipe recipe;
@@ -98,7 +101,7 @@ public class FurnitureDisplay extends BasicDisplay implements SimpleGridMenuDisp
     @Override
     public List<EntryIngredient> getOutputEntries() {
         if (outputs.isEmpty())
-            outputs.addAll(recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getOutput).map(EntryIngredients::of).toList());
+            outputs.addAll(recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getOutput).map(EntryIngredients::of).collect(Collectors.toList()));
         return outputs;
     }
 
@@ -107,8 +110,14 @@ public class FurnitureDisplay extends BasicDisplay implements SimpleGridMenuDisp
         return IDENTIFIER;
     }
 
+
     @Override
-    public Display provideInternalDisplay() {
-        return Display.super.provideInternalDisplay();
+    public int getWidth() {
+        return 3;
+    }
+
+    @Override
+    public int getHeight() {
+        return 3;
     }
 }

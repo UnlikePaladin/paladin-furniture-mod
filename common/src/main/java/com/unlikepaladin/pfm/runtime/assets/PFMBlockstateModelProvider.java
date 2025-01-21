@@ -26,6 +26,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -104,7 +105,7 @@ public class PFMBlockstateModelProvider extends PFMProvider {
                     if (!Files.exists(path2.getParent()))
                         Files.createDirectories(path2.getParent());
 
-                    Files.writeString(path2, string);
+                    Files.write(path2, string.getBytes(StandardCharsets.UTF_8));
                 }
                 catch (Exception exception) {
                     getParent().getLogger().error("Couldn't save {}", path2, exception);

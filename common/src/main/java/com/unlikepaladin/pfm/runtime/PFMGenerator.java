@@ -201,7 +201,7 @@ public abstract class PFMGenerator implements PFMResourceProgress {
         public boolean equals(Object obj) {
             if (obj == this) return true;
             if (obj == null || obj.getClass() != this.getClass()) return false;
-            var that = (PFMCache) obj;
+            PFMCache that = (PFMCache) obj;
             return Objects.equals(this.modVersion, that.modVersion) &&
                     Objects.equals(this.modLoader, that.modLoader) &&
                     Objects.equals(this.variants, that.variants) &&

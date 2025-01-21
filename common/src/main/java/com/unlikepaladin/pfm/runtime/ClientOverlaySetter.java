@@ -18,8 +18,10 @@ public class ClientOverlaySetter {
         long i = Util.getMeasuringTimeNano();
         client.gameRenderer.render(1, i, false);
         client.getFramebuffer().endWrite();
-        RenderSystem.applyModelViewMatrix();
+        RenderSystem.popMatrix();
+        RenderSystem.pushMatrix();
         client.getFramebuffer().draw(client.getWindow().getFramebufferWidth(), client.getWindow().getFramebufferHeight());
+        RenderSystem.popMatrix();
         client.getWindow().swapBuffers();
     }
 

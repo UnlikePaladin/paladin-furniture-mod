@@ -6,7 +6,7 @@ import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import static org.lwjgl.opengl.GL32.*;
+import static org.lwjgl.opengl.GL20.*;
 /*
     Copied from ishland's EarlyLoadingScreen
     https://github.com/ishland/EarlyLoadingScreen/blob/ver/1.19.2/src/main/java/com/ishland/earlyloadingscreen/render/GLText.java
@@ -105,6 +105,7 @@ public class GLText {
     private int _gltText2DFontTexture = GLT_NULL_HANDLE;
     private int _gltText2DShaderMVPUniformLocation = -1;
     private int _gltText2DShaderColorUniformLocation = -1;
+    private int _gltText2DShaderDiffuseUniformLocation = -1;
 
     private float[] _gltText2DProjectionMatrix = new float[16];
 
@@ -114,36 +115,19 @@ public class GLText {
         public boolean _dirty;
         public int vertexCount;
         public float[] _vertices;
-        public int _vao;
         public int _vbo;
     }
 
     public static GLTtext gltCreateText() {
         GLTtext text = new GLTtext();
-        text._vao = glGenVertexArrays();
         text._vbo = glGenBuffers();
 
-        assert text._vao != NULL;
         assert text._vbo != NULL;
 
-        if (text._vao == NULL || text._vbo == NULL) {
+        if (text._vbo == NULL) {
             gltDeleteText(text);
             return null;
         }
-
-        glBindVertexArray(text._vao);
-
-        glBindBuffer(GL_ARRAY_BUFFER, text._vbo);
-
-        glEnableVertexAttribArray(_GLT_TEXT2D_POSITION_LOCATION);
-
-        glVertexAttribPointer(_GLT_TEXT2D_POSITION_LOCATION, _GLT_TEXT2D_POSITION_SIZE, GL_FLOAT, false, (_GLT_TEXT2D_VERTEX_SIZE * Float.BYTES), (_GLT_TEXT2D_POSITION_OFFSET * Float.BYTES));
-
-        glEnableVertexAttribArray(_GLT_TEXT2D_TEXCOORD_LOCATION);
-        glVertexAttribPointer(_GLT_TEXT2D_TEXCOORD_LOCATION, _GLT_TEXT2D_TEXCOORD_SIZE, GL_FLOAT, false, (_GLT_TEXT2D_VERTEX_SIZE * Float.BYTES), (_GLT_TEXT2D_TEXCOORD_OFFSET * Float.BYTES));
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
 
         return text;
     }
@@ -151,11 +135,6 @@ public class GLText {
     public static void gltDeleteText(GLTtext text) {
         if (text == null) {
             return;
-        }
-
-        if (text._vao != NULL) {
-            glDeleteVertexArrays(text._vao);
-            text._vao = NULL;
         }
 
         if (text._vbo != NULL) {
@@ -272,9 +251,16 @@ public class GLText {
 
         glUniformMatrix4fv(_gltText2DShaderMVPUniformLocation, false, mvp);
 
-        glBindVertexArray(text._vao);
+        glBindBuffer(GL_ARRAY_BUFFER, text._vbo);
+        glEnableClientState(GL_VERTEX_ARRAY);
+
+        glVertexPointer(2, GL_FLOAT, 4 * Float.BYTES, 0);
+
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glTexCoordPointer(2, GL_FLOAT, 4 * Float.BYTES, 2 * Float.BYTES);
+
         glDrawArrays(GL_TRIANGLES, 0, text.vertexCount);
-        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     // #define _gltDrawText() \
@@ -287,6 +273,12 @@ public class GLText {
         if (text == null) {
             return;
         }
+
+        glUseProgram(_gltText2DShader);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, _gltText2DFontTexture);
+        glUniform1i(_gltText2DShaderDiffuseUniformLocation, 0);
 
         if (text._dirty) {
             _gltUpdateBuffers(text);
@@ -310,9 +302,16 @@ public class GLText {
 
         glUniformMatrix4fv(_gltText2DShaderMVPUniformLocation, false, mvp);
 
-        glBindVertexArray(text._vao);
+        glBindBuffer(GL_ARRAY_BUFFER, text._vbo);
+        glEnableClientState(GL_VERTEX_ARRAY);
+
+        glVertexPointer(2, GL_FLOAT, 4 * Float.BYTES, 0);
+
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glTexCoordPointer(2, GL_FLOAT, 4 * Float.BYTES, 2 * Float.BYTES);
+
         glDrawArrays(GL_TRIANGLES, 0, text.vertexCount);
-        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     public void gltDrawText2DAligned(GLTtext text, float x, float y, float scale, int horizontalAlignment, int verticalAlignment) {
@@ -396,9 +395,16 @@ public class GLText {
 
         glUniformMatrix4fv(_gltText2DShaderMVPUniformLocation, false, mvp);
 
-        glBindVertexArray(text._vao);
+        glBindBuffer(GL_ARRAY_BUFFER, text._vbo);
+        glEnableClientState(GL_VERTEX_ARRAY);
+
+        glVertexPointer(2, GL_FLOAT, 4 * Float.BYTES, 0);
+
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glTexCoordPointer(2, GL_FLOAT, 4 * Float.BYTES, 2 * Float.BYTES);
+
         glDrawArrays(GL_TRIANGLES, 0, text.vertexCount);
-        glBindVertexArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
 
     // GLT_API void gltColor(GLfloat r, GLfloat g, GLfloat b, GLfloat a)
@@ -1030,40 +1036,20 @@ public class GLText {
         }
     }
 
-    // static const GLchar* _gltText2DVertexShaderSource =
-    //"#version 330 core\n"
-    //"\n"
-    //"in vec2 position;\n"
-    //"in vec2 texCoord;\n"
-    //"\n"
-    //"uniform mat4 mvp;\n"
-    //"\n"
-    //"out vec2 fTexCoord;\n"
-    //"\n"
-    //"void main()\n"
-    //"{\n"
-    //"	fTexCoord = texCoord;\n"
-    //"	\n"
-    //"	gl_Position = mvp * vec4(position, 0.0, 1.0);\n"
-    //"}\n";
     private static final String _gltText2DVertexShaderSource =
-            """
-            #version 150 core
-
-            in vec2 position;
-            in vec2 texCoord;
-
-            uniform mat4 mvp;
-
-            out vec2 fTexCoord;
-
-            void main()
-            {
-                fTexCoord = texCoord;
-                
-                gl_Position = mvp * vec4(position, 0.0, 1.0);
-            }
-            """;
+            "#version 120\n" +
+                    "\n" +
+                    "attribute vec2 position;\n" +
+                    "attribute vec2 texCoord;\n" +
+                    "\n" +
+                    "uniform mat4 mvp;\n" +
+                    "\n" +
+                    "varying vec2 fTexCoord;\n" +
+                    "\n" +
+                    "void main() {\n" +
+                    "    fTexCoord = texCoord;\n" +
+                    "    gl_Position = mvp * vec4(position, 0.0, 1.0);\n" +
+                    "}\n";
 
     // static const GLchar* _gltText2DFragmentShaderSource =
     //"#version 330 core\n"
@@ -1081,25 +1067,15 @@ public class GLText {
     //"	fragColor = texture(diffuse, fTexCoord) * color;\n"
     //"}\n";
     private static final String _gltText2DFragmentShaderSource =
-            """
-            #version 150 core
-
-            out vec4 fragColor;
-
-            uniform sampler2D diffuse;
-
-            uniform vec4 color;
-
-            in vec2 fTexCoord;
-
-            void main()
-            {
-                vec4 outColor = texture(diffuse, fTexCoord) * color;
-                if (outColor.a < 0.01)
-                    discard;
-                fragColor = outColor;
-            }
-            """;
+            "#version 120\n" +
+                    "\n" +
+                    "varying vec2 fTexCoord;\n" +
+                    "uniform sampler2D diffuse;\n" +
+                    "uniform vec4 color;\n" +
+                    "\n" +
+                    "void main() {\n" +
+                    "    gl_FragColor = texture2D(diffuse, fTexCoord);\n"+
+                    "}\n";
 
     public void _gltCreateText2DShader() {
         int vertexShader, fragmentShader;
@@ -1164,8 +1140,6 @@ public class GLText {
         glBindAttribLocation(_gltText2DShader, _GLT_TEXT2D_POSITION_LOCATION, "position");
         glBindAttribLocation(_gltText2DShader, _GLT_TEXT2D_TEXCOORD_LOCATION, "texCoord");
 
-        glBindFragDataLocation(_gltText2DShader, 0, "fragColor");
-
         glLinkProgram(_gltText2DShader);
 
         glDetachShader(_gltText2DShader, vertexShader);
@@ -1200,8 +1174,8 @@ public class GLText {
         _gltText2DShaderColorUniformLocation = glGetUniformLocation(_gltText2DShader, "color");
 
         gltColor(1.0F, 1.0F, 1.0F, 1.0F);
-
-        glUniform1i(glGetUniformLocation(_gltText2DShader, "diffuse"), 0);
+        _gltText2DShaderDiffuseUniformLocation = glGetUniformLocation(_gltText2DShader, "diffuse");
+        glUniform1i(_gltText2DShaderDiffuseUniformLocation, 0);
 
         glUseProgram(0);
     }
@@ -1452,13 +1426,13 @@ public class GLText {
                         r = 0;
                         g = 0;
                         b = 0;
-                        a = 0; // i didn't like the ugly black outline
+                        a = 255; // i didn't like the ugly black outline
                     } else {
                         throw new RuntimeException("Invalid glyph data");
                     }
 
                     texPixelIndex = ((texY + y) * texWidth * texPixelComponents + (texX + x) * texPixelComponents);
-                    texData[texPixelIndex + 0] = (byte) r;
+                    texData[texPixelIndex] = (byte) r;
                     texData[texPixelIndex + 1] = (byte) g;
                     texData[texPixelIndex + 2] = (byte) b;
                     texData[texPixelIndex + 3] = (byte) a;
@@ -1494,7 +1468,15 @@ public class GLText {
         _gltText2DFontTexture = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, _gltText2DFontTexture);
 
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, ByteBuffer.allocateDirect(texData.length).put(texData).position(0));
+        System.out.println("Texture Data (First 16 Bytes):");
+        for (int z = 0; z < Math.min(texData.length, 256); z += 4) {
+            System.out.printf("R: %d, G: %d, B: %d, A: %d\n",
+                    texData[z] & 0xFF, texData[z + 1] & 0xFF, texData[z + 2] & 0xFF, texData[z + 3] & 0xFF);
+        }
+        ByteBuffer buffer = ByteBuffer.allocateDirect(texData.length).put(texData);
+        buffer.position(0);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texWidth, texHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer);
+        glUniform1i(_gltText2DShaderDiffuseUniformLocation, 0); // Assign the sampler to texture unit 0
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -1503,6 +1485,10 @@ public class GLText {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
         glBindTexture(GL_TEXTURE_2D, 0);
+        int error = glGetError();
+        if (error != GL_NO_ERROR) {
+            System.err.println("OpenGL Error: " + error);
+        }
 
     }
 
