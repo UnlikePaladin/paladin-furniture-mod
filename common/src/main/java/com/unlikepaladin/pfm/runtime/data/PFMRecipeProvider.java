@@ -460,7 +460,7 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     public static void offerSimpleBedRecipe(Class<? extends Block> output, String legMaterial, List<Identifier> variants, Ingredient baseBed, Consumer<RecipeJsonProvider> exporter) {
-        DyeColor color = ((BedBlock)((BlockItem)Arrays.stream(((PFMIngredientMatchingStacksAccessor)(Object)baseBed).getMatchingStacks()).findFirst().get().getItem()).getBlock()).getColor();
+        DyeColor color = ((BedBlock)((BlockItem)Arrays.stream(PFMRecipeProvider.pfm$getMatchingStacks(baseBed)).findFirst().get().getItem()).getBlock()).getColor();
         NbtCompound tag = new NbtCompound();
         tag.putString("color", color.asString());
         DynamicFurnitureRecipeJsonFactory.create(output, 1, variants, tag).group("bedroom").childInput(legMaterial, 5).vanillaInput(baseBed, 1).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US) + "_"+ color.asString()));
@@ -468,10 +468,10 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     public static void offerClassicBedRecipe(Class<? extends Block> output, String legMaterial, List<Identifier> variants, Ingredient baseBed, String fence, Consumer<RecipeJsonProvider> exporter) {
-        DyeColor color = ((BedBlock)((BlockItem)Arrays.stream(((PFMIngredientMatchingStacksAccessor)(Object)baseBed).getMatchingStacks()).findFirst().get().getItem()).getBlock()).getColor();
+        DyeColor color = ((BedBlock)((BlockItem)Arrays.stream(PFMRecipeProvider.pfm$getMatchingStacks(baseBed)).findFirst().get().getItem()).getBlock()).getColor();
         NbtCompound tag = new NbtCompound();
         tag.putString("color", color.asString());
-        DynamicFurnitureRecipeJsonFactory.create(output, 1, variants, tag).group("bedroom").childInput(legMaterial, 3).childInput(fence, 2).vanillaInput(baseBed, 1).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US) + "_"+ ((BedBlock)((BlockItem)Arrays.stream(((PFMIngredientMatchingStacksAccessor)(Object)baseBed).getMatchingStacks()).findFirst().get().getItem()).getBlock()).getColor()));
+        DynamicFurnitureRecipeJsonFactory.create(output, 1, variants, tag).group("bedroom").childInput(legMaterial, 3).childInput(fence, 2).vanillaInput(baseBed, 1).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US) + "_"+ ((BedBlock)((BlockItem)Arrays.stream(PFMRecipeProvider.pfm$getMatchingStacks(baseBed)).findFirst().get().getItem()).getBlock()).getColor()));
     }
 
     public static void offerSimpleBunkLadderRecipe(Class<? extends Block> output, String base, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {

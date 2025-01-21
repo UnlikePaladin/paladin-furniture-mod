@@ -13,6 +13,7 @@ import com.unlikepaladin.pfm.data.materials.WoodVariant;
 import com.unlikepaladin.pfm.mixin.PFMIngredientMatchingStacksAccessor;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
+import com.unlikepaladin.pfm.runtime.data.PFMRecipeProvider;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -171,7 +172,6 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
     @Override
     public ItemStack getOutput() {
-        PaladinFurnitureMod.GENERAL_LOGGER.warn("Something has tried to get the output of a dynamic furniture recipe without context");
         return ItemStack.EMPTY;
     }
 
@@ -263,7 +263,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             BitSet hasIngredient = new BitSet(allIngredients.size());
             for (int i = 0; i < allIngredients.size(); i++) {
                 Ingredient ingredient = allIngredients.get(i);
-                for (ItemStack stack : ((PFMIngredientMatchingStacksAccessor)(Object)ingredient).getMatchingStacks()) {
+                for (ItemStack stack : PFMRecipeProvider.pfm$getMatchingStacks(ingredient)) {
                     int countInInventory = inventory.count(stack.getItem());
                     if (countInInventory >= stack.getCount()) {
                         hasIngredient.set(i, true);

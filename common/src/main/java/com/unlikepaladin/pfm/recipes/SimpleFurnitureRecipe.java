@@ -6,6 +6,7 @@ import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.mixin.PFMIngredientMatchingStacksAccessor;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
+import com.unlikepaladin.pfm.runtime.data.PFMRecipeProvider;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -48,7 +49,7 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
 
         for (int i = 0; i < ingredients.size(); i++) {
             Ingredient ingredient = ingredients.get(i);
-            for (ItemStack stack : ((PFMIngredientMatchingStacksAccessor)(Object)ingredient).getMatchingStacks()) {
+            for (ItemStack stack : PFMRecipeProvider.pfm$getMatchingStacks(ingredient)) {
                 if (playerInventory.count(stack.getItem()) >= stack.getCount()) {
                     hasIngredients.set(i);
                     break;

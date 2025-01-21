@@ -73,7 +73,7 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
             ItemStack output = getOutput().copy();
             List<Ingredient> ingredients = getIngredients();
             for (Ingredient ingredient : ingredients) {
-                for (ItemStack stack : ((PFMIngredientMatchingStacksAccessor)(Object)ingredient).getMatchingStacks()) {
+                for (ItemStack stack : PFMRecipeProvider.pfm$getMatchingStacks(ingredient)) {
                     int indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, stack);
                     int count = stack.getCount();
                     if (indexOfStack != -1) {
