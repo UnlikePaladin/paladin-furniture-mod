@@ -89,6 +89,19 @@ public class PFMDataGenerator extends PFMGenerator {
                 }
                 executor.shutdown();
 
+                // Check for errors in providers
+                for (Future<?> future : futures) {
+                    try {
+                        future.get(); // This will throw an exception if the task failed
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt(); // Restore interrupt status
+                        error("Provider was interrupted: " + e.getMessage());
+                    } catch (ExecutionException e) {
+                        error("Provider failed with exception: " + e.getCause());
+                        e.getCause().printStackTrace();
+                    }
+                }
+
                 getLogger().info("Data providers took: {} ms", stopwatch.elapsed(TimeUnit.MILLISECONDS));
 
                 Files.deleteIfExists(pfmCacheDataFile);
