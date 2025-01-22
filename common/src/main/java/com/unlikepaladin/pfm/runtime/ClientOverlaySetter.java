@@ -14,11 +14,14 @@ public class ClientOverlaySetter {
 
     public static void updateScreen() {
         MinecraftClient client = MinecraftClient.getInstance();
+        // I can't believe i missed this single pushMatrix call
+        RenderSystem.pushMatrix();
         client.getFramebuffer().beginWrite(true);
         long i = Util.getMeasuringTimeNano();
         client.gameRenderer.render(1, i, false);
         client.getFramebuffer().endWrite();
         RenderSystem.popMatrix();
+
         RenderSystem.pushMatrix();
         client.getFramebuffer().draw(client.getWindow().getFramebufferWidth(), client.getWindow().getFramebufferHeight());
         RenderSystem.popMatrix();
