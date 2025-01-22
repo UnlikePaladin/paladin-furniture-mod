@@ -142,11 +142,11 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
         List<ItemStack> output;
         if (focused != null && focused.getMode() == IFocus.Mode.OUTPUT) {
             // cache focus
-            if (!focusToOutput.containsKey(focused.getValue())) {
+            if (focused.getValue() != null && !focusToOutput.containsKey(focused.getValue())) {
                 boolean broke = false;
                 for (List<ItemStack> listOfOutputs : ingredients.getOutputs(VanillaTypes.ITEM)) {
                     for (ItemStack stack : listOfOutputs) {
-                        if (ItemStack.areEqual(stack, focused.getValue())) {
+                        if (ItemStack.areItemsEqualIgnoreDamage(stack, focused.getValue()) && ItemStack.areTagsEqual(stack, focused.getValue())) {
                             focusToOutput.put(focused.getValue(), stack);
                             broke = true;
                             break;

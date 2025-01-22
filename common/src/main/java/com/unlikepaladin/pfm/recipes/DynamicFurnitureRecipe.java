@@ -55,7 +55,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             if (variant == null || furnitureInnerRecipes.containsKey(id)) continue;
             Optional<Block> optionalOutput;
 
-            NbtCompound outputCompound = furnitureOutput.nbt != null ? furnitureOutput.nbt.copy() : null;
+            NbtCompound outputCompound = furnitureOutput.nbt != null && !furnitureOutput.nbt.isEmpty() ? furnitureOutput.nbt.copy() : null;
 
             if (outputCompound != null && outputCompound.contains("color")) {
                 optionalOutput = PaladinFurnitureModBlocksItems.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariantAndColor(variant, DyeColor.byName(outputCompound.getString("color"), DyeColor.WHITE));
@@ -106,8 +106,8 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
                 if (strippedOptional.isPresent()) {
 
                     ItemStack strippedOutput = new ItemStack(strippedOptional.get(), furnitureOutput.getOutputCount());
-                    if (furnitureOutput.nbt != null  && !furnitureOutput.nbt.isEmpty())
-                        output.setTag(furnitureOutput.nbt.copy());
+                    if (outputCompound != null  && !outputCompound.isEmpty())
+                        strippedOutput.setTag(outputCompound);
 
                     FurnitureInnerRecipe stripped = new FurnitureInnerRecipe(this, strippedOutput, strippedIngredients);
                     recipes.add(stripped);

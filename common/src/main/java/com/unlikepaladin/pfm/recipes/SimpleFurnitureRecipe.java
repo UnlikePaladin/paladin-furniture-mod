@@ -158,7 +158,9 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
                     compound.put(nbtElementEntry.getKey(), nbtElementEntry.getValue());
                 }
             }
-            stack.setTag(compound);
+            if (!compound.isEmpty())
+                stack.setTag(compound);
+
             return stack;
         }
 
@@ -180,6 +182,9 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
                 defaultedList.set(j, Ingredient.fromPacket(packetByteBuf));
             }
             ItemStack itemStack = packetByteBuf.readItemStack();
+            if (itemStack.getTag() != null && itemStack.getTag().isEmpty())
+                itemStack.setTag(null);
+
             return new SimpleFurnitureRecipe(identifier, string, itemStack, defaultedList);
         }
 

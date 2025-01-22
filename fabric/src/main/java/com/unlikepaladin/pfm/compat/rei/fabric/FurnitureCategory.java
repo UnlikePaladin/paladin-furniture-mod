@@ -74,6 +74,7 @@ public class FurnitureCategory implements TransferRecipeCategory<FurnitureDispla
             stackToSlotIndex.put(ingredient.get(0), recipeIndex);
             recipeIndex++;
         }
+        widgets.add(output);
 
 
         List<Slot> slots = Lists.newArrayList();
