@@ -156,7 +156,8 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
                     compound.put(nbtElementEntry.getKey(), nbtElementEntry.getValue());
                 }
             }
-            stack.setNbt(compound);
+            if (!compound.isEmpty())
+                stack.setNbt(compound);
             return stack;
         }
 

@@ -170,7 +170,7 @@ public class PFMRecipeProvider extends PFMProvider {
         offerCounterApplianceRecipe(KitchenDrawerBlock.class, "secondary", "base", PaladinFurnitureModBlocksItems.furnitureEntryMap.get(KitchenDrawerBlock.class).getVariants(), Ingredient.ofItems(Items.CHEST), exporter);
         offerCounterApplianceRecipe(KitchenCounterOvenBlock.class, "secondary", "base", PaladinFurnitureModBlocksItems.furnitureEntryMap.get(KitchenCounterOvenBlock.class).getVariants(), Ingredient.ofItems(Items.FURNACE), exporter);
         offerCounterRecipe(KitchenWallCounterBlock.class, "base", "base", PaladinFurnitureModBlocksItems.furnitureEntryMap.get(KitchenWallCounterBlock.class).getVariants(), exporter);
-        offerWallDrawerRecipe(KitchenWallDrawerBlock.class, "secondary", "base", PaladinFurnitureModBlocksItems.furnitureEntryMap.get(KitchenWallCounterBlock.class).getVariants(), Ingredient.ofItems(Items.CHEST), exporter);
+        offerWallDrawerRecipe(KitchenWallDrawerBlock.class, "secondary", "base", PaladinFurnitureModBlocksItems.furnitureEntryMap.get(KitchenWallDrawerBlock.class).getVariants(), Ingredient.ofItems(Items.CHEST), exporter);
         offerWallDrawerSmallRecipe(KitchenWallDrawerSmallBlock.class, "secondary", "base", PaladinFurnitureModBlocksItems.furnitureEntryMap.get(KitchenWallDrawerSmallBlock.class).getVariants(), Ingredient.ofItems(Items.CHEST), exporter);
         offerCabinetRecipe(KitchenCabinetBlock.class, "secondary", "base", PaladinFurnitureModBlocksItems.furnitureEntryMap.get(KitchenCabinetBlock.class).getVariants(), Ingredient.ofItems(Items.CHEST), exporter);
 
