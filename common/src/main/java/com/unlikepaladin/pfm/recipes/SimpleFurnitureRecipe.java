@@ -160,7 +160,6 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
             }
             if (!compound.isEmpty())
                 stack.setTag(compound);
-
             return stack;
         }
 

@@ -107,7 +107,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
                     ItemStack strippedOutput = new ItemStack(strippedOptional.get(), furnitureOutput.getOutputCount());
                     if (outputCompound != null  && !outputCompound.isEmpty())
-                        strippedOutput.setTag(outputCompound);
+                        output.setTag(outputCompound.copy());
 
                     FurnitureInnerRecipe stripped = new FurnitureInnerRecipe(this, strippedOutput, strippedIngredients);
                     recipes.add(stripped);
