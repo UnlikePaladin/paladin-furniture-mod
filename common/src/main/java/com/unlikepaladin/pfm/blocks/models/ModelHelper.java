@@ -60,7 +60,7 @@ public class ModelHelper {
     public static boolean containsIdentifier(Identifier[] modelIds, Identifier comparison) {
         AtomicBoolean contains = new AtomicBoolean(false);
         Arrays.stream(modelIds).forEach(identifier -> {
-            if (comparison.getPath().equals(identifier.getPath())){
+            if (comparison.getPath().equals(identifier.getPath()) && comparison.getNamespace().equals(identifier.getNamespace())){
                 contains.set(true);
             }
         });
