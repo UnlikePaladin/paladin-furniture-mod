@@ -103,6 +103,14 @@ public abstract class PFMGenerator implements PFMResourceProgress {
         log(s, "", "");
     }
 
+    public synchronized void error(String s) {
+        error(s, "", "");
+    }
+
+    public synchronized void error(String s, Object p0, Object p1) {
+        logger.error(s, p0, p1);
+    }
+
     public synchronized void log(String s, Object p0, Object p1) {
         if (logOrDebug)
             logger.info(s, p0, p1);

@@ -23,10 +23,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class PFMAssetGenerator extends PFMGenerator {
@@ -97,11 +94,23 @@ public class PFMAssetGenerator extends PFMGenerator {
 
                     int completedTasks = (int) futures.stream().filter(Future::isDone).count();
                     this.setCount(completedTasks);
-                    long i = Util.getMeasuringTimeNano();
                     if (PaladinFurnitureMod.isClient)
                         ClientOverlaySetter.updateScreen();
                 }
                 executor.shutdown();
+
+                // Check for errors in providers
+                for (Future<?> future : futures) {
+                    try {
+                        future.get(); // This will throw an exception if the task failed
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt(); // Restore interrupt status
+                        error("Provider was interrupted: " + e.getMessage());
+                    } catch (ExecutionException e) {
+                        error("Provider failed with exception: " + e.getCause());
+                        e.getCause().printStackTrace();
+                    }
+                }
 
                 getLogger().info("Asset providers took: {} ms", stopwatch.elapsed(TimeUnit.MILLISECONDS));
                 this.createPackIcon();
