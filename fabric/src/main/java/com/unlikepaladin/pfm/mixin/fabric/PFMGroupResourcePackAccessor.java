@@ -1,5 +1,6 @@
 package com.unlikepaladin.pfm.mixin.fabric;
 
+import net.fabricmc.fabric.api.resource.ModResourcePack;
 import net.fabricmc.fabric.impl.resource.loader.GroupResourcePack;
 import net.minecraft.resource.ResourcePack;
 import org.spongepowered.asm.mixin.Mixin;
@@ -10,5 +11,5 @@ import java.util.List;
 @Mixin(GroupResourcePack.class)
 public interface PFMGroupResourcePackAccessor {
     @Accessor("packs")
-    List<? extends ResourcePack> getPacks();
+    List<ModResourcePack> getPacks();
 }

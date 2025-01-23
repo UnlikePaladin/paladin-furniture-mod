@@ -56,10 +56,10 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             NbtCompound outputCompound = furnitureOutput.nbt != null ? furnitureOutput.nbt.copy() : null;
 
             if (outputCompound != null && outputCompound.contains("color")) {
-                optionalOutput = PaladinFurnitureModBlocksItems.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariantAndColor(variant, DyeColor.byName(outputCompound.getString("color"), DyeColor.WHITE));
+                optionalOutput = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariantAndColor(variant, DyeColor.byName(outputCompound.getString("color"), DyeColor.WHITE));
                 outputCompound.remove("color");
             } else {
-                optionalOutput = PaladinFurnitureModBlocksItems.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariant(variant);
+                optionalOutput = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariant(variant);
             }
             if (optionalOutput.isEmpty()) continue;
 
@@ -99,7 +99,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
                     strippedIngredients.set(0, Ingredient.ofItems((Block)woodVariant.getChild("stripped_log")));
                 }
 
-                Optional<Block> strippedOptional = PaladinFurnitureModBlocksItems.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariant(variant, true);
+                Optional<Block> strippedOptional = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariant(variant, true);
                 if (strippedOptional.isPresent()) {
 
                     ItemStack strippedOutput = new ItemStack(strippedOptional.get(), furnitureOutput.getOutputCount());

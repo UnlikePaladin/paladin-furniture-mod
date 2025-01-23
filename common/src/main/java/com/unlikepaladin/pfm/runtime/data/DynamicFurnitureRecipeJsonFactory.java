@@ -21,6 +21,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.tag.Tag;
+import net.minecraft.tag.TagKey;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,7 +32,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 public class DynamicFurnitureRecipeJsonFactory {
-    private final Advancement.Task builder = Advancement.Task.create();
+    private final Advancement.Builder builder = Advancement.Builder.create();
     private List<Ingredient> vanillaIngredients = Lists.newArrayList();
 
     private final String outputClass;
@@ -129,7 +130,7 @@ public class DynamicFurnitureRecipeJsonFactory {
         return outputClass;
     }
 
-    public DynamicFurnitureRecipeJsonFactory vanillaInput(Tag<Item> tag) {
+    public DynamicFurnitureRecipeJsonFactory vanillaInput(TagKey<Item> tag) {
         return this.vanillaInput(Ingredient.fromTag(tag));
     }
 
@@ -192,12 +193,12 @@ public class DynamicFurnitureRecipeJsonFactory {
         private final List<Ingredient> vanillaIngredients;
         private final Map<String, Integer> variantChildren;
         private final List<Identifier> supportedVariants;
-        private final Advancement.Task builder;
+        private final Advancement.Builder builder;
         private final Identifier advancementId;
         @Nullable
         private final NbtElement nbtElement;
 
-        public DynamicFurnitureRecipeJsonProvider(Identifier recipeId, String outputClass, @Nullable NbtElement nbtElement, int outputCount, String group, List<Ingredient> vanillaIngredients, List<Identifier> supportedVariants, Map<String, Integer> variantChildren, Advancement.Task builder, Identifier advancementId) {
+        public DynamicFurnitureRecipeJsonProvider(Identifier recipeId, String outputClass, @Nullable NbtElement nbtElement, int outputCount, String group, List<Ingredient> vanillaIngredients, List<Identifier> supportedVariants, Map<String, Integer> variantChildren, Advancement.Builder builder, Identifier advancementId) {
             this.recipeId = recipeId;
             this.outputClass = outputClass;
             this.count = outputCount;
