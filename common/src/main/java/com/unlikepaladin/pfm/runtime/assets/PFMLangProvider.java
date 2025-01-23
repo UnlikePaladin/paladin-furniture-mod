@@ -14,6 +14,8 @@ import com.unlikepaladin.pfm.registry.QuadFunc;
 import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
 import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
+import com.unlikepaladin.pfm.utilities.PFMFileUtil;
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.LanguageDefinition;
@@ -180,10 +182,13 @@ public class PFMLangProvider extends PFMProvider {
         HashMap<String, LanguageDefinition> map = Maps.newHashMap();
         packs.forEach(pack -> {
             try {
-                LanguageResourceMetadata languageResourceMetadata = pack.parseMetadata(LanguageResourceMetadata.READER);
-                if (languageResourceMetadata != null) {
-                    for (LanguageDefinition languageDefinition : languageResourceMetadata.getLanguageDefinitions()) {
-                        map.putIfAbsent(languageDefinition.getCode(), languageDefinition);
+                List<ResourcePack> subPacks = PFMFileUtil.getSubPacks(pack);
+                for (ResourcePack subPack : subPacks) {
+                    LanguageResourceMetadata languageResourceMetadata = subPack.parseMetadata(LanguageResourceMetadata.READER);
+                    if (languageResourceMetadata != null) {
+                        for (LanguageDefinition languageDefinition : languageResourceMetadata.getLanguageDefinitions()) {
+                            map.putIfAbsent(languageDefinition.getCode(), languageDefinition);
+                        }
                     }
                 }
             }
@@ -195,7 +200,6 @@ public class PFMLangProvider extends PFMProvider {
     }
     private Map<String, LanguageDefinition> languageDefs = ImmutableMap.of("en_us", PFMLanguageManagerAccessor.getEnglish_Us());
     private static volatile Language language = Language.getInstance();
-
 
     public void loadLanguages(ResourceManager manager) {
         this.languageDefs = loadAvailableLanguages(PFMRuntimeResources.RESOURCE_PACK_LIST.stream());
@@ -294,7 +298,7 @@ public class PFMLangProvider extends PFMProvider {
             } else {
                 String key = "block.pfm.variant."+variant.getIdentifier().getPath();
                 String translatedVariantName = translate(key);
-                if (translatedVariantName.equals(key)) {
+                if (translatedVariantName.equals(key) || !variant.isVanilla()) {
                     translatedVariantName = getTranslatedVariantName(variant);
                 }
                 String translatedFurnitureName = StringUtils.normalizeSpace(blockStringStringStringStringQuadFunc.apply(block, furnitureKey, "", translatedVariantName));

@@ -12,7 +12,8 @@
   "mixins": [
     "PFMCookingPotBlockEntityMixin",
     "PFMModResourcePackCreatorMixin",
-    "PFMReloadableResourceManagerImplMixin"
+    "PFMReloadableResourceManagerImplMixin",
+    "PFMGroupResourcePackAccessor"
   ],
   "injectors": {
     "defaultRequire": 1
