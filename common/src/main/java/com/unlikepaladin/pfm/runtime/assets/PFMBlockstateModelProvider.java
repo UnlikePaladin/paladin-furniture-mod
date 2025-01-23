@@ -26,6 +26,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.registry.Registry;
 
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -38,11 +40,13 @@ public class PFMBlockstateModelProvider extends PFMProvider {
     public static Map<Block, Identifier> modelPathMap = new HashMap<>();
 
     public PFMBlockstateModelProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Blockstates and Models");
         parent.setProgress("Generating Blockstates and Models");
     }
 
-    public void run(DataCache cache) {
+    @Override
+    public void run() {
+        startProviderRun();
         Path path = getParent().getOutput();
         HashMap<Block, BlockStateSupplier> blockstates = Maps.newHashMap();
         Consumer<BlockStateSupplier> blockStateSupplierConsumer = blockStateSupplier -> {
@@ -76,8 +80,9 @@ public class PFMBlockstateModelProvider extends PFMProvider {
                 }
             }
         });
-        this.writeJsons(cache, path, blockstates, PFMBlockstateModelProvider::getBlockStateJsonPath);
-        this.writeJsons(cache, path, models, PFMBlockstateModelProvider::getModelJsonPath);
+        this.writeJsons(path, blockstates, PFMBlockstateModelProvider::getBlockStateJsonPath);
+        this.writeJsons(path, models, PFMBlockstateModelProvider::getModelJsonPath);
+        endProviderRun();
     }
 
     private static Path getBlockStateJsonPath(Path root, Block block) {
@@ -90,12 +95,16 @@ public class PFMBlockstateModelProvider extends PFMProvider {
     }
 
 
-    private <T> void writeJsons(DataCache cache, Path root, Map<T, ? extends Supplier<JsonElement>> jsons, BiFunction<Path, T, Path> locator) {
+    private <T> void writeJsons(Path root, Map<T, ? extends Supplier<JsonElement>> jsons, BiFunction<Path, T, Path> locator) {
         jsons.forEach((object, supplier) -> {
             Path path2 = locator.apply(root, object);
-            if (supplier != null && object != null && path2 != null)
+            if (supplier != null && supplier.get() != null && object != null && path2 != null)
                 try {
-                    DataProvider.writeToPath(PFMDataGenerator.GSON, cache, supplier.get(), path2);
+                    String string = PFMDataGenerator.GSON.toJson(supplier.get());
+                    if (!Files.exists(path2.getParent()))
+                        Files.createDirectories(path2.getParent());
+
+                    Files.writeString(path2, string);
                 }
                 catch (Exception exception) {
                     getParent().getLogger().error("Couldn't save {}", path2, exception);

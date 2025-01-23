@@ -10,6 +10,7 @@ import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.registration.ISubtypeRegistration;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.item.ItemStack;
@@ -32,8 +33,8 @@ public class PaladinFurnitureModJEIPlugin implements IModPlugin {
         Collection<FreezingRecipe> freezingRecipes = world.getRecipeManager().listAllOfType(RecipeTypes.FREEZING_RECIPE);
         registration.addRecipes(freezingRecipes, FreezingCategory.IDENTIFIER);
 
-        Collection<FurnitureRecipe> furnitureRecipes = world.getRecipeManager().listAllOfType(RecipeTypes.FURNITURE_RECIPE);
-        registration.addRecipes(furnitureRecipes, FurnitureCategory.IDENTIFIER);
+        Collection<FurnitureRecipe> simpleFurnitureRecipes = world.getRecipeManager().listAllOfType(RecipeTypes.FURNITURE_RECIPE);
+        registration.addRecipes(simpleFurnitureRecipes, FurnitureCategory.IDENTIFIER);
     }
 
     @Override

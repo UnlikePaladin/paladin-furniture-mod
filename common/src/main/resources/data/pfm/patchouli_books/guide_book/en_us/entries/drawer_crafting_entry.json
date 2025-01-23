@@ -9,42 +9,17 @@
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_kitchen_drawer",
-      "recipe2": "pfm:stripped_oak_kitchen_wall_drawer"
+      "recipe": "pfm:kitchen_drawer_block",
+      "variant": "oak",
+      "recipe2": "pfm:kitchen_wall_drawer_block",
+      "variant2": "spruce"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:concrete_kitchen_wall_drawer",
-      "recipe2": "pfm:dark_concrete_kitchen_drawer"
-    },
-    {
-      "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:light_wood_kitchen_drawer",
-      "recipe2": "pfm:dark_wood_kitchen_wall_drawer"
-    },
-    {
-      "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:granite_kitchen_wall_drawer",
-      "recipe2": "pfm:calcite_kitchen_drawer"
-    },
-    {
-      "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:netherite_kitchen_drawer",
-      "recipe2": "pfm:andesite_kitchen_wall_drawer"
-    },
-    {
-      "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:diorite_kitchen_wall_drawer",
-      "recipe2": "pfm:stone_kitchen_drawer"
-    },
-    {
-      "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:deepslate_tile_kitchen_wall_drawer",
-      "recipe2": "pfm:deepslate_kitchen_drawer"
-    },
-    {
-      "type": "pfm:furniturerecipetemplate",
-      "recipe": "pfm:blackstone_kitchen_drawer"
+      "recipe": "pfm:kitchen_wall_drawer_small_block",
+      "variant": "stone",
+      "recipe2": "pfm:kitchen_drawer_block",
+      "variant2": "dark_concrete"
     },
     {
       "type": "patchouli:empty",
