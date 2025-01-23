@@ -33,6 +33,15 @@ public class LampItem extends BlockItem {
         return String.format("block.pfm.basic_%s_%s_lamp", color.asString(), variant.asString());
     }
 
+    @Override
+    public ItemStack getDefaultStack() {
+        ItemStack stack = new ItemStack(this);
+        NbtCompound tag = new NbtCompound();
+        tag.putString("color", DyeColor.WHITE.asString());
+        tag.putString("variant", WoodVariantRegistry.OAK.asString());
+        stack.setSubNbt("BlockEntityTag", tag);
+        return stack;
+    }
 
     @Override
     public void appendStacks(ItemGroup group, DefaultedList<ItemStack> stacks) {

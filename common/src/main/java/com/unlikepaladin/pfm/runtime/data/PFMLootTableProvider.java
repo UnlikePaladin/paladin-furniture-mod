@@ -25,6 +25,8 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -38,11 +40,13 @@ public class PFMLootTableProvider extends PFMProvider {
     private final List<Pair<Supplier<Consumer<BiConsumer<Identifier, LootTable.Builder>>>, LootContextType>> lootTypeGenerators = ImmutableList.of(Pair.of(PFMLootTableGenerator::new, LootContextTypes.BLOCK));
 
     public PFMLootTableProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Drops");
         parent.setProgress("Generating Loot Tables");
     }
 
-    public void run(DataWriter writer) {
+    @Override
+    public void run() {
+        startProviderRun();
         Path path = getParent().getOutput();
         HashMap<Identifier, LootTable> map = Maps.newHashMap();
         this.lootTypeGenerators.forEach((pair) -> pair.getFirst().get().accept((identifier, builder) -> {
@@ -53,12 +57,17 @@ public class PFMLootTableProvider extends PFMProvider {
         map.forEach((identifier, lootTable) -> {
             Path path2 = getOutput(path, identifier);
             try {
-                DataProvider.writeToPath(writer, LootManager.toJson(lootTable), path2);
+                String string = PFMDataGenerator.GSON.toJson(LootManager.toJson(lootTable));
+                if (!Files.exists(path2.getParent()))
+                    Files.createDirectories(path2.getParent());
+
+                Files.writeString(path2, string);
             }
             catch (IOException iOException) {
                 getParent().getLogger().error("Couldn't save loot table {}", path2, iOException);
             }
         });
+        endProviderRun();
     }
 
     public String getName() {

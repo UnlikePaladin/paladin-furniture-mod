@@ -13,14 +13,14 @@ import com.unlikepaladin.pfm.registry.QuadFunc;
 import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
 import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
+import com.unlikepaladin.pfm.utilities.PFMFileUtil;
+import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.block.Block;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.resource.language.LanguageDefinition;
 import net.minecraft.client.resource.language.LanguageManager;
 import net.minecraft.client.resource.language.TranslationStorage;
 import net.minecraft.client.resource.metadata.LanguageResourceMetadata;
-import net.minecraft.data.DataProvider;
-import net.minecraft.data.DataWriter;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.resource.*;
 import net.minecraft.util.DyeColor;
@@ -41,11 +41,13 @@ import java.util.stream.Stream;
 public class PFMLangProvider extends PFMProvider {
 
     public PFMLangProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Lang");
         parent.setProgress("Generating Language Resources");
     }
 
+    @Override
     public void run() {
+        startProviderRun();
         try (PFMResourceManager resourceManager = new PFMResourceManager(ResourceType.CLIENT_RESOURCES, PFMRuntimeResources.RESOURCE_PACK_LIST)) {
             loadLanguages(resourceManager);
             resourceManager.close();
@@ -153,6 +155,7 @@ public class PFMLangProvider extends PFMProvider {
             getParent().getLogger().error("Writer exception: " + e);
             e.printStackTrace();
         }
+        endProviderRun();
     }
 
     public String simpleStrippedFurnitureTranslation(Block block, String furnitureKey, String strippedKey, String translatedVariantName) {
@@ -178,10 +181,13 @@ public class PFMLangProvider extends PFMProvider {
         HashMap<String, LanguageDefinition> map = Maps.newHashMap();
         packs.forEach(pack -> {
             try {
-                LanguageResourceMetadata languageResourceMetadata = pack.parseMetadata(LanguageResourceMetadata.READER);
-                if (languageResourceMetadata != null) {
-                    for (LanguageDefinition languageDefinition : languageResourceMetadata.getLanguageDefinitions()) {
-                        map.putIfAbsent(languageDefinition.getCode(), languageDefinition);
+                List<ResourcePack> subPacks = PFMFileUtil.getSubPacks(pack);
+                for (ResourcePack subPack : subPacks) {
+                    LanguageResourceMetadata languageResourceMetadata = subPack.parseMetadata(LanguageResourceMetadata.READER);
+                    if (languageResourceMetadata != null) {
+                        for (LanguageDefinition languageDefinition : languageResourceMetadata.getLanguageDefinitions()) {
+                            map.putIfAbsent(languageDefinition.getCode(), languageDefinition);
+                        }
                     }
                 }
             }
@@ -193,7 +199,6 @@ public class PFMLangProvider extends PFMProvider {
     }
     private Map<String, LanguageDefinition> languageDefs = ImmutableMap.of("en_us", PFMLanguageManagerAccessor.getEnglish_Us());
     private static volatile Language language = Language.getInstance();
-
 
     public void loadLanguages(ResourceManager manager) {
         this.languageDefs = loadAvailableLanguages(manager.streamResourcePacks());
@@ -292,7 +297,7 @@ public class PFMLangProvider extends PFMProvider {
             } else {
                 String key = "block.pfm.variant."+variant.getIdentifier().getPath();
                 String translatedVariantName = translate(key);
-                if (translatedVariantName.equals(key)) {
+                if (translatedVariantName.equals(key) || !variant.isVanilla()) {
                     translatedVariantName = getTranslatedVariantName(variant);
                 }
                 String translatedFurnitureName = StringUtils.normalizeSpace(blockStringStringStringStringQuadFunc.apply(block, furnitureKey, "", translatedVariantName));
@@ -315,15 +320,6 @@ public class PFMLangProvider extends PFMProvider {
         List<String>list2 = Arrays.asList(words2);
         list1.retainAll(list2);
         return list1;
-    }
-
-    @Override
-    public void run(DataWriter writer) throws IOException {
-        run();
-    }
-
-    public String getName() {
-        return "PFM Lang";
     }
 
     private static final class PFMResourceManager implements ResourceManager,
