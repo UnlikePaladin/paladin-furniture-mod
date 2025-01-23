@@ -47,10 +47,6 @@ public class RecipeRegistryForge {
             @Override
             public String toString() {return RecipeTypes.FURNITURE_ID.getPath();}
         });
-        RecipeTypes.DYNAMIC_FURNITURE_RECIPE = Registry.register(Registry.RECIPE_TYPE, RecipeTypes.DYNAMIC_FURNITURE_ID,  new RecipeType<DynamicFurnitureRecipe>() {
-            @Override
-            public String toString() {return RecipeTypes.DYNAMIC_FURNITURE_ID.getPath();}
-        });
     }
 
 

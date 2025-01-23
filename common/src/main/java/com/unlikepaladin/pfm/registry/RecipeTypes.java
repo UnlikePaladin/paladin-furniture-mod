@@ -14,7 +14,6 @@ public class RecipeTypes {
     public static RecipeSerializer<FreezingRecipe> FREEZING_RECIPE_SERIALIZER;
 
     public static RecipeType<FurnitureRecipe> FURNITURE_RECIPE;
-    public static RecipeType<DynamicFurnitureRecipe> DYNAMIC_FURNITURE_RECIPE;
 
     public static RecipeSerializer<SimpleFurnitureRecipe> SIMPLE_FURNITURE_SERIALIZER;
     public static RecipeSerializer<DynamicFurnitureRecipe> DYNAMIC_FURNITURE_SERIALIZER;
