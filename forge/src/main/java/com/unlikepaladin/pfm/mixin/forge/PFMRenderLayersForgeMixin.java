@@ -1,5 +1,6 @@
 package com.unlikepaladin.pfm.mixin.forge;
 
+import com.mojang.datafixers.util.Pair;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.blocks.DynamicRenderLayerInterface;
 import com.unlikepaladin.pfm.blocks.models.AbstractBakedModel;
@@ -28,12 +29,13 @@ public abstract class PFMRenderLayersForgeMixin {
     }
 
     @Unique
-    private static final Map<BlockState, Boolean> pfm$renderLayers = new HashMap<>();
+    private static final Map<Pair<BlockState, RenderLayer>, Boolean> pfm$renderLayers = new HashMap<>();
     @Inject(method = "canRenderInLayer(Lnet/minecraft/block/BlockState;Lnet/minecraft/client/render/RenderLayer;)Z", at = @At("TAIL"), cancellable = true)
     private static void modifyFurnitureRenderLayer(BlockState state, RenderLayer type, CallbackInfoReturnable<Boolean> cir) {
         if (state.getBlock().getTranslationKey().contains("pfm")) {
-            if (pfm$renderLayers.containsKey(state)) {
-                cir.setReturnValue(pfm$renderLayers.get(state));
+            Pair<BlockState, RenderLayer> renderLayerPair = new Pair<>(state, type);
+            if (pfm$renderLayers.containsKey(renderLayerPair)) {
+                cir.setReturnValue(pfm$renderLayers.get(renderLayerPair));
                 return;
             }
 
@@ -41,12 +43,27 @@ public abstract class PFMRenderLayersForgeMixin {
                 VariantBase<?> variant = abstractBakedModel.getVariant(state);
                 if (variant != null) {
                     boolean doesBaseRender = canRenderInLayer(variant.getBaseBlock().getDefaultState(), type);
-                    if (doesBaseRender || !cir.getReturnValue()) {
-                        cir.setReturnValue(doesBaseRender);
-                        pfm$renderLayers.put(state, doesBaseRender);
+
+                    if (type == RenderLayer.getSolid()) {
+                        boolean cutoutRenders = canRenderInLayer(variant.getBaseBlock().getDefaultState(), RenderLayer.getCutout());
+                        boolean translucentRenders = canRenderInLayer(variant.getBaseBlock().getDefaultState(), RenderLayer.getTranslucent());
+                        boolean cutoutRendersMipped = canRenderInLayer(variant.getBaseBlock().getDefaultState(), RenderLayer.getCutoutMipped());
+
+                        if (cutoutRenders || translucentRenders || cutoutRendersMipped) {
+                            // Block solid if higher-priority layers can render
+                            cir.setReturnValue(false);
+                            pfm$renderLayers.put(renderLayerPair, false);
+                        } else {
+                            // Allow solid only if the base and current block both agree
+                            cir.setReturnValue(doesBaseRender && cir.getReturnValue());
+                            pfm$renderLayers.put(renderLayerPair, doesBaseRender && cir.getReturnValue());
+                        }
                     } else {
-                        pfm$renderLayers.put(state, cir.getReturnValue());
+                        // For cutout or translucent, prioritize the current block's renderability
+                        cir.setReturnValue(doesBaseRender || cir.getReturnValue());
+                        pfm$renderLayers.put(renderLayerPair, doesBaseRender || cir.getReturnValue());
                     }
+                    return;
                 }
             }
             if (state.getBlock() instanceof DynamicRenderLayerInterface) {

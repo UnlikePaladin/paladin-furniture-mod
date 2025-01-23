@@ -53,6 +53,11 @@ public class PaladinFurnitureModJEIPlugin implements IModPlugin {
     }
 
     @Override
+    public void registerItemSubtypes(ISubtypeRegistration registration) {
+        registration.useNbtForSubtypes(PaladinFurnitureModBlocksItems.BASIC_LAMP_ITEM);
+    }
+
+    @Override
     public Identifier getPluginUid() {
         return new Identifier(PaladinFurnitureMod.MOD_ID, "jei_plugin");
     }
