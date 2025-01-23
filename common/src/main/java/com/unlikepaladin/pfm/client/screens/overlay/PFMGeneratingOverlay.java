@@ -1,4 +1,4 @@
-package com.unlikepaladin.pfm.client.screens;
+package com.unlikepaladin.pfm.client.screens.overlay;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -9,26 +9,25 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawableHelper;
 import net.minecraft.client.gui.screen.Overlay;
-import net.minecraft.client.gui.screen.SplashOverlay;
 import net.minecraft.client.resource.metadata.TextureResourceMetadata;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.ResourceTexture;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.resource.DefaultResourcePack;
 import net.minecraft.resource.ResourceManager;
-import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
-import org.lwjgl.opengl.GL11;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Base64;
+import java.util.Objects;
+
+import static com.unlikepaladin.pfm.client.screens.overlay.GLText.*;
 
 public class PFMGeneratingOverlay extends Overlay {
     private long reloadCompleteTime = -1L;
@@ -41,14 +40,21 @@ public class PFMGeneratingOverlay extends Overlay {
     private final MinecraftClient client;
     private final Overlay parent;
     private int textureWidth, textureHeight;
+    private final GLText glText;
     private static final int PFM_ORANGE = ColorHelper.Argb.getArgb(255, 231, 95, 9);
+    private final GLText.GLTtext progressText;
+    private final GLText.GLTtext notificationText;
+    private String lastNotification = null;
 
     public PFMGeneratingOverlay(Overlay parent, PFMResourceProgress resourceProgress, MinecraftClient client, boolean reloading) {
         this.reloading = reloading;
         this.resourceProgress = resourceProgress;
         this.client = client;
         this.parent = parent;
-        client.getTextureManager().registerTexture(pfmLogo, new PFMGeneratingOverlay.LogoTexture());
+        client.getTextureManager().registerTexture(pfmLogo, new LogoTexture());
+        this.glText = new GLText();
+        this.progressText = GLText.gltCreateText();
+        this.notificationText = GLText.gltCreateText();
     }
 
     public static BufferedImage decodeBase64ToImage(String base64Image) throws Exception {
@@ -79,6 +85,7 @@ public class PFMGeneratingOverlay extends Overlay {
         return nativeImage;
     }
 
+    private float lastNotifAlpha = 1.0f;
     @Override
     public void render(MatrixStack matrices, int mouseX, int mouseY, float delta) {
         long l = Util.getMeasuringTimeMs();
@@ -91,12 +98,11 @@ public class PFMGeneratingOverlay extends Overlay {
         GlStateManager._clearColor(r, g, b, 1.0f);
         GlStateManager._clear(16384, MinecraftClient.IS_SYSTEM_MAC);
 
+        glText.gltViewport(this.client.getWindow().getFramebufferWidth(), this.client.getWindow().getFramebufferHeight());
         float timeProgress = this.reloadCompleteTime > -1L ? (float)(l - this.reloadCompleteTime) / 1000.0f : -1.0f;
 
         int width = this.client.getWindow().getScaledWidth();
         int height = this.client.getWindow().getScaledHeight();
-        int halfWidth = (int)((double)this.client.getWindow().getScaledWidth() * 0.5);
-        int halfHeight = (int)((double)this.client.getWindow().getScaledHeight() * 0.5);
 
         float progress = this.resourceProgress.getProgress();
         double minRes = Math.min((double)this.client.getWindow().getScaledWidth() * 0.75, (double)this.client.getWindow().getScaledHeight()) * 0.25;
@@ -108,10 +114,9 @@ public class PFMGeneratingOverlay extends Overlay {
         } else {
             this.progress = MathHelper.clamp(this.progress * 0.95f + progress * 0.050000012f, 0.0f, 1.0f);
         }
-        double e = minRes * 4.0;
-        int barWidth = (int)(e * 0.5);
+        double barWidthh = minRes * 4.0;
+        int barWidth = (int)(barWidthh * 0.5);
         float scaleFactor = (Math.min((float) width / textureWidth, (float) height / textureHeight) * 0.6f);
-
         int logoWidth = (int) (textureWidth * scaleFactor);
         int logoHeight = (int) (textureHeight * scaleFactor);
 
@@ -121,14 +126,49 @@ public class PFMGeneratingOverlay extends Overlay {
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
         drawTexture(matrices, x, y, 0, 0, logoWidth, logoHeight, logoWidth, logoHeight);
 
+        try (Closeable ignored1 = glText.gltBeginDraw()) {
+            float textScale = (float) (client.getWindow().getScaleFactor() / 2.0f) * 1.5f;
+            glText.gltColor(1.0f, 1.0f, 1.0f, 0.01f);
+            GLText.gltSetText(progressText, this.resourceProgress.getProgressString());
+            glText.gltDrawText2DAligned(
+                    this.progressText,
+                    this.client.getWindow().getFramebufferWidth() / 2.0f,
+                    this.client.getWindow().getFramebufferHeight() - (GLText.gltGetTextHeight(progressText, textScale) + GLText.gltGetTextHeight(notificationText, textScale)) + 10f,
+                    textScale,
+                    GLT_CENTER, GLT_BOTTOM
+            );
+
+            if (resourceProgress.getNotificationProgressString() != null && !Objects.equals(resourceProgress.getNotificationProgressString(), lastNotification)) {
+                lastNotifAlpha = 1.0f;
+            } else {
+                lastNotifAlpha = Math.max(lastNotifAlpha - (float) (0.05 * delta), 0.0f);
+            }
+
+            glText.gltColor(1.0f, 1.0f, 1.0f, lastNotifAlpha);
+
+            if (resourceProgress.getNotificationProgressString() != null) {
+                GLText.gltSetText(notificationText, this.resourceProgress.getNotificationProgressString());
+                glText.gltDrawText2DAligned(
+                        this.notificationText,
+                        this.client.getWindow().getFramebufferWidth() / 2.0f,
+                        this.client.getWindow().getFramebufferHeight() - GLText.gltGetTextHeight(notificationText, textScale) + 10f,
+                        textScale,
+                        GLT_CENTER, GLT_BOTTOM
+                );
+                lastNotification = resourceProgress.getNotificationProgressString();
+            }
+        } catch (Exception ignored) {
+
+        }
+
         if (timeProgress < 1.0f) {
             this.renderProgressBar(matrices, width / 2 - barWidth, barHeight - 5, width / 2 + barWidth, barHeight + 5, 1.0f - MathHelper.clamp(timeProgress, 0.0f, 1.0f));
         }
         if (timeProgress >= 2.0f || (!PFMGenerator.areAssetsRunning() && !PFMGenerator.isDataRunning())) {
             this.client.setOverlay(parent);
+            glText.gltTerminate();
         }
     }
-
 
     private void renderProgressBar(MatrixStack matrices, int minX, int minY, int maxX, int maxY, float opacity) {
         int i = MathHelper.ceil((float)(maxX - minX - 2) * this.progress);
@@ -149,8 +189,8 @@ public class PFMGeneratingOverlay extends Overlay {
         }
 
         @Override
-        protected ResourceTexture.TextureData loadTextureData(ResourceManager resourceManager) {
-            ResourceTexture.TextureData textureData;
+        protected TextureData loadTextureData(ResourceManager resourceManager) {
+            TextureData textureData;
 
             BufferedImage bufferedImage;
             NativeImage nativeImage = null;
@@ -170,6 +210,4 @@ public class PFMGeneratingOverlay extends Overlay {
             return textureData;
         }
     }
-
-
 }

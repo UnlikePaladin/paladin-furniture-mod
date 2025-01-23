@@ -12,7 +12,6 @@ import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
-import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import net.minecraft.block.Block;
 import net.minecraft.data.DataCache;
 import net.minecraft.data.server.AbstractTagProvider;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
 
 public class PFMTagProvider extends PFMProvider {
     public PFMTagProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Tags");
         parent.setProgress("Generating Tags");
     }
 
@@ -255,7 +254,9 @@ public class PFMTagProvider extends PFMProvider {
         return tagBuilders.computeIfAbsent(tag.id(), (id) -> new Tag.Builder());
     }
 
-    public void run(DataCache cache) {
+    @Override
+    public void run() {
+        startProviderRun();
         tagBuilders.clear();
         this.generateTags();
         tagBuilders.forEach((id, builder) -> {
@@ -265,25 +266,21 @@ public class PFMTagProvider extends PFMProvider {
             }).toList();
             if (!list.isEmpty()) {
                 throw new IllegalArgumentException(String.format("Couldn't define tag %s as it is missing following references: %s", id, list.stream().map(Objects::toString).collect(Collectors.joining(","))));
-            } else {
-                JsonObject jsonObject = builder.toJson();
-                Path path = this.getOutput(id);
-                try {
-                    String jsonString = PFMDataGenerator.GSON.toJson(jsonObject);
-                    String hashCode = PFMDataGenerator.SHA1.hashUnencodedChars(jsonString).toString();
-                    if (!Objects.equals(cache.getOldSha1(path), hashCode) || !Files.exists(path, new LinkOption[0])) {
-                        Files.createDirectories(path.getParent(), new FileAttribute[0]);
-                        try (BufferedWriter bufferedWriter = Files.newBufferedWriter(path, new OpenOption[0]);){
-                            bufferedWriter.write(jsonString);
-                        }
-                    }
-                    cache.updateSha1(path, hashCode);
-                }
-                catch (IOException iOException) {
-                    getParent().getLogger().error("Couldn't save tags to {}", path, iOException);
-                }
+            }
+            JsonObject jsonObject = builder.toJson();
+            Path path = this.getOutput(id);
+            try {
+                String string = PFMDataGenerator.GSON.toJson(jsonObject);
+                if (!Files.exists(path.getParent()))
+                    Files.createDirectories(path.getParent());
+
+                Files.writeString(path, string);
+            }
+            catch (IOException iOException) {
+                getParent().getLogger().error("Couldn't save tags to {}", path, iOException);
             }
         });
+        endProviderRun();
     }
 
     protected Path getOutput(Identifier id) {

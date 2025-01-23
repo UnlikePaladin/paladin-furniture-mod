@@ -9,8 +9,10 @@
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_classic_nightstand",
-      "recipe2": "pfm:stripped_birch_classic_nightstand"
+      "recipe": "pfm:classic_nightstand_block",
+      "variant": "oak",
+      "recipe2": "pfm:classic_nightstand_block",
+      "variant2": "stone"
     }
   ]
 }

@@ -82,7 +82,7 @@ public abstract class AbstractBakedModel implements BakedModel {
     }
 
     Map<Block, VariantBase<?>> blockVariantMap = new HashMap<>();
-    protected VariantBase<?> getVariant(BlockState state) {
+    public VariantBase<?> getVariant(BlockState state) {
         VariantBase<?> variant;
         if (blockVariantMap.containsKey(state.getBlock())) {
             variant = blockVariantMap.get(state.getBlock());

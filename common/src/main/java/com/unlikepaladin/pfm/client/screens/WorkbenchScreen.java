@@ -211,20 +211,15 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
             for (Ingredient ingredient : this.handler.getSortedRecipes().get(iCopy).getIngredients()) {
                 for (ItemStack stack : ingredient.getMatchingStacks()) {
                     if (!itemStackCountMap.containsKey(stack.getItem())) {
-                        itemStackCountMap.put(stack.getItem(), 1);
+                        itemStackCountMap.put(stack.getItem(), stack.getCount());
                     } else {
-                        itemStackCountMap.put(stack.getItem(), itemStackCountMap.get(stack.getItem()) + 1);
+                        itemStackCountMap.put(stack.getItem(), itemStackCountMap.get(stack.getItem()) + stack.getCount());
                     }
                 }
             }
             itemStackCountMap.forEach((item, integer) -> {
-                int itemCount = 0;
+                int itemCount = handler.getPlayerInventory().count(item);
                 Style style = Style.EMPTY.withColor(Formatting.GRAY);
-                for (ItemStack stack1 : handler.getPlayerInventory().main) {
-                    if (stack1.isOf(item)) {
-                        itemCount += stack1.getCount();
-                    }
-                }
                 if (itemCount < integer) {
                     style = style.withColor(Formatting.RED);
                 }
