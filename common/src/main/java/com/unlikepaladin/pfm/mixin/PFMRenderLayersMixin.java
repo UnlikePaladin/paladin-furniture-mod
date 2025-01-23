@@ -29,7 +29,7 @@ public abstract class PFMRenderLayersMixin {
 
     @Unique
     private static final Map<BlockState, RenderLayer> pfm$renderLayers = new HashMap<>();
-    @Inject(method = "getBlockLayer", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getBlockLayer", at = @At("TAIL"), cancellable = true)
     private static void modifyFurnitureRenderLayer(BlockState state, CallbackInfoReturnable<RenderLayer> cir) {
         if (state.getBlock().getTranslationKey().contains("pfm")) {
             if (pfm$renderLayers.containsKey(state)) {
@@ -41,8 +41,12 @@ public abstract class PFMRenderLayersMixin {
                 VariantBase<?> variant = abstractBakedModel.getVariant(state);
                 if (variant != null) {
                     RenderLayer parentLayer = getBlockLayer(variant.getBaseBlock().getDefaultState());
-                    cir.setReturnValue(parentLayer);
-                    pfm$renderLayers.put(state, parentLayer);
+                    if (parentLayer != RenderLayer.getSolid() || cir.getReturnValue() != RenderLayer.getSolid()) {
+                        cir.setReturnValue(parentLayer);
+                        pfm$renderLayers.put(state, parentLayer);
+                    } else {
+                        pfm$renderLayers.put(state, cir.getReturnValue());
+                    }
                     return;
                 }
             }

@@ -29,7 +29,7 @@ public abstract class PFMRenderLayersForgeMixin {
 
     @Unique
     private static final Map<BlockState, Boolean> pfm$renderLayers = new HashMap<>();
-    @Inject(method = "canRenderInLayer(Lnet/minecraft/block/BlockState;Lnet/minecraft/client/render/RenderLayer;)Z", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "canRenderInLayer(Lnet/minecraft/block/BlockState;Lnet/minecraft/client/render/RenderLayer;)Z", at = @At("TAIL"), cancellable = true)
     private static void modifyFurnitureRenderLayer(BlockState state, RenderLayer type, CallbackInfoReturnable<Boolean> cir) {
         if (state.getBlock().getTranslationKey().contains("pfm")) {
             if (pfm$renderLayers.containsKey(state)) {
@@ -42,9 +42,12 @@ public abstract class PFMRenderLayersForgeMixin {
                 VariantBase<?> variant = abstractBakedModel.getVariant(state);
                 if (variant != null) {
                     boolean doesBaseRender = canRenderInLayer(variant.getBaseBlock().getDefaultState(), type);
-                    cir.setReturnValue(doesBaseRender);
-                    pfm$renderLayers.put(state, doesBaseRender);
-                    return;
+                    if (doesBaseRender || !cir.getReturnValue()) {
+                        cir.setReturnValue(doesBaseRender);
+                        pfm$renderLayers.put(state, doesBaseRender);
+                    } else {
+                        pfm$renderLayers.put(state, cir.getReturnValue());
+                    }
                 }
             }
             if (state.getBlock() instanceof DynamicRenderLayerInterface) {
