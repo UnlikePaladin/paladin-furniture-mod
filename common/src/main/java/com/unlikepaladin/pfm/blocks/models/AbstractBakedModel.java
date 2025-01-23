@@ -86,9 +86,11 @@ public abstract class AbstractBakedModel implements BakedModel {
         VariantBase<?> variant;
         if (blockVariantMap.containsKey(state.getBlock())) {
             variant = blockVariantMap.get(state.getBlock());
-        } else {
+        } else if (state != null && PaladinFurnitureMod.furnitureEntryMap.containsKey(state.getBlock().getClass())) {
             variant = PaladinFurnitureMod.furnitureEntryMap.get(state.getBlock().getClass()).getVariantFromEntry(state.getBlock());
             blockVariantMap.put(state.getBlock(), variant);
+        } else {
+            variant = null;
         }
         return variant;
     }
