@@ -5,7 +5,6 @@ import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
 import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import net.minecraft.SharedConstants;
-import net.minecraft.data.DataWriter;
 import org.apache.commons.io.IOUtils;
 
 import java.io.BufferedWriter;
@@ -15,38 +14,34 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 public class PFMMCMetaProvider extends PFMProvider {
-    private final PackType packType;
-    private final String description;
+    private PackInfo info;
 
-    public PFMMCMetaProvider(PFMGenerator parent, PackType packType, String description) {
-        super(parent);
-        this.packType = packType;
-        this.description = description;
+    public PFMMCMetaProvider(PFMGenerator parent) {
+        super(parent, "PFM MC Meta");
         parent.setProgress("Generating Minecraft Metadata");
     }
 
-    public CompletableFuture<?> run(PackType type, String description) {
+    public void setInfo(PackInfo info) {
+        this.info = info;
+    }
+
+    @Override
+    public void run() {
+        startProviderRun();
         try(BufferedWriter writer = IOUtils.buffer(new FileWriter(new File(PFMRuntimeResources.createDirIfNeeded(getParent().getOutput()).toFile(), "pack.mcmeta")))) {
             writer.write("{\n");
             writer.write("  \"pack\":\n   {\n");
             writer.write("          \"pack_format\": ");
-            writer.write(String.valueOf(SharedConstants.getGameVersion().getPackVersion(type)));
-            writer.write(",\n           \"description\" : \"" + description + "\"\n  }\n");
+            writer.write(String.valueOf(SharedConstants.getGameVersion().getPackVersion(info.type)));
+            writer.write(",\n           \"description\" : \"" + info.description + "\"\n  }\n");
             writer.write("}");
         } catch (IOException e) {
             getParent().getLogger().error("Writer exception: " + e);
             e.printStackTrace();
         }
-        return CompletableFuture.allOf();
+        endProviderRun();
     }
 
-    @Override
-    public CompletableFuture<?> run(DataWriter writer) {
-        run(packType, description);
-        return CompletableFuture.allOf();
-    }
-
-    public String getName() {
-        return "PFM Meta Provider";
+    public record PackInfo(PackType type, String description) {
     }
 }

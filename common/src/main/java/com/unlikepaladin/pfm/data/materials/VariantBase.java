@@ -8,6 +8,7 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Material;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.Items;
 import net.minecraft.resource.featuretoggle.FeatureFlag;
 import net.minecraft.resource.featuretoggle.FeatureSet;
@@ -19,11 +20,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public abstract class VariantBase<T> implements StringIdentifiable {
+public abstract class VariantBase<T> implements StringIdentifiable, Comparable<VariantBase<T>> {
     private final BiMap<String, Object> children = HashBiMap.create();
     public final Identifier identifier;
 
@@ -113,6 +115,17 @@ public abstract class VariantBase<T> implements StringIdentifiable {
         return getBaseBlock();
     }
 
+    @Nullable
+    public ItemConvertible getItemForRecipe(String key, Class<? extends Block> blockClass) {
+        if (Objects.equals(key, "base"))
+            return getBaseBlock();
+        else if (Objects.equals(key, "secondary"))
+            return getSecondaryBlock();
+        else if (this.children.get(key) != null)
+            return (ItemConvertible) this.children.get(key);
+        return getBaseBlock();
+    }
+
 
     public void addChild(String genericName, @Nullable Object itemLike) {
         if (itemLike != null) {
@@ -179,5 +192,10 @@ public abstract class VariantBase<T> implements StringIdentifiable {
         }
         if (changed instanceof Block b) return b;
         return null;
+    }
+
+    @Override
+    public int compareTo(@NotNull VariantBase<T> o) {
+        return identifier.compareTo(o.identifier);
     }
 }

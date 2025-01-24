@@ -5,8 +5,10 @@ import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import com.unlikepaladin.pfm.registry.ScreenHandlerIDs;
 import dev.emi.emi.api.recipe.EmiCraftingRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
+import dev.emi.emi.api.render.EmiTexture;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
+import dev.emi.emi.api.widget.WidgetHolder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -18,11 +20,13 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class EmiFurnitureRecipe extends EmiCraftingRecipe {
 
+    private final FurnitureRecipe recipe;
     public EmiFurnitureRecipe(FurnitureRecipe recipe) {
-        super(padIngredients(recipe), EmiStack.of(recipe.getOutput()),
+        super(padIngredients(recipe), EmiStack.EMPTY,
                 recipe.getId(), false);
         for (int i = 0; i < input.size(); i++) {
             PlayerInventory playerInventory;
@@ -60,6 +64,12 @@ public class EmiFurnitureRecipe extends EmiCraftingRecipe {
                 }
             }
         }
+        this.recipe = recipe;
+    }
+
+    @Override
+    public List<EmiStack> getOutputs() {
+        return getOutputEntries(this.recipe);
     }
 
     @Override
@@ -72,23 +82,76 @@ public class EmiFurnitureRecipe extends EmiCraftingRecipe {
         return super.getId();
     }
 
-    private static List<EmiIngredient> padIngredients(FurnitureRecipe recipe) {
-        List<Ingredient> ingredientsList = recipe.getIngredients();
-        HashMap<Item, Integer> containedItems = new LinkedHashMap<>();
-        for (Ingredient ingredient : ingredientsList) {
+    private static final Map<FurnitureRecipe, List<EmiStack>> outputs = new HashMap<>();
+    public static List<EmiStack> getOutputEntries(FurnitureRecipe recipe) {
+        if (!outputs.containsKey(recipe))
+            outputs.put(recipe, recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getOutput).map(EmiStack::of).collect(Collectors.toList()));
+        return outputs.get(recipe);
+    }
+
+    static Map<ItemStack, List<ItemStack>> itemStackListMap = new HashMap<>();
+    public static List<ItemStack> collectIngredientsFromRecipe(FurnitureRecipe.CraftableFurnitureRecipe recipe) {
+        if (itemStackListMap.containsKey(recipe.getOutput())) return itemStackListMap.get(recipe.getOutput());
+
+        List<Ingredient> ingredients = recipe.getIngredients();
+        HashMap<Item, Integer> containedItems = new HashMap<>();
+        for (Ingredient ingredient : ingredients) {
             for (ItemStack stack : ingredient.getMatchingStacks()) {
                 if (!containedItems.containsKey(stack.getItem())) {
-                    containedItems.put(stack.getItem(), 1);
+                    containedItems.put(stack.getItem(), stack.getCount());
                 } else {
-                    containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + 1);
+                    containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + stack.getCount());
                 }
             }
         }
-        List<EmiIngredient> finalList = new ArrayList<>();
+        List<ItemStack> listOfList = new ArrayList<>();
         for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            finalList.add(EmiIngredient.of(Ingredient.ofStacks(new ItemStack(entry.getKey(), entry.getValue())), entry.getValue()));
+            listOfList.add(new ItemStack(entry.getKey(), entry.getValue()));
         }
-        finalList.sort(Comparator.comparing(o -> o.getEmiStacks().get(0).getItemStack().getItem().toString()));
+        if (listOfList.size() != recipe.parent().getMaxInnerRecipeSize()) {
+            while (listOfList.size() != recipe.parent().getMaxInnerRecipeSize()) {
+                // this is sadly necessary
+                listOfList.add(ItemStack.EMPTY);
+            }
+        }
+
+        itemStackListMap.put(recipe.getOutput(), listOfList);
+        return listOfList;
+    }
+
+
+    private static List<EmiIngredient> padIngredients(FurnitureRecipe recipe) {
+        List<List<ItemStack>> ingredients = new ArrayList<>(recipe.getMaxInnerRecipeSize());
+        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes()) {
+            List<ItemStack> finalList = collectIngredientsFromRecipe(innerRecipe);
+            for (int i = 0; i < finalList.size(); i++) {
+                ItemStack stack = finalList.get(i);
+                if (ingredients.size() <= i) {
+                    ingredients.add(new ArrayList<>());
+                }
+                ingredients.get(i).add(stack);
+            }
+        }
+        List<EmiIngredient> finalList = new ArrayList<>();
+        for (List<ItemStack> ingredientList : ingredients) {
+            finalList.add(EmiIngredient.of(Ingredient.ofStacks(ingredientList.stream())));
+        }
         return finalList;
+    }
+
+    public void addWidgets(WidgetHolder widgets) {
+        widgets.addTexture(EmiTexture.EMPTY_ARROW, 60, 18);
+        if (this.shapeless) {
+            widgets.addTexture(EmiTexture.SHAPELESS, 97, 0);
+        }
+
+        for(int i = 0; i < 9; ++i) {
+            if (i < this.input.size()) {
+                widgets.addSlot(this.input.get(i), i % 3 * 18, i / 3 * 18);
+            } else {
+                widgets.addSlot(EmiStack.of(ItemStack.EMPTY), i % 3 * 18, i / 3 * 18);
+            }
+        }
+        widgets.addSlot(EmiIngredient.of(this.getOutputs()), 92, 14).large(true).recipeContext(this);
     }
 }

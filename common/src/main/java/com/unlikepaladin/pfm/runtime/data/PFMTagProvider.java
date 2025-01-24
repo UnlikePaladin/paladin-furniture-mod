@@ -2,7 +2,7 @@ package com.unlikepaladin.pfm.runtime.data;
 
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
-import com.google.gson.stream.JsonWriter;
+import com.google.gson.JsonObject;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 
 public class PFMTagProvider extends PFMProvider {
     public PFMTagProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Tags");
         parent.setProgress("Generating Tags");
     }
 
@@ -269,7 +269,9 @@ public class PFMTagProvider extends PFMProvider {
         return tagBuilders.computeIfAbsent(tag.id(), (id) -> new TagBuilder());
     }
 
-    public CompletableFuture<?> run(DataWriter writer) {
+    @Override
+    public void run() {
+        startProviderRun();
         tagBuilders.clear();
         this.generateTags();
         tagBuilders.forEach((id, builder) -> {
@@ -277,31 +279,21 @@ public class PFMTagProvider extends PFMProvider {
             List<TagEntry> list2 = list.stream().filter((tag) -> !tag.canAdd(Registries.BLOCK::containsId, tagBuilders::containsKey)).toList();
             if (!list2.isEmpty()) {
                 throw new IllegalArgumentException(String.format("Couldn't define tag %s as it is missing following references: %s", id, list.stream().map(Objects::toString).collect(Collectors.joining(","))));
-            } else {
-                Path path = this.getOutput(id);
-                DataResult<JsonElement> jsonElementDataResult = TagFile.CODEC.encodeStart(JsonOps.INSTANCE, new TagFile(list, false));
-                JsonElement jsonElement = jsonElementDataResult.getOrThrow(false, getParent().getLogger()::error);
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                try (JsonWriter jsonWriter = new JsonWriter(new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8));){
+            }
+            DataResult<JsonElement> jsonObject = TagFile.CODEC.encodeStart(JsonOps.INSTANCE, new TagFile(builder.build(), false));
+            Path path = this.getOutput(id);
+            try {
+                String string = PFMDataGenerator.GSON.toJson(jsonObject.getOrThrow(false, getParent().getLogger()::error));
+                if (!Files.exists(path.getParent()))
                     Files.createDirectories(path.getParent());
-                    Files.createFile(path);
-                    jsonWriter.setSerializeNulls(false);
-                    jsonWriter.setIndent("  ");
-                    JsonHelper.writeSorted(jsonWriter, jsonElement, JSON_KEY_SORTING_COMPARATOR);
-                    jsonWriter.flush();
-                    Files.write(path, byteArrayOutputStream.toByteArray(), StandardOpenOption.WRITE);
-                    byteArrayOutputStream.close();
-                }
-                catch (Exception exception) {
-                    getParent().getLogger().error("Couldn't save {}", path, exception);
-                }
+
+                Files.writeString(path, string);
+            }
+            catch (IOException iOException) {
+                getParent().getLogger().error("Couldn't save tags to {}", path, iOException);
             }
         });
-        return CompletableFuture.allOf();
-    }
-
-    public String getName() {
-        return "PFM Tags for Blocks";
+        endProviderRun();
     }
 
     protected Path getOutput(Identifier id) {
