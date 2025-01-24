@@ -32,7 +32,7 @@ public class RecipeRegistryForge {
                     RecipeTypes.FREEZING_ID, RecipeTypes.FREEZING_RECIPE_SERIALIZER = new CookingRecipeSerializer<>(FreezingRecipe::new, 200)
             );
             recipeSerializerRegisterHelper.register(
-                    RecipeTypes.DYNAMIC_FURNITURE_ID, RecipeTypes.SIMPLE_FURNITURE_SERIALIZER = new FurnitureSerializerForge<>(new SimpleFurnitureRecipe.Serializer())
+                    RecipeTypes.SIMPLE_FURNITURE_ID, RecipeTypes.SIMPLE_FURNITURE_SERIALIZER = new FurnitureSerializerForge<>(new SimpleFurnitureRecipe.Serializer())
             );
             recipeSerializerRegisterHelper.register(
                     RecipeTypes.DYNAMIC_FURNITURE_ID, RecipeTypes.DYNAMIC_FURNITURE_SERIALIZER = new FurnitureSerializerForge<>(new DynamicFurnitureRecipe.Serializer())
@@ -61,7 +61,6 @@ public class RecipeRegistryForge {
             });
         });
     }
-
 
 
 }
