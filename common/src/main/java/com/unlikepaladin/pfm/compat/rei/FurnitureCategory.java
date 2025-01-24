@@ -70,7 +70,7 @@ public class FurnitureCategory implements DisplayCategory<FurnitureDisplay> {
         for (int i = 0; i < innerRecipeSize; i++) {
             int finalSlotIndex = i;
             // many thanks to shedaniel for helping me figure this out :)
-            widgets.add(Widgets.createDrawableWidget((graphics, matrixStack, mouseX, mouseY, delta) -> {
+            widgets.add(Widgets.createDrawableWidget((graphics, mouseX, mouseY, delta) -> {
                 Integer currentRecipe = stackToSlotIndex.get(output.getCurrentEntry());
                 if (currentRecipe != null && input.size() > finalSlotIndex+(currentRecipe*innerRecipeSize)) {
                     slots.get(finalSlotIndex).clearEntries().entries(input.get(finalSlotIndex+(currentRecipe*innerRecipeSize)));

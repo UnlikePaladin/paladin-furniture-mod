@@ -69,7 +69,7 @@ public class PFMLootTableProvider extends PFMProvider {
         map.forEach((identifier, lootTable) -> {
             Path path2 = getOutput(path, identifier);
             try {
-                String string = PFMDataGenerator.GSON.toJson(LootManager.toJson(lootTable));
+                String string = PFMDataGenerator.GSON.toJson(LootDataType.LOOT_TABLES.getGson().toJsonTree(lootTable));
                 if (!Files.exists(path2.getParent()))
                     Files.createDirectories(path2.getParent());
 
