@@ -3,11 +3,15 @@ package com.unlikepaladin.pfm.compat.emi;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import com.unlikepaladin.pfm.registry.ScreenHandlerIDs;
+import dev.emi.emi.api.EmiApi;
 import dev.emi.emi.api.recipe.EmiCraftingRecipe;
+import dev.emi.emi.api.recipe.EmiPatternCraftingRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
 import dev.emi.emi.api.render.EmiTexture;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
+import dev.emi.emi.api.widget.GeneratedSlotWidget;
+import dev.emi.emi.api.widget.SlotWidget;
 import dev.emi.emi.api.widget.WidgetHolder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,12 +26,12 @@ import net.minecraft.util.Identifier;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class EmiFurnitureRecipe extends EmiCraftingRecipe {
+public class EmiFurnitureRecipe extends EmiPatternCraftingRecipe {
 
     private final FurnitureRecipe recipe;
     public EmiFurnitureRecipe(FurnitureRecipe recipe) {
         super(padIngredients(recipe), EmiStack.EMPTY,
-                recipe.getId(), false);
+                recipe.getId());
         for (int i = 0; i < input.size(); i++) {
             PlayerInventory playerInventory;
             if (PaladinFurnitureMod.isClient) {
@@ -119,7 +123,7 @@ public class EmiFurnitureRecipe extends EmiCraftingRecipe {
         return listOfList;
     }
 
-
+    // Required so that ingredients show up in usages correctly
     private static List<EmiIngredient> padIngredients(FurnitureRecipe recipe) {
         List<List<ItemStack>> ingredients = new ArrayList<>(recipe.getMaxInnerRecipeSize());
         for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes()) {
@@ -139,19 +143,24 @@ public class EmiFurnitureRecipe extends EmiCraftingRecipe {
         return finalList;
     }
 
-    public void addWidgets(WidgetHolder widgets) {
-        widgets.addTexture(EmiTexture.EMPTY_ARROW, 60, 18);
-        if (this.shapeless) {
-            widgets.addTexture(EmiTexture.SHAPELESS, 97, 0);
-        }
-
-        for(int i = 0; i < 9; ++i) {
-            if (i < this.input.size()) {
-                widgets.addSlot(this.input.get(i), i % 3 * 18, i / 3 * 18);
+    @Override
+    public SlotWidget getInputWidget(int slot, int x, int y) {
+        return new GeneratedSlotWidget((r -> {
+            int selectedRecipe = r.nextInt(recipe.getInnerRecipes().size());
+            List<ItemStack> ingredients = collectIngredientsFromRecipe(recipe.getInnerRecipes().get(selectedRecipe));
+            if (ingredients.size() > slot) {
+                return EmiIngredient.of(Ingredient.ofStacks(ingredients.get(slot)), ingredients.get(slot).getCount());
             } else {
-                widgets.addSlot(EmiStack.of(ItemStack.EMPTY), i % 3 * 18, i / 3 * 18);
+                return EmiStack.EMPTY;
             }
-        }
-        widgets.addSlot(EmiIngredient.of(this.getOutputs()), 92, 14).large(true).recipeContext(this);
+        }), unique, x, y);
+    }
+
+    @Override
+    public SlotWidget getOutputWidget(int x, int y) {
+        return new GeneratedSlotWidget((r -> {
+            int selectedRecipe = r.nextInt(recipe.getInnerRecipes().size());
+            return EmiIngredient.of(Ingredient.ofStacks(recipe.getInnerRecipes().get(selectedRecipe).getOutput()), recipe.getOutputCount());
+        }), unique, x, y);
     }
 }
