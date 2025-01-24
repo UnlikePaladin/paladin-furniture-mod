@@ -3,10 +3,16 @@ package com.unlikepaladin.pfm.compat.emi;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import com.unlikepaladin.pfm.registry.ScreenHandlerIDs;
+import dev.emi.emi.api.EmiApi;
 import dev.emi.emi.api.recipe.EmiCraftingRecipe;
+import dev.emi.emi.api.recipe.EmiPatternCraftingRecipe;
 import dev.emi.emi.api.recipe.EmiRecipeCategory;
+import dev.emi.emi.api.render.EmiTexture;
 import dev.emi.emi.api.stack.EmiIngredient;
 import dev.emi.emi.api.stack.EmiStack;
+import dev.emi.emi.api.widget.GeneratedSlotWidget;
+import dev.emi.emi.api.widget.SlotWidget;
+import dev.emi.emi.api.widget.WidgetHolder;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -19,12 +25,14 @@ import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-public class EmiFurnitureRecipe extends EmiCraftingRecipe {
+public class EmiFurnitureRecipe extends EmiPatternCraftingRecipe {
 
+    private final FurnitureRecipe recipe;
     public EmiFurnitureRecipe(RecipeEntry<FurnitureRecipe> entry) {
-        super(padIngredients(entry.value()), EmiStack.of(entry.value().getResult(MinecraftClient.getInstance().world.getRegistryManager())),
-                entry.id(), false);
+        super(padIngredients(entry.value()), EmiStack.EMPTY,
+                entry.getId());
         for (int i = 0; i < input.size(); i++) {
             PlayerInventory playerInventory;
             if (PaladinFurnitureMod.isClient) {
@@ -61,6 +69,12 @@ public class EmiFurnitureRecipe extends EmiCraftingRecipe {
                 }
             }
         }
+        this.recipe = entry.value();
+    }
+
+    @Override
+    public List<EmiStack> getOutputs() {
+        return getOutputEntries(this.recipe);
     }
 
     @Override
@@ -73,23 +87,81 @@ public class EmiFurnitureRecipe extends EmiCraftingRecipe {
         return super.getId();
     }
 
-    private static List<EmiIngredient> padIngredients(FurnitureRecipe recipe) {
-        List<Ingredient> ingredientsList = recipe.getIngredients();
-        HashMap<Item, Integer> containedItems = new LinkedHashMap<>();
-        for (Ingredient ingredient : ingredientsList) {
+    private static final Map<FurnitureRecipe, List<EmiStack>> outputs = new HashMap<>();
+    public static List<EmiStack> getOutputEntries(FurnitureRecipe recipe) {
+        if (!outputs.containsKey(recipe))
+            outputs.put(recipe, recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).map(EmiStack::of).collect(Collectors.toList()));
+        return outputs.get(recipe);
+    }
+
+    static Map<ItemStack, List<ItemStack>> itemStackListMap = new HashMap<>();
+    public static List<ItemStack> collectIngredientsFromRecipe(FurnitureRecipe.CraftableFurnitureRecipe recipe) {
+        if (itemStackListMap.containsKey(recipe.getRecipeOuput())) return itemStackListMap.get(recipe.getRecipeOuput());
+
+        List<Ingredient> ingredients = recipe.getIngredients();
+        HashMap<Item, Integer> containedItems = new HashMap<>();
+        for (Ingredient ingredient : ingredients) {
             for (ItemStack stack : ingredient.getMatchingStacks()) {
                 if (!containedItems.containsKey(stack.getItem())) {
-                    containedItems.put(stack.getItem(), 1);
+                    containedItems.put(stack.getItem(), stack.getCount());
                 } else {
-                    containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + 1);
+                    containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + stack.getCount());
                 }
             }
         }
-        List<EmiIngredient> finalList = new ArrayList<>();
+        List<ItemStack> listOfList = new ArrayList<>();
         for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            finalList.add(EmiIngredient.of(Ingredient.ofStacks(new ItemStack(entry.getKey(), entry.getValue())), entry.getValue()));
+            listOfList.add(new ItemStack(entry.getKey(), entry.getValue()));
         }
-        finalList.sort(Comparator.comparing(o -> o.getEmiStacks().get(0).getItemStack().getItem().toString()));
+        if (listOfList.size() != recipe.parent().getMaxInnerRecipeSize()) {
+            while (listOfList.size() != recipe.parent().getMaxInnerRecipeSize()) {
+                // this is sadly necessary
+                listOfList.add(ItemStack.EMPTY);
+            }
+        }
+
+        itemStackListMap.put(recipe.getRecipeOuput(), listOfList);
+        return listOfList;
+    }
+
+    // Required so that ingredients show up in usages correctly
+    private static List<EmiIngredient> padIngredients(FurnitureRecipe recipe) {
+        List<List<ItemStack>> ingredients = new ArrayList<>(recipe.getMaxInnerRecipeSize());
+        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes()) {
+            List<ItemStack> finalList = collectIngredientsFromRecipe(innerRecipe);
+            for (int i = 0; i < finalList.size(); i++) {
+                ItemStack stack = finalList.get(i);
+                if (ingredients.size() <= i) {
+                    ingredients.add(new ArrayList<>());
+                }
+                ingredients.get(i).add(stack);
+            }
+        }
+        List<EmiIngredient> finalList = new ArrayList<>();
+        for (List<ItemStack> ingredientList : ingredients) {
+            finalList.add(EmiIngredient.of(Ingredient.ofStacks(ingredientList.stream())));
+        }
         return finalList;
+    }
+
+    @Override
+    public SlotWidget getInputWidget(int slot, int x, int y) {
+        return new GeneratedSlotWidget((r -> {
+            int selectedRecipe = r.nextInt(recipe.getInnerRecipes().size());
+            List<ItemStack> ingredients = collectIngredientsFromRecipe(recipe.getInnerRecipes().get(selectedRecipe));
+            if (ingredients.size() > slot) {
+                return EmiIngredient.of(Ingredient.ofStacks(ingredients.get(slot)), ingredients.get(slot).getCount());
+            } else {
+                return EmiStack.EMPTY;
+            }
+        }), unique, x, y);
+    }
+
+    @Override
+    public SlotWidget getOutputWidget(int x, int y) {
+        return new GeneratedSlotWidget((r -> {
+            int selectedRecipe = r.nextInt(recipe.getInnerRecipes().size());
+            return EmiIngredient.of(Ingredient.ofStacks(recipe.getInnerRecipes().get(selectedRecipe).getRecipeOuput()), recipe.getInnerRecipes().get(selectedRecipe).getRecipeOuput().getCount());
+        }), unique, x, y);
     }
 }

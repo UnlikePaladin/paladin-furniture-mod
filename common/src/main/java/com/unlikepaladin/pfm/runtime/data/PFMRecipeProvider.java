@@ -10,21 +10,21 @@ import com.unlikepaladin.pfm.data.FurnitureBlock;
 import com.unlikepaladin.pfm.data.materials.VariantBase;
 import com.unlikepaladin.pfm.data.materials.WoodVariant;
 import com.unlikepaladin.pfm.data.materials.WoodVariantRegistry;
+import com.unlikepaladin.pfm.menus.WorkbenchScreenHandler;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
-import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.advancement.Advancement;
 import net.minecraft.advancement.AdvancementCriterion;
 import net.minecraft.advancement.AdvancementEntry;
 import net.minecraft.advancement.criterion.Criteria;
 import net.minecraft.advancement.criterion.InventoryChangedCriterion;
+import net.minecraft.block.BedBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.data.DataProvider;
-import net.minecraft.data.DataWriter;
+import net.minecraft.data.server.recipe.CraftingRecipeJsonBuilder;
 import net.minecraft.data.server.recipe.CraftingRecipeJsonBuilder;
 import net.minecraft.data.server.recipe.RecipeExporter;
 import net.minecraft.data.server.recipe.RecipeJsonProvider;
@@ -46,86 +46,67 @@ import net.minecraft.util.Pair;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-
+import java.util.function.Consumer;
+// TODO : Remake EMI screen to work with the new recipe system
 public class PFMRecipeProvider extends PFMProvider {
 
     public PFMRecipeProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Recipes");
         parent.setProgress("Generating Recipes");
     }
 
-    public CompletableFuture<?> run(DataWriter writer) {
+    @Override
+    public void run() {
+        startProviderRun();
         Path path = getParent().getOutput();
         Set<Identifier> set = Sets.newHashSet();
-        generateRecipes(new RecipeExporter() {
-            @Override
-            public void accept(RecipeJsonProvider recipeJsonProvider) {
-                if (!set.add(recipeJsonProvider.id())) {
-                    getParent().getLogger().error("Duplicate recipe " + recipeJsonProvider.id());
-                    throw new IllegalStateException("Duplicate recipe " + recipeJsonProvider.id());
-                }
-                if (recipeJsonProvider == null) {
-                    getParent().getLogger().error("Recipe Json Provider is null");
-                    throw new IllegalStateException("Recipe Json Provider is null");
-                } else {
-                    saveRecipe(recipeJsonProvider.toJson(), path.resolve("data/" + recipeJsonProvider.id().getNamespace() + "/recipes/" + recipeJsonProvider.id().getPath() + ".json"));
-                    AdvancementEntry advancementEntry = recipeJsonProvider.advancement();
-                    if (advancementEntry != null) {
-                        saveRecipeAdvancement(advancementEntry.value().toJson(), path.resolve("data/" + recipeJsonProvider.id().getNamespace() + "/advancements/" + advancementEntry.id().getPath() + ".json"));
-                    }
-
-                }
+        WorkbenchScreenHandler.ALL_RECIPES.clear();
+        generateRecipes((recipeJsonProvider) -> {
+            if (!set.add(recipeJsonProvider.getRecipeId())) {
+                getParent().getLogger().error("Duplicate recipe " + recipeJsonProvider.getRecipeId());
+                throw new IllegalStateException("Duplicate recipe " + recipeJsonProvider.getRecipeId());
             }
-
-            @Override
-            @SuppressWarnings("Deprecated")
-            public Advancement.Builder getAdvancementBuilder() {
-                return Advancement.Builder.createUntelemetered().parent(CraftingRecipeJsonBuilder.ROOT);
+            if (recipeJsonProvider == null) {
+                getParent().getLogger().error("Recipe Json Provider is null");
+                throw new IllegalStateException("Recipe Json Provider is null");
+            }
+            saveRecipe(recipeJsonProvider.toJson(), path.resolve("data/" + recipeJsonProvider.getRecipeId().getNamespace() + "/recipes/" + recipeJsonProvider.getRecipeId().getPath() + ".json"));
+            JsonObject jsonObject = recipeJsonProvider.toAdvancementJson();
+            if (jsonObject != null) {
+                saveRecipeAdvancement(jsonObject, path.resolve("data/" + recipeJsonProvider.getRecipeId().getNamespace() + "/advancements/" + recipeJsonProvider.getAdvancementId().getPath() + ".json"));
             }
         });
-        return CompletableFuture.allOf();
-    }
-
-    public String getName() {
-        return "PFM Recipes";
+        saveRecipeAdvancement(Advancement.Builder.create().criterion("has_planks", conditionsFromTag(ItemTags.PLANKS)).toJson(), path.resolve("data/pfm/advancements/recipes/root.json"));
+        endProviderRun();
     }
 
     private void saveRecipe(JsonObject json, Path path) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (JsonWriter jsonWriter = new JsonWriter(new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8));){
-            Files.createDirectories(path.getParent());
-            Files.createFile(path);
-            jsonWriter.setSerializeNulls(false);
-            jsonWriter.setIndent("  ");
-            JsonHelper.writeSorted(jsonWriter, json, JSON_KEY_SORTING_COMPARATOR);
-            jsonWriter.flush();
-            Files.write(path, byteArrayOutputStream.toByteArray(), StandardOpenOption.WRITE);
-            byteArrayOutputStream.close();
-        }
-        catch (Exception exception) {
-            getParent().getLogger().error("Couldn't save {}", path, exception);
+        try {
+            String string = PFMDataGenerator.GSON.toJson(json);
+            if (!Files.exists(path.getParent()))
+                Files.createDirectories(path.getParent());
+
+            Files.writeString(path, string);
+        } catch (IOException var10) {
+            getParent().getLogger().error("Couldn't save recipe {}", path, var10);
         }
     }
 
     private void saveRecipeAdvancement(JsonObject json, Path path) {
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        try (JsonWriter jsonWriter = new JsonWriter(new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8));){
-            Files.createDirectories(path.getParent());
-            Files.createFile(path);
-            jsonWriter.setSerializeNulls(false);
-            jsonWriter.setIndent("  ");
-            JsonHelper.writeSorted(jsonWriter, json, JSON_KEY_SORTING_COMPARATOR);
-            jsonWriter.flush();
-            Files.write(path, byteArrayOutputStream.toByteArray(), StandardOpenOption.WRITE);
-            byteArrayOutputStream.close();
-        }
-        catch (Exception exception) {
-            getParent().getLogger().error("Couldn't save {}", path, exception);
+        try {
+            String string = PFMDataGenerator.GSON.toJson(json);
+            if (!Files.exists(path.getParent()))
+                Files.createDirectories(path.getParent());
+
+            Files.writeString(path, string);
+        } catch (IOException var10) {
+            getParent().getLogger().error("Couldn't save recipe advancement {}", path, var10);
         }
     }
     @ExpectPlatform
@@ -134,42 +115,11 @@ public class PFMRecipeProvider extends PFMProvider {
     }
     protected void generateRecipes(RecipeExporter exporter) {
         List<Identifier> generatedRecipes = new ArrayList<>();
-        PaladinFurnitureMod.furnitureEntryMap.get(BasicChairBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerBasicChairRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(BasicChairBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerBasicChairRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(DinnerChairBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerDinnerChairRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(DinnerChairBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerDinnerChairRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ClassicChairBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerClassicChairRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ClassicChairBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerClassicChairRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
+
+        offerBasicChairRecipe(BasicChairBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(BasicChairBlock.class).getVariants(), exporter);
+        offerDinnerChairRecipe(DinnerChairBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(DinnerChairBlock.class).getVariants(), exporter);
+        offerClassicChairRecipe(ClassicChairBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(ClassicChairBlock.class).getVariants(), exporter);
+
         FurnitureBlock[] froggyChairs = FroggyChairBlock.streamFroggyChair().toList().toArray(new FurnitureBlock[0]);
         for (FurnitureBlock froggyChair : froggyChairs) {
             if (!generatedRecipes.contains(getId(froggyChair.getBlock()))) {
@@ -180,22 +130,12 @@ public class PFMRecipeProvider extends PFMProvider {
         FurnitureBlock[] woolClassicChairs = ClassicChairDyeableBlock.streamWoodDyeableChair().toList().toArray(new FurnitureBlock[0]);
         for (FurnitureBlock classicChair : woolClassicChairs) {
             if (!generatedRecipes.contains(getId(classicChair.getBlock()))) {
-                offerClassicChairRecipe(classicChair.getBlock(), Ingredient.ofItems(Items.OAK_LOG), Ingredient.ofItems(classicChair.getArmChairMaterial()), exporter);
+                offerClassicChairDyedRecipe(classicChair.getBlock(), Ingredient.ofItems(Items.OAK_LOG), Ingredient.ofItems(classicChair.getArmChairMaterial()), exporter);
                 generatedRecipes.add(getId(classicChair.getBlock()));
             }
         }
-        PaladinFurnitureMod.furnitureEntryMap.get(ModernChairBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerModernChairRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ModernChairBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerModernChairRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
+        offerModernChairRecipe(ModernChairBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(ModernChairBlock.class).getVariants(), exporter);
+
         FurnitureBlock[] armChairs = ArmChairColoredBlock.streamArmChairColored().toList().toArray(new FurnitureBlock[0]);
         for (FurnitureBlock armChair : armChairs) {
             if (!generatedRecipes.contains(getId(armChair.getBlock()))) {
@@ -217,267 +157,36 @@ public class PFMRecipeProvider extends PFMProvider {
                 generatedRecipes.add(getId(armChair.getBlock()));
             }
         }
-        PaladinFurnitureMod.furnitureEntryMap.get(BasicTableBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerBasicTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(BasicTableBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerBasicTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ClassicTableBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerClassicTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ClassicTableBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerClassicTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(LogTableBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                if (block.toString().contains("raw")){
-                    offerLogTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getSecondaryBlock()), exporter);
-                } else {
-                    offerLogTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                }
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(LogTableBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                if (block.toString().contains("raw") && block.toString().contains("stripped")){
-                    offerLogTableRecipe(block.asItem(), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                } else {
-                    offerLogTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                }
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(RawLogTableBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerLogTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getSecondaryBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(RawLogTableBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerLogTableRecipe(block.asItem(), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(DinnerTableBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerDinnerTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(DinnerTableBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerDinnerTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ModernDinnerTableBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerModernDinnerTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ModernDinnerTableBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerModernDinnerTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ClassicNightstandBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerClassicNightStandRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ClassicNightstandBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerClassicNightStandRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(SimpleBedBlock.class).getVariantToBlockMapList().forEach((variantBase, blockList) -> {
-            blockList.forEach(block -> {
-                if (!generatedRecipes.contains(getId(block))) {
-                    offerSimpleBedRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems(getVanillaBed(block)), exporter);
-                    generatedRecipes.add(getId(block));
-                }
-            });
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ClassicBedBlock.class).getVariantToBlockMapList().forEach((variantBase, blockList) -> {
-            blockList.forEach(block -> {
-                if (!generatedRecipes.contains(getId(block))) {
-                    offerClassicBedRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems(getVanillaBed(block)), Ingredient.ofItems((Block) variantBase.getChild("fence")), exporter);
-                    generatedRecipes.add(getId(block));
-                }
-            });
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(SimpleBunkLadderBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerSimpleBunkLadderRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(LogStoolBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerLogStoolRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(SimpleStoolBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerSimpleStoolRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(SimpleStoolBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerSimpleStoolRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ClassicStoolBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerClassicStoolRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ClassicStoolBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerClassicStoolRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ModernStoolBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerModernStoolRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ModernStoolBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerModernStoolRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
 
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                Pair<Block, Block> materials = getCounterMaterials(variantBase);
-                offerCounterRecipe(block.asItem(), Ingredient.ofItems(materials.getRight()), Ingredient.ofItems(materials.getLeft()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerCounterRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenSinkBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                Pair<Block, Block> materials = getCounterMaterials(variantBase);
-                offerKitchenSinkRecipe(block.asItem(), Ingredient.ofItems(materials.getRight()), Ingredient.ofItems(materials.getLeft()), Ingredient.ofItems(Items.BUCKET), Ingredient.ofItems(Items.IRON_INGOT), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenSinkBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerKitchenSinkRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), Ingredient.ofItems(Items.BUCKET), Ingredient.ofItems(Items.IRON_INGOT), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenDrawerBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                Pair<Block, Block> materials = getCounterMaterials(variantBase);
-                offerCounterApplianceRecipe(block.asItem(), Ingredient.ofItems(materials.getRight()), Ingredient.ofItems(materials.getLeft()), Ingredient.ofItems(Items.CHEST), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenDrawerBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerCounterApplianceRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), Ingredient.ofItems(Items.CHEST), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterOvenBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                Pair<Block, Block> materials = getCounterMaterials(variantBase);
-                offerCounterApplianceRecipe(block.asItem(), Ingredient.ofItems(materials.getLeft()), Ingredient.ofItems(materials.getRight()), Ingredient.ofItems(Items.FURNACE), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterOvenBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerCounterApplianceRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), Ingredient.ofItems(Items.FURNACE), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallCounterBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                Pair<Block, Block> materials = getCounterMaterials(variantBase);
-                offerCounterRecipe(block.asItem(), Ingredient.ofItems(materials.getLeft()), Ingredient.ofItems(materials.getLeft()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallCounterBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerCounterRecipe(block.asItem(), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                Pair<Block, Block> materials = getCounterMaterials(variantBase);
-                offerWallDrawerRecipe(block.asItem(), Ingredient.ofItems(materials.getRight()), Ingredient.ofItems(materials.getLeft()), Ingredient.ofItems(Items.CHEST), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerWallDrawerRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), Ingredient.ofItems(Items.CHEST), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerSmallBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                Pair<Block, Block> materials = getCounterMaterials(variantBase);
-                offerWallDrawerSmallRecipe(block.asItem(), Ingredient.ofItems(materials.getRight()), Ingredient.ofItems(materials.getLeft()), Ingredient.ofItems(Items.CHEST), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerSmallBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerWallDrawerSmallRecipe(block.asItem(),  Ingredient.ofItems(variantBase.getBaseBlock().asItem()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), Ingredient.ofItems(Items.CHEST), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenCabinetBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                Pair<Block, Block> materials = getCounterMaterials(variantBase);
-                offerCabinetRecipe(block.asItem(), Ingredient.ofItems(materials.getRight()), Ingredient.ofItems(materials.getLeft()), Ingredient.ofItems(Items.CHEST), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(KitchenCabinetBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerCabinetRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock().asItem()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), Ingredient.ofItems(Items.CHEST), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
+        offerBasicTableRecipe(BasicTableBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(BasicTableBlock.class).getVariants(), exporter);
+        offerClassicTableRecipe(ClassicTableBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(ClassicTableBlock.class).getVariants(), exporter);
+        offerLogTableRecipe(LogTableBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(LogTableBlock.class).getVariants(), exporter);
+        offerLogTableRecipe(RawLogTableBlock.class, "secondary", "secondary", PaladinFurnitureMod.furnitureEntryMap.get(RawLogTableBlock.class).getVariants(), exporter);
+        offerDinnerTableRecipe(DinnerTableBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(DinnerTableBlock.class).getVariants(), exporter);
+        offerModernDinnerTableRecipe(ModernDinnerTableBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(ModernDinnerTableBlock.class).getVariants(), exporter);
+        offerClassicNightStandRecipe(ClassicNightstandBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(ClassicNightstandBlock.class).getVariants(), exporter);
+
+
+        for (Block block : getVanillaBeds()) {
+            offerSimpleBedRecipe(SimpleBedBlock.class, "base", PaladinFurnitureMod.furnitureEntryMap.get(SimpleBedBlock.class).getVariants(), Ingredient.ofItems(block), exporter);
+            offerClassicBedRecipe(ClassicBedBlock.class, "base", PaladinFurnitureMod.furnitureEntryMap.get(ClassicBedBlock.class).getVariants(), Ingredient.ofItems(block), "fence", exporter);
+        }
+
+        offerSimpleBunkLadderRecipe(SimpleBunkLadderBlock.class, "base", PaladinFurnitureMod.furnitureEntryMap.get(SimpleBunkLadderBlock.class).getVariants(), exporter);
+
+        offerLogStoolRecipe(LogStoolBlock.class, "secondary", PaladinFurnitureMod.furnitureEntryMap.get(LogStoolBlock.class).getVariants(), exporter);
+        offerSimpleStoolRecipe(SimpleStoolBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(SimpleStoolBlock.class).getVariants(), exporter);
+        offerClassicStoolRecipe(ClassicStoolBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(ClassicStoolBlock.class).getVariants(), exporter);
+        offerModernStoolRecipe(ModernStoolBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(ModernStoolBlock.class).getVariants(), exporter);
+        offerCounterRecipe(KitchenCounterBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterBlock.class).getVariants(), exporter);
+        offerKitchenSinkRecipe(KitchenSinkBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(KitchenSinkBlock.class).getVariants(), Ingredient.ofItems(Items.BUCKET), Ingredient.ofItems(Items.IRON_INGOT), exporter);
+        offerCounterApplianceRecipe(KitchenDrawerBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(KitchenDrawerBlock.class).getVariants(), Ingredient.ofItems(Items.CHEST), exporter);
+        offerCounterApplianceRecipe(KitchenCounterOvenBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(KitchenCounterOvenBlock.class).getVariants(), Ingredient.ofItems(Items.FURNACE), exporter);
+        offerCounterRecipe(KitchenWallCounterBlock.class, "base", "base", PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallCounterBlock.class).getVariants(), exporter);
+        offerWallDrawerRecipe(KitchenWallDrawerBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerBlock.class).getVariants(), Ingredient.ofItems(Items.CHEST), exporter);
+        offerWallDrawerSmallRecipe(KitchenWallDrawerSmallBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(KitchenWallDrawerSmallBlock.class).getVariants(), Ingredient.ofItems(Items.CHEST), exporter);
+        offerCabinetRecipe(KitchenCabinetBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(KitchenCabinetBlock.class).getVariants(), Ingredient.ofItems(Items.CHEST), exporter);
+
         FurnitureBlock[] herringbonePlanks = HerringbonePlankBlock.streamPlanks().toList().toArray(new FurnitureBlock[0]);
         for (FurnitureBlock herringbonePlank : herringbonePlanks) {
             if (!generatedRecipes.contains(getId(herringbonePlank.getBlock()))) {
@@ -562,7 +271,7 @@ public class PFMRecipeProvider extends PFMProvider {
             }
         });
         if (!generatedRecipes.contains(Registries.ITEM.getId(PaladinFurnitureModBlocksItems.LIGHT_SWITCH_ITEM))) {
-            FurnitureRecipeJsonFactory.create(PaladinFurnitureModBlocksItems.LIGHT_SWITCH_ITEM, 6).input(Blocks.WHITE_CONCRETE, 6).input(Blocks.LIGHT_GRAY_CONCRETE, 2).input(Items.REDSTONE).offerTo(exporter, new Identifier("pfm", PaladinFurnitureModBlocksItems.LIGHT_SWITCH_ITEM.getTranslationKey().replace("block.pfm.", "")));
+            SimpleFurnitureRecipeJsonFactory.create(PaladinFurnitureModBlocksItems.LIGHT_SWITCH_ITEM, 6).input(Blocks.WHITE_CONCRETE, 6).input(Blocks.LIGHT_GRAY_CONCRETE, 2).input(Items.REDSTONE).offerTo(exporter, new Identifier("pfm", PaladinFurnitureModBlocksItems.LIGHT_SWITCH_ITEM.getTranslationKey().replace("block.pfm.", "")));
             generatedRecipes.add(Registries.ITEM.getId(PaladinFurnitureModBlocksItems.LIGHT_SWITCH_ITEM));
         }
 
@@ -597,11 +306,11 @@ public class PFMRecipeProvider extends PFMProvider {
         }
 
         if (!generatedRecipes.contains(getId(PaladinFurnitureModBlocksItems.MESH_TRASHCAN))) {
-            FurnitureRecipeJsonFactory.create(PaladinFurnitureModBlocksItems.MESH_TRASHCAN, 1).input(Items.IRON_INGOT, 1).input(Items.ENDER_PEARL, 1).input(Blocks.IRON_BARS, 4).offerTo(exporter, new Identifier("pfm", PaladinFurnitureModBlocksItems.MESH_TRASHCAN.asItem().getTranslationKey().replace("block.pfm.", "")));
+            SimpleFurnitureRecipeJsonFactory.create(PaladinFurnitureModBlocksItems.MESH_TRASHCAN, 1).input(Items.IRON_INGOT, 1).input(Items.ENDER_PEARL, 1).input(Blocks.IRON_BARS, 4).offerTo(exporter, new Identifier("pfm", PaladinFurnitureModBlocksItems.MESH_TRASHCAN.asItem().getTranslationKey().replace("block.pfm.", "")));
             generatedRecipes.add(getId(PaladinFurnitureModBlocksItems.MESH_TRASHCAN));
         }
         if (!generatedRecipes.contains(getId(PaladinFurnitureModBlocksItems.TRASHCAN))) {
-            FurnitureRecipeJsonFactory.create(PaladinFurnitureModBlocksItems.TRASHCAN, 1).input(Items.IRON_INGOT, 1).input(Items.ENDER_PEARL, 1).input(Blocks.IRON_BARS, 4).offerTo(exporter, new Identifier("pfm", PaladinFurnitureModBlocksItems.TRASHCAN.asItem().getTranslationKey().replace("block.pfm.", "")));
+            SimpleFurnitureRecipeJsonFactory.create(PaladinFurnitureModBlocksItems.TRASHCAN, 1).input(Items.IRON_INGOT, 1).input(Items.ENDER_PEARL, 1).input(Blocks.IRON_BARS, 4).offerTo(exporter, new Identifier("pfm", PaladinFurnitureModBlocksItems.TRASHCAN.asItem().getTranslationKey().replace("block.pfm.", "")));
             generatedRecipes.add(getId(PaladinFurnitureModBlocksItems.TRASHCAN));
         }
 
@@ -623,59 +332,22 @@ public class PFMRecipeProvider extends PFMProvider {
 
         offerLampRecipes(exporter);
 
-        PaladinFurnitureMod.furnitureEntryMap.get(BasicCoffeeTableBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerBasicCoffeeTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(BasicCoffeeTableBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerBasicCoffeeTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-
-        PaladinFurnitureMod.furnitureEntryMap.get(ModernCoffeeTableBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerModernCoffeeTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ModernCoffeeTableBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerModernCoffeeTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-
-        PaladinFurnitureMod.furnitureEntryMap.get(ClassicCoffeeTableBlock.class).getVariantToBlockMap().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerClassicCoffeeTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getSecondaryBlock()), Ingredient.ofItems(variantBase.getBaseBlock()), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
-        PaladinFurnitureMod.furnitureEntryMap.get(ClassicCoffeeTableBlock.class).getVariantToBlockMapNonBase().forEach((variantBase, block) -> {
-            if (!generatedRecipes.contains(getId(block))) {
-                offerClassicCoffeeTableRecipe(block.asItem(), Ingredient.ofItems(variantBase.getBaseBlock()), Ingredient.ofItems((Block)variantBase.getChild("stripped_log")), exporter);
-                generatedRecipes.add(getId(block));
-            }
-        });
+        offerBasicCoffeeTableRecipe(BasicCoffeeTableBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(BasicCoffeeTableBlock.class).getVariants(), exporter);
+        offerModernCoffeeTableRecipe(ModernCoffeeTableBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(ModernCoffeeTableBlock.class).getVariants(), exporter);
+        offerClassicCoffeeTableRecipe(ClassicCoffeeTableBlock.class, "secondary", "base", PaladinFurnitureMod.furnitureEntryMap.get(ClassicCoffeeTableBlock.class).getVariants(), exporter);
 
         PaladinFurnitureMod.pfmModCompatibilities.forEach(pfmModCompatibility -> pfmModCompatibility.generateRecipes(exporter));
     }
 
     public static void offerLampRecipes(RecipeExporter exporter) {
-        for (WoodVariant variant : WoodVariantRegistry.getVariants()) {
-            for (DyeColor color : DyeColor.values()) {
-                NbtCompound beTag = new NbtCompound();
-                beTag.putString("color", color.asString());
-                beTag.putString("variant", variant.getIdentifier().toString());
-                NbtCompound tag = new NbtCompound();
-                tag.put("BlockEntityTag", beTag);
+        for (DyeColor color : DyeColor.values()) {
+            NbtCompound beTag = new NbtCompound();
+            beTag.putString("color", color.asString());
+            NbtCompound tag = new NbtCompound();
+            tag.put("BlockEntityTag", beTag);
+            tag.putBoolean("variantInNbt", true);
 
-                FurnitureRecipeJsonFactory.create(PaladinFurnitureModBlocksItems.BASIC_LAMP, tag).input(ModelHelper.getWoolColor(color.asString()), 3).input((Block)variant.getChild("stripped_log"), 2).offerTo(exporter, new Identifier("pfm", String.format("basic_%s_%s_lamp", color.asString(), variant.asString())));
-            }
+            DynamicFurnitureRecipeJsonFactory.create(BasicLampBlock.class, 1,  WoodVariantRegistry.getVariants().stream().map(woodVariant -> woodVariant.identifier).toList(), tag).vanillaInput(ModelHelper.getWoolColor(color.asString()), 3).vanillaInput(Items.TORCH).vanillaInput(Items.REDSTONE).childInput("stripped_log", 2).offerTo(exporter, new Identifier("pfm", String.format("basic_%s_lamp", color.asString())));
         }
     }
 
@@ -698,76 +370,95 @@ public class PFMRecipeProvider extends PFMProvider {
         return null;
     }
 
-    public static void offerBasicChairRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("chairs").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 2).input(baseMaterial, 4).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public List<Block> getVanillaBeds() {
+        List<Block> beds = new ArrayList<>();
+        Registries.BLOCK.stream().forEach(block -> {
+            if (block instanceof BedBlock && Registries.BLOCK.getId(block).getNamespace().equals("minecraft"))
+                beds.add(block);
+        });
+        return beds;
+    }
+
+    public static void offerBasicChairRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("chairs").childInput(legMaterial, 2).childInput(baseMaterial, 4).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
     public static void offerFroggyChairRecipe(ItemConvertible output, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("chairs").criterion("has_concrete", conditionsFromIngredient(baseMaterial)).input(baseMaterial, 6).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 4).group("chairs").criterion("has_concrete", conditionsFromIngredient(baseMaterial)).input(baseMaterial, 6).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
-    public static void offerDinnerChairRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("chairs").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 3).input(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerDinnerChairRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("chairs").childInput(legMaterial, 3).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerClassicChairRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("chairs").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 4).input(baseMaterial, 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerClassicChairDyedRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
+        SimpleFurnitureRecipeJsonFactory.create(output, 4).group("chairs").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 4).input(baseMaterial, 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
-    public static void offerModernChairRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("chairs").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 3).input(baseMaterial,3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerClassicChairRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("chairs").childInput(legMaterial, 4).childInput(baseMaterial, 2).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
+    }
+
+    public static void offerModernChairRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("chairs").childInput(legMaterial, 3).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
+
     }
     public static void offerArmChairRecipe(ItemConvertible output, Ingredient baseMaterial, Ingredient legMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 2).group("chairs").criterion("has_wool", conditionsFromIngredient(baseMaterial)).input(legMaterial, 4).input(baseMaterial, 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 2).group("chairs").criterion("has_wool", conditionsFromIngredient(baseMaterial)).input(legMaterial, 4).input(baseMaterial, 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerSimpleSofaRecipe(ItemConvertible output, Ingredient baseMaterial, Ingredient legMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 2).group("chairs").criterion("has_wool", conditionsFromIngredient(baseMaterial)).input(legMaterial, 2).input(baseMaterial, 4).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 2).group("chairs").criterion("has_wool", conditionsFromIngredient(baseMaterial)).input(legMaterial, 2).input(baseMaterial, 4).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
-    public static void offerBasicTableRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("tables").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 5).input(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerBasicTableRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("tables").childInput(legMaterial, 5).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerBasicCoffeeTableRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("tables").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 3).input(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerBasicCoffeeTableRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("tables").childInput(legMaterial, 3).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerModernCoffeeTableRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("tables").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 4).input(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerModernCoffeeTableRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("tables").childInput(legMaterial, 4).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerClassicCoffeeTableRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("tables").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 2).input(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerClassicCoffeeTableRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("tables").childInput(legMaterial, 2).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerClassicTableRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("tables").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 4).input(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerClassicTableRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("tables").childInput(legMaterial, 4).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerLogTableRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("tables").criterion(getCriterionNameFromOutput(output, "has_log"), conditionsFromIngredient(baseMaterial)).input(legMaterial, 2).input(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerLogTableRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("tables").childInput(legMaterial, 2).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
     public static void offerHerringbonePlanks(ItemConvertible output, Item baseMaterial, RecipeExporter exporter) {
         ShapedRecipeJsonBuilder.create(RecipeCategory.BUILDING_BLOCKS, output, 4).input('X', baseMaterial).pattern("XX").pattern("XX").criterion("has_wood_slabs", conditionsFromItem(baseMaterial)).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
-    public static void offerDinnerTableRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("tables").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 3).input(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerDinnerTableRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("tables").childInput(legMaterial, 3).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerModernDinnerTableRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("tables").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 5).input(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerModernDinnerTableRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("tables").childInput(legMaterial, 5).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerClassicNightStandRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("bedroom").criterion(getCriterionNameFromOutput(output), conditionsFromIngredient(baseMaterial)).input(legMaterial, 6).input(baseMaterial, 1).input(Blocks.CHEST, 1).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerClassicNightStandRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("bedroom").childInput(legMaterial, 6).childInput(baseMaterial, 1).vanillaInput(Blocks.CHEST, 1).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
     public static String getCriterionNameFromOutput(ItemConvertible output) {
         return getCriterionNameFromOutput(output, "");
     }
+
+    public static String getEmptyCriteria() {
+        return "";
+    }
+
     public static String getCriterionNameFromOutput(ItemConvertible output, String type) {
         if (Block.getBlockFromItem(output.asItem()) == null || Block.getBlockFromItem(output.asItem()) == Blocks.AIR || !PaladinFurnitureMod.furnitureEntryMap.containsKey(Block.getBlockFromItem(output.asItem()).getClass())) {
             return getItemPath(output);
@@ -778,127 +469,134 @@ public class PFMRecipeProvider extends PFMProvider {
         else return getItemPath(output);
     }
 
-    public static void offerSimpleBedRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseBed, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("bedroom").criterion("has_bed", conditionsFromIngredient(baseBed)).input(legMaterial,5).input(baseBed, 1).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerSimpleBedRecipe(Class<? extends Block> output, String legMaterial, List<Identifier> variants, Ingredient baseBed, RecipeExporter exporter) {
+        DyeColor color = ((BedBlock)((BlockItem)Arrays.stream(baseBed.getMatchingStacks()).findFirst().get().getItem()).getBlock()).getColor();
+        NbtCompound tag = new NbtCompound();
+        tag.putString("color", color.asString());
+        DynamicFurnitureRecipeJsonFactory.create(output, 1, variants, tag).group("bedroom").childInput(legMaterial, 5).vanillaInput(baseBed, 1).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US) + "_"+ color.asString()));
     }
 
-    public static void offerClassicBedRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseBed, Ingredient fence, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("bedroom").criterion("has_bed", conditionsFromIngredient(baseBed)).input(legMaterial, 3).input(baseBed, 1).input(fence, 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerClassicBedRecipe(Class<? extends Block> output, String legMaterial, List<Identifier> variants, Ingredient baseBed, String fence, RecipeExporter exporter) {
+        DyeColor color = ((BedBlock)((BlockItem)Arrays.stream(baseBed.getMatchingStacks()).findFirst().get().getItem()).getBlock()).getColor();
+        NbtCompound tag = new NbtCompound();
+        tag.putString("color", color.asString());
+        DynamicFurnitureRecipeJsonFactory.create(output, 1, variants, tag).group("bedroom").childInput(legMaterial, 3).childInput(fence, 2).vanillaInput(baseBed, 1).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US) + "_"+ ((BedBlock)((BlockItem)Arrays.stream(baseBed.getMatchingStacks()).findFirst().get().getItem()).getBlock()).getColor()));
     }
 
-    public static void offerSimpleBunkLadderRecipe(ItemConvertible output, Ingredient base, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("bedroom").input(base, 1).criterion("has_planks", conditionsFromIngredient(base)).input(Ingredient.ofItems(Items.STICK), 6).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerSimpleBunkLadderRecipe(Class<? extends Block> output, String base, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("bedroom").childInput(base, 1).vanillaInput(Ingredient.ofItems(Items.STICK), 6).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerLogStoolRecipe(ItemConvertible output, Ingredient legMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("stools").criterion("has_log", conditionsFromIngredient(legMaterial)).input(legMaterial).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerLogStoolRecipe(Class<? extends Block> output, String legMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("stools").childInput(legMaterial, 1).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerSimpleStoolRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("stools").criterion("has_planks", conditionsFromIngredient(baseMaterial)).input(legMaterial, 2).input(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerSimpleStoolRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("stools").childInput(legMaterial, 2).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerClassicStoolRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("stools").criterion("has_planks", conditionsFromIngredient(baseMaterial)).input(legMaterial, 3).input(baseMaterial, 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerClassicStoolRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("stools").childInput(legMaterial, 3).childInput(baseMaterial, 2).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerModernStoolRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("stools").criterion("has_planks", conditionsFromIngredient(baseMaterial)).input(legMaterial, 1).input(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerModernStoolRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("stools").childInput(legMaterial, 1).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerCounterRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 6).group("kitchen").criterion("has_planks", conditionsFromIngredient(baseMaterial)).input(baseMaterial, 6).input(legMaterial, 3).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
-    }
-    public static void offerCounterApplianceRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, Ingredient appliance, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_planks", conditionsFromIngredient(baseMaterial)).input(baseMaterial, 5).input(legMaterial, 3).input(appliance).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerCounterRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Consumer<RecipeJsonProvider> exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 6, variants).group("kitchen").childInput(legMaterial, 3).childInput(baseMaterial, 6).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerKitchenSinkRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, Ingredient center, Ingredient ingot, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_planks", conditionsFromIngredient(baseMaterial)).input(baseMaterial, 5).input(legMaterial, 2).input(ingot).input(center).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerCounterApplianceRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Ingredient appliance, RecipeExporter exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 1, variants).group("kitchen").childInput(legMaterial, 3).childInput(baseMaterial, 5).vanillaInput(appliance).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerWallDrawerRecipe(ItemConvertible output, Ingredient baseMaterial, Ingredient legMaterial, Ingredient appliace, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_planks", conditionsFromIngredient(baseMaterial)).input(legMaterial, 6).input(baseMaterial, 2).input(appliace).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerKitchenSinkRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Ingredient center, Ingredient ingot, RecipeExporter exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 1, variants).group("kitchen").childInput(legMaterial, 2).childInput(baseMaterial, 5).vanillaInput(ingot).vanillaInput(center).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerWallDrawerSmallRecipe(ItemConvertible output, Ingredient baseMaterial, Ingredient legMaterial, Ingredient appliance, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 3).group("kitchen").criterion("has_planks", conditionsFromIngredient(baseMaterial)).input(legMaterial, 3).input(baseMaterial, 2).input(appliance).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerWallDrawerRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Ingredient appliace, RecipeExporter exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 1, variants).group("kitchen").childInput(legMaterial, 6).childInput(baseMaterial, 2).vanillaInput(appliace).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
-    public static void offerCabinetRecipe(ItemConvertible output, Ingredient baseMaterial, Ingredient legMaterial, Ingredient chest, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_planks", conditionsFromIngredient(baseMaterial)).input(legMaterial,6).input(baseMaterial,2).input(chest).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+    public static void offerWallDrawerSmallRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Ingredient appliance, RecipeExporter exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 3, variants).group("kitchen").childInput(legMaterial, 3).childInput(baseMaterial, 2).vanillaInput(appliance).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
+    }
+
+    public static void offerCabinetRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, Ingredient chest, RecipeExporter exporter) {
+        DynamicFurnitureRecipeJsonFactory.create(output, 3, variants).group("kitchen").childInput(legMaterial, 6).childInput(baseMaterial, 2).vanillaInput(chest).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
     public static void offerFridgeRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient storage, RecipeExporter exporter) {
         if (output.asItem().toString().contains("xbox")) {
-            FurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial, 6).input(storage, 1).input(Ingredient.ofItems(Items.REDSTONE)).input(Ingredient.ofItems(Items.WHITE_CONCRETE)).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+            SimpleFurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial, 6).input(storage, 1).input(Ingredient.ofItems(Items.REDSTONE)).input(Ingredient.ofItems(Items.WHITE_CONCRETE)).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
         }
         else {
-            FurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial, 7).input(storage).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+            SimpleFurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial, 7).input(storage).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
         }
     }
 
     public static void offerFreezerRecipe(ItemConvertible output, Ingredient legMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial, 7).input(Ingredient.ofItems(Items.REDSTONE), 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial, 7).input(Ingredient.ofItems(Items.REDSTONE), 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerMicrowaveRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient storage, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial ,5).input(storage).input(Ingredient.ofItems(Items.REDSTONE)).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial ,5).input(storage).input(Ingredient.ofItems(Items.REDSTONE)).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerRangeHoodRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient secondMaterial, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial, 4).input(secondMaterial).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial, 4).input(secondMaterial).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerStoveRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient storage, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial, 8).input(storage).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(legMaterial), conditionsFromIngredient(legMaterial)).input(legMaterial, 8).input(storage).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerStovetopRecipe(ItemConvertible output, Ingredient base, Ingredient material, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 6).input(material, 2).input(Ingredient.ofItems(Items.FLINT_AND_STEEL)).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 1).group("kitchen").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 6).input(material, 2).input(Ingredient.ofItems(Items.FLINT_AND_STEEL)).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerPlateRecipe(ItemConvertible output, Ingredient base, Ingredient frame, Ingredient decoration, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("kitchen").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 4).input(frame).input(decoration, 4).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 4).group("kitchen").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 4).input(frame).input(decoration, 4).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
     public static void offerCutleryRecipe(ItemConvertible output, Ingredient base, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("kitchen").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 4).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 4).group("kitchen").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 4).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerPendantRecipe(ItemConvertible output, Ingredient base,Ingredient hang, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 4).group("lighting").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 2).input(hang, 2).input(PaladinFurnitureModBlocksItems.SIMPLE_LIGHT).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 4).group("lighting").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 2).input(hang, 2).input(PaladinFurnitureModBlocksItems.SIMPLE_LIGHT).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerToiletRecipe(ItemConvertible output, Ingredient base, Ingredient material, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(material), conditionsFromIngredient(material)).input(base).input(material, 4).input(Ingredient.ofItems(Items.BUCKET)).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(material), conditionsFromIngredient(material)).input(base).input(material, 4).input(Ingredient.ofItems(Items.BUCKET)).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerWallToiletPaperRecipe(ItemConvertible output, Ingredient base, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(Items.PAPER), conditionsFromItem(Items.PAPER)).input(base, 1).input(Items.PAPER, 8).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(Items.PAPER), conditionsFromItem(Items.PAPER)).input(base, 1).input(Items.PAPER, 8).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerSinkRecipe(ItemConvertible output, Ingredient base, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 3).input(Items.STONE_BUTTON, 2).input(Items.IRON_INGOT, 1).input(Items.BUCKET, 1).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 3).input(Items.STONE_BUTTON, 2).input(Items.IRON_INGOT, 1).input(Items.BUCKET, 1).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerBathtubRecipe(ItemConvertible output, Ingredient base, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 5).input(Items.STONE_BUTTON, 2).input(Items.BUCKET, 1).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 5).input(Items.STONE_BUTTON, 2).input(Items.BUCKET, 1).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerShowerHeadRecipe(ItemConvertible output, Ingredient base, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 1).input(Items.REDSTONE, 1).input(Items.IRON_INGOT, 1).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 1).input(Items.REDSTONE, 1).input(Items.IRON_INGOT, 1).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerShowerHandleRecipe(ItemConvertible output, Ingredient base, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 2).input(Items.REDSTONE, 1).input(Items.IRON_INGOT, 1).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 1).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base, 2).input(Items.REDSTONE, 1).input(Items.IRON_INGOT, 1).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerShowerTowelRecipe(ItemConvertible output, Ingredient base, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 2).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base,4).input(Ingredient.ofItems(Items.LIGHT_GRAY_CONCRETE), 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 2).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base,4).input(Ingredient.ofItems(Items.LIGHT_GRAY_CONCRETE), 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     public static void offerMirrorRecipe(ItemConvertible output, Ingredient base, RecipeExporter exporter) {
-        FurnitureRecipeJsonFactory.create(output, 2).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base,3).input(Ingredient.ofItems(Items.GLASS), 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
+        SimpleFurnitureRecipeJsonFactory.create(output, 2).group("bathroom").criterion("has_" + getItemPath(base), conditionsFromIngredient(base)).input(base,3).input(Ingredient.ofItems(Items.GLASS), 2).offerTo(exporter, new Identifier("pfm", output.asItem().getTranslationKey().replace("block.pfm.", "")));
     }
 
     private static AdvancementCriterion<InventoryChangedCriterion.Conditions> conditionsFromItem(NumberRange.IntRange count, ItemConvertible item) {

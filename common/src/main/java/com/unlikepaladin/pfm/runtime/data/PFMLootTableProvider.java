@@ -39,6 +39,8 @@ import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.*;
@@ -52,11 +54,13 @@ public class PFMLootTableProvider extends PFMProvider {
     private final List<Pair<Supplier<Consumer<BiConsumer<Identifier, LootTable.Builder>>>, LootContextType>> lootTypeGenerators = ImmutableList.of(Pair.of(PFMLootTableGenerator::new, LootContextTypes.BLOCK));
 
     public PFMLootTableProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Drops");
         parent.setProgress("Generating Loot Tables");
     }
 
-    public CompletableFuture<?> run(DataWriter writer) {
+    @Override
+    public void run() {
+        startProviderRun();
         Path path = getParent().getOutput();
         HashMap<Identifier, LootTable> map = Maps.newHashMap();
         this.lootTypeGenerators.forEach((pair) -> pair.getFirst().get().accept((identifier, builder) -> {
@@ -66,22 +70,18 @@ public class PFMLootTableProvider extends PFMProvider {
         }));
         map.forEach((identifier, lootTable) -> {
             Path path2 = getOutput(path, identifier);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            try (JsonWriter jsonWriter = new JsonWriter(new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8));){
-                Files.createDirectories(path2.getParent());
-                Files.createFile(path2);
-                jsonWriter.setSerializeNulls(false);
-                jsonWriter.setIndent("  ");
-                JsonHelper.writeSorted(jsonWriter, LootTable.CODEC.encodeStart(JsonOps.INSTANCE, lootTable).getOrThrow(true, (error) -> {getParent().getLogger().warn("Failed to parse Loot table: {}", error);}), JSON_KEY_SORTING_COMPARATOR);
-                jsonWriter.flush();
-                Files.write(path2, byteArrayOutputStream.toByteArray(), StandardOpenOption.WRITE);
-                byteArrayOutputStream.close();
+            try {
+                String string = PFMDataGenerator.GSON.toJson(LootTable.CODEC.encodeStart(JsonOps.INSTANCE, lootTable).getOrThrow(true, (error) -> {getParent().getLogger().warn("Failed to parse Loot table: {}", error);}));
+                if (!Files.exists(path2.getParent()))
+                    Files.createDirectories(path2.getParent());
+
+                Files.writeString(path2, string);
             }
             catch (Exception exception) {
                 getParent().getLogger().error("Couldn't save {}", path2, exception);
             }
         });
-        return CompletableFuture.allOf();
+        endProviderRun();
     }
 
     public String getName() {

@@ -89,7 +89,7 @@
   "tooltip.pfm.light_switch_connected": "This light switch has %d lights connected",
   "message.pfm.shower_handle_far": "This handle is too far from the shower head so it has been disconnected: %s",
   "tooltip.pfm.shower_handle_connected": "This handle has %d shower head connected",
-  "message.pfm.patchouli_not_installed": "To use this book you must install the Patchouli mod",
+  "message.pfm.patchouli_not_installed": "To use this book you must install the Patchouli mod. There's an online wiki available as well, click on this text to open it.",
   "item.pfm.furniture_book": "Paladin's Furniture",
 
   "block.pfm.white_shower_towel": "White Shower Towel",

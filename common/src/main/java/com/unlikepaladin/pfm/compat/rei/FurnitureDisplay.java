@@ -27,8 +27,6 @@ import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
-import me.shedaniel.rei.api.common.display.SimpleGridMenuDisplay;
-import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
 import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.entry.InputIngredient;
@@ -44,8 +42,6 @@ import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.screen.ScreenHandler;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.collection.DefaultedList;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -53,38 +49,64 @@ public class FurnitureDisplay implements Display {
     protected FurnitureRecipe recipe;
     protected Identifier recipeId;
     public static final CategoryIdentifier<FurnitureDisplay> IDENTIFIER = CategoryIdentifier.of(new Identifier(PaladinFurnitureMod.MOD_ID, "furniture"));
-    public List<EntryIngredient> input;
-    public List<EntryIngredient> output;
-    public FurnitureDisplay(RecipeEntry<FurnitureRecipe> recipe) {
-        this.recipe = recipe.value();
-        this.recipeId = recipe.id();
-        output = Collections.singletonList(EntryIngredients.of(this.recipe.getResult(MinecraftClient.getInstance().world.getRegistryManager())));
+    private int itemsPerInnerRecipe;
+    public FurnitureDisplay(RecipeEntry<FurnitureRecipe> entry) {
+        this.recipe = entry.value();
+        this.recipeId = entry.id();
+        this.itemsPerInnerRecipe = entry.value().getIngredients().size();
     }
+
+    private final List<EntryIngredient> inputs = new ArrayList<>();
 
     @Override
     public List<EntryIngredient> getInputEntries() {
-        List<Ingredient> ingredients = recipe.getIngredients();
-        HashMap<Item, Integer> containedItems = new HashMap<>();
-        for (Ingredient ingredient : ingredients) {
-            for (ItemStack stack : ingredient.getMatchingStacks()) {
-                if (!containedItems.containsKey(stack.getItem())) {
-                    containedItems.put(stack.getItem(), 1);
-                } else {
-                    containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + 1);
+        if (!inputs.isEmpty()) return inputs;
+
+        List<Ingredient> inputEntries = new ArrayList<>();
+        this.itemsPerInnerRecipe = recipe.getMaxInnerRecipeSize();
+        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes()) {
+            List<Ingredient> ingredients = innerRecipe.getIngredients();
+            HashMap<Item, Integer> containedItems = new HashMap<>();
+            for (Ingredient ingredient : ingredients) {
+                for (ItemStack stack : ingredient.getMatchingStacks()) {
+                    if (!containedItems.containsKey(stack.getItem())) {
+                        containedItems.put(stack.getItem(), stack.getCount());
+                    } else {
+                        containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + stack.getCount());
+                    }
                 }
             }
+            List<Ingredient> finalList = new ArrayList<>();
+            for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
+                finalList.add(Ingredient.ofStacks(new ItemStack(entry.getKey(), entry.getValue())));
+            }
+            finalList.sort(Comparator.comparing(o -> o.getMatchingStacks()[0].getItem().toString()));
+            if (finalList.size() != itemsPerInnerRecipe) {
+                while (finalList.size() != itemsPerInnerRecipe) {
+                    finalList.add(Ingredient.EMPTY);
+                }
+            }
+            inputEntries.addAll(finalList);
         }
-        List<Ingredient> finalList = new ArrayList<>();
-        for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            finalList.add(Ingredient.ofStacks(new ItemStack(entry.getKey(), entry.getValue())));
+        for (Ingredient ingredient : inputEntries) {
+            if (!ingredient.isEmpty())
+                inputs.add(EntryIngredients.ofIngredient(ingredient));
+            else
+                inputs.add(EntryIngredient.empty());
         }
-        finalList.sort(Comparator.comparing(o -> o.getMatchingStacks()[0].getItem().toString()));
-        return EntryIngredients.ofIngredients(finalList);
+        return inputs;
     }
 
+    public int itemsPerInnerRecipe() {
+        return itemsPerInnerRecipe;
+    }
+
+    private final List<EntryIngredient> outputs = new ArrayList<>();
     @Override
     public List<EntryIngredient> getOutputEntries() {
-        return output;
+        if (outputs.isEmpty())
+            outputs.addAll(recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).map(EntryIngredients::of).toList());
+        return outputs;
     }
 
     @Override
