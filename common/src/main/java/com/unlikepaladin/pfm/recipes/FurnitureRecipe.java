@@ -1,30 +1,14 @@
 package com.unlikepaladin.pfm.recipes;
 
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
-import com.google.gson.*;
-import com.mojang.brigadier.exceptions.CommandSyntaxException;
-import com.mojang.datafixers.util.Either;
-import com.mojang.serialization.Codec;
-import com.mojang.serialization.DataResult;
-import com.mojang.serialization.JsonOps;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
-import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeType;
-import net.minecraft.item.Items;
-import net.minecraft.nbt.*;
-import net.minecraft.network.PacketByteBuf;
-import net.minecraft.recipe.*;
 import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
-import net.minecraft.util.collection.DefaultedList;
-import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
@@ -76,7 +60,7 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
 
     interface CraftableFurnitureRecipe extends Comparable<CraftableFurnitureRecipe> {
         List<Ingredient> getIngredients();
-        ItemStack getOutput(DynamicRegistryManager registryManager);
+        ItemStack getResult(DynamicRegistryManager registryManager);
         ItemStack craft(PlayerInventory inventory, DynamicRegistryManager registryManager);
         boolean matches(PlayerInventory playerInventory, World world);
         FurnitureRecipe parent();
@@ -88,7 +72,7 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
         }
 
         default ItemStack craftAndRemoveItems(PlayerInventory playerInventory, DynamicRegistryManager registryManager) {
-            ItemStack output = getOutput(registryManager).copy();
+            ItemStack output = getResult(registryManager).copy();
             List<Ingredient> ingredients = getIngredients();
             for (Ingredient ingredient : ingredients) {
                 for (ItemStack stack : ingredient.getMatchingStacks()) {

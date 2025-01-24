@@ -4,7 +4,10 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.blocks.RawLogTableBlock;
 import com.unlikepaladin.pfm.data.materials.VariantBase;
@@ -26,19 +29,17 @@ import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
+import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.world.World;
 
 import java.util.*;
 
-
 public class DynamicFurnitureRecipe implements FurnitureRecipe {
-    private final Identifier id;
     private final String group;
     private final FurnitureOutput furnitureOutput;
     private final List<Identifier> supportedVariants;
     private final FurnitureIngredients ingredients;
-    public DynamicFurnitureRecipe(Identifier id, String group, FurnitureOutput furnitureOutput, List<Identifier> supportedVariants, FurnitureIngredients furnitureIngredients) {
-        this.id = id;
+    public DynamicFurnitureRecipe(String group, FurnitureOutput furnitureOutput, List<Identifier> supportedVariants, FurnitureIngredients furnitureIngredients) {
         this.group = group;
         this.furnitureOutput = furnitureOutput;
         this.supportedVariants = supportedVariants;
@@ -169,14 +170,9 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public ItemStack getOutput(DynamicRegistryManager registryManager) {
+    public ItemStack getResult(DynamicRegistryManager registryManager) {
         PaladinFurnitureMod.GENERAL_LOGGER.warn("Something has tried to get the output of a dynamic furniture recipe without context");
         return ItemStack.EMPTY;
-    }
-
-    @Override
-    public Identifier getId() {
-        return id;
     }
 
     @Override
@@ -249,7 +245,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         }
 
         @Override
-        public ItemStack getOutput(DynamicRegistryManager registryManager) {
+        public ItemStack getResult(DynamicRegistryManager registryManager) {
             return output;
         }
 
@@ -294,6 +290,13 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     public static class FurnitureOutput {
+
+        public static Codec<FurnitureOutput> CODEC = RecordCodecBuilder.create(furnitureOutputInstance -> furnitureOutputInstance.group(
+                Codec.STRING.fieldOf("outputClass").forGetter(out -> out.outputClass),
+                Codec.INT.optionalFieldOf("count", 1).forGetter(out -> out.outputCount),
+                NbtCompound.CODEC.optionalFieldOf("tag", null).forGetter(out -> out.nbt)
+        ).apply(furnitureOutputInstance, FurnitureOutput::new));
+
         private final String outputClass;
         private final int outputCount;
         private final NbtCompound nbt;
@@ -316,17 +319,6 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             return outputClass;
         }
 
-        public static FurnitureOutput read(JsonObject json) {
-            NbtCompound nbtCompound = null;
-            if (json.has("tag")) {
-                nbtCompound = new NbtCompound();
-                for(Map.Entry<String, JsonElement> jsonObject : json.get("tag").getAsJsonObject().entrySet()) {
-                    nbtCompound.put(jsonObject.getKey(), JsonOps.INSTANCE.convertTo(NbtOps.INSTANCE, jsonObject.getValue()));
-                }
-            }
-            return new FurnitureOutput(JsonHelper.getString(json, "outputClass"), JsonHelper.getInt(json, "count", 1), nbtCompound);
-        }
-
         public static FurnitureOutput read(PacketByteBuf buf) {
             String outputClass = buf.readString();
             int count = buf.readInt();
@@ -343,6 +335,11 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     public static final class FurnitureIngredients {
+        public static Codec<FurnitureIngredients> CODEC = RecordCodecBuilder.create(furnitureIngredientsInstance -> furnitureIngredientsInstance.group(
+                Ingredient.DISALLOW_EMPTY_CODEC.listOf().fieldOf("vanillaIngredients").forGetter(ingredients -> ingredients.vanillaIngredients),
+                Codecs.strictUnboundedMap(Codec.STRING, Codec.INT).fieldOf("variantChildren").forGetter(ingredients -> ingredients.variantChildren)
+        ).apply(furnitureIngredientsInstance, FurnitureIngredients::new));
+
         private final List<Ingredient> vanillaIngredients;
         private final Map<String, Integer> variantChildren;
 
@@ -351,25 +348,10 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             this.variantChildren = variantChildren;
         }
 
-        public static FurnitureIngredients read(JsonObject json) {
-            List<Ingredient> vanillaIngredients = new ArrayList<>();
-            json.getAsJsonArray("vanillaIngredients").forEach(element -> vanillaIngredients.add(Ingredient.fromJson(element)));
-            Map<String, Integer> variantChildren = readChildrenCount(json.get("variantChildren").getAsJsonObject());
-            return new FurnitureIngredients(vanillaIngredients, variantChildren);
-        }
-
         public static FurnitureIngredients read(PacketByteBuf buf) {
             List<Ingredient> vanillaIngredients = buf.readCollection(Lists::newArrayListWithCapacity, Ingredient::fromPacket);
             Map<String, Integer> variantChildren = buf.readMap((PacketByteBuf::readString), (PacketByteBuf::readInt));
             return new FurnitureIngredients(vanillaIngredients, variantChildren);
-        }
-
-        private static Map<String, Integer> readChildrenCount(JsonObject json) {
-            HashMap<String, Integer> map = Maps.newHashMap();
-            for (Map.Entry<String, JsonElement> entry : json.entrySet()) {
-                map.put(entry.getKey(), entry.getValue().getAsInt());
-            }
-            return map;
         }
 
         public static void write(PacketByteBuf buf, FurnitureIngredients ingredients) {
@@ -380,31 +362,25 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     public static class Serializer implements RecipeSerializer<DynamicFurnitureRecipe> {
-       /* Codec<DynamicFurnitureRecipe> CODEC = RecordCodecBuilder.create((instance) -> instance.group(
+        Codec<DynamicFurnitureRecipe> CODEC = RecordCodecBuilder.create((instance) -> instance.group(
                 Codec.STRING.optionalFieldOf("group", "").forGetter(DynamicFurnitureRecipe::getGroup),
-                Codec.STRING.fieldOf("outputBlock").forGetter(DynamicFurnitureRecipe::getOutputBlock),
-                Identifier.CODEC.listOf().fieldOf("variants").forGetter(DynamicFurnitureRecipe::getSupportedVariants)
+                FurnitureOutput.CODEC.fieldOf("result").forGetter(recipe -> recipe.furnitureOutput),
+                Identifier.CODEC.listOf().fieldOf("variants").forGetter(DynamicFurnitureRecipe::getSupportedVariants),
+                FurnitureIngredients.CODEC.fieldOf("ingredients").forGetter(recipe -> recipe.ingredients)
         ).apply(instance, DynamicFurnitureRecipe::new));
-        */
 
         @Override
-        public DynamicFurnitureRecipe read(Identifier id, JsonObject json) {
-            String group = JsonHelper.getString(json, "group", "");
-
-            List<Identifier> supportedVariants = new ArrayList<>();
-            JsonHelper.getArray(json, "supportedVariants").forEach(jsonElement -> supportedVariants.add(Identifier.tryParse(jsonElement.getAsString())));
-            FurnitureIngredients ingredients = FurnitureIngredients.read(json);
-
-            return new DynamicFurnitureRecipe(id, group, FurnitureOutput.read(json.getAsJsonObject("result")), supportedVariants, ingredients);
+        public Codec<DynamicFurnitureRecipe> codec() {
+            return CODEC;
         }
 
         @Override
-        public DynamicFurnitureRecipe read(Identifier id, PacketByteBuf buf) {
+        public DynamicFurnitureRecipe read(PacketByteBuf buf) {
             String group = buf.readString();
             List<Identifier> supportedVariants = buf.readList(PacketByteBuf::readIdentifier);
             FurnitureIngredients ingredients = FurnitureIngredients.read(buf);
             FurnitureOutput output = FurnitureOutput.read(buf);
-            return new DynamicFurnitureRecipe(id, group, output, supportedVariants, ingredients);
+            return new DynamicFurnitureRecipe(group, output, supportedVariants, ingredients);
         }
 
         @Override
@@ -414,5 +390,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             FurnitureIngredients.write(buf, recipe.ingredients);
             FurnitureOutput.write(buf, recipe.furnitureOutput);
         }
+
+
     }
 }

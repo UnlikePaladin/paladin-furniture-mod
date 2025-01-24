@@ -1,7 +1,9 @@
 package com.unlikepaladin.pfm.recipes;
 
 import com.google.gson.*;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
@@ -20,21 +22,20 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.registry.Registry;
+import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.world.World;
 
 import java.util.*;
 
 public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.CraftableFurnitureRecipe {
-    private final Identifier id;
     final String group;
     final ItemStack output;
     final DefaultedList<Ingredient> input;
 
-    public SimpleFurnitureRecipe(Identifier id, String group, ItemStack output, DefaultedList<Ingredient> input) {
-        this.id = id;
+    public SimpleFurnitureRecipe(String group, ItemStack output, List<Ingredient> input) {
         this.group = group;
         this.output = output;
-        this.input = input;
+        this.input = DefaultedList.copyOf(Ingredient.EMPTY, input.toArray(Ingredient[]::new));
     }
 
     @Override
@@ -91,13 +92,8 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
     }
 
     @Override
-    public ItemStack getOutput(DynamicRegistryManager registryManager) {
+    public ItemStack getResult(DynamicRegistryManager registryManager) {
         return this.output;
-    }
-
-    @Override
-    public Identifier getId() {
-        return this.id;
     }
 
     @Override
@@ -127,63 +123,21 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
 
     public static class Serializer
             implements RecipeSerializer<SimpleFurnitureRecipe> {
+
+        Codec<SimpleFurnitureRecipe> CODEC = RecordCodecBuilder.create(simpleFurnitureRecipeInstance ->
+                simpleFurnitureRecipeInstance.group(
+                        Codec.STRING.optionalFieldOf("group", "").forGetter(SimpleFurnitureRecipe::getGroup),
+                        ItemStack.CODEC.fieldOf("result").forGetter(recipe -> recipe.output),
+                        Ingredient.DISALLOW_EMPTY_CODEC.listOf().fieldOf("ingredients").forGetter(SimpleFurnitureRecipe::getIngredients))
+                        .apply(simpleFurnitureRecipeInstance, SimpleFurnitureRecipe::new)
+        );
         @Override
-        public SimpleFurnitureRecipe read(Identifier identifier, JsonObject jsonObject) {
-            String string = JsonHelper.getString(jsonObject, "group", "");
-            DefaultedList<Ingredient> defaultedList = getIngredients(JsonHelper.getArray(jsonObject, "ingredients"));
-            if (defaultedList.isEmpty()) {
-                throw new JsonParseException("No ingredients for furniture recipe");
-            }
-            ItemStack itemStack = outputFromJson(JsonHelper.getObject(jsonObject, "result"));
-            return new SimpleFurnitureRecipe(identifier, string, itemStack, defaultedList);
-        }
-
-        private static DefaultedList<Ingredient> getIngredients(JsonArray json) {
-            DefaultedList<Ingredient> defaultedList = DefaultedList.of();
-            for (int i = 0; i < json.size(); ++i) {
-                Ingredient ingredient = Ingredient.fromJson(json.get(i));
-                if (ingredient.isEmpty()) continue;
-                defaultedList.add(ingredient);
-            }
-            return defaultedList;
-        }
-
-        public static ItemStack outputFromJson(JsonObject json) {
-            Item item = getItem(json);
-            Map<String, NbtElement> elementList = null;
-            if (json.has("tag")) {
-                elementList = new HashMap<>();
-                for(Map.Entry<String, JsonElement> jsonObject : json.get("tag").getAsJsonObject().entrySet()) {
-                    elementList.put(jsonObject.getKey(), JsonOps.INSTANCE.convertTo(NbtOps.INSTANCE, jsonObject.getValue()));
-                }
-            }
-            int i = JsonHelper.getInt(json, "count", 1);
-            if (i < 1) {
-                throw new JsonSyntaxException("Invalid output count: " + i);
-            }
-            ItemStack stack = new ItemStack(item, i);
-            NbtCompound compound = new NbtCompound();
-            if (elementList != null) {
-                for(Map.Entry<String, NbtElement> nbtElementEntry : elementList.entrySet()) {
-                    compound.put(nbtElementEntry.getKey(), nbtElementEntry.getValue());
-                }
-            }
-            if (!compound.isEmpty())
-                stack.setNbt(compound);
-            return stack;
-        }
-
-        public static Item getItem(JsonObject json) {
-            String string = JsonHelper.getString(json, "item");
-            Item item = Registries.ITEM.getOrEmpty(new Identifier(string)).orElseThrow(() -> new JsonSyntaxException("Unknown item '" + string + "'"));
-            if (item == Items.AIR) {
-                throw new JsonSyntaxException("Invalid item: " + string);
-            }
-            return item;
+        public Codec<SimpleFurnitureRecipe> codec() {
+            return CODEC;
         }
 
         @Override
-        public SimpleFurnitureRecipe read(Identifier identifier, PacketByteBuf packetByteBuf) {
+        public SimpleFurnitureRecipe read(PacketByteBuf packetByteBuf) {
             String string = packetByteBuf.readString();
             int i = packetByteBuf.readVarInt();
             DefaultedList<Ingredient> defaultedList = DefaultedList.ofSize(i, Ingredient.EMPTY);
@@ -191,7 +145,7 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
                 defaultedList.set(j, Ingredient.fromPacket(packetByteBuf));
             }
             ItemStack itemStack = packetByteBuf.readItemStack();
-            return new SimpleFurnitureRecipe(identifier, string, itemStack, defaultedList);
+            return new SimpleFurnitureRecipe(string, itemStack, defaultedList);
         }
 
         @Override
