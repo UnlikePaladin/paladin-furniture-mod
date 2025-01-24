@@ -275,6 +275,11 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         }
 
         @Override
+        public FurnitureRecipe parent() {
+            return parentRecipe;
+        }
+
+        @Override
         public ItemStack craft(PlayerInventory inventory) {
             return output.copy();
         }

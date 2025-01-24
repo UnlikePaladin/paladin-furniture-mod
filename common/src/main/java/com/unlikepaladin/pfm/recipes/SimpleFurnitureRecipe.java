@@ -57,6 +57,11 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
         return hasIngredients.cardinality() == ingredients.size();
     }
 
+    @Override
+    public FurnitureRecipe parent() {
+        return this;
+    }
+
 
     @Override
     public ItemStack craft(PlayerInventory playerInventory) {

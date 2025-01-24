@@ -62,6 +62,7 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
         ItemStack getOutput();
         ItemStack craft(PlayerInventory inventory);
         boolean matches(PlayerInventory playerInventory, World world);
+        FurnitureRecipe parent();
         @Override
         default int compareTo(@NotNull FurnitureRecipe.CraftableFurnitureRecipe o) {
             return getOutput().toString().compareTo(o.getOutput().toString());
