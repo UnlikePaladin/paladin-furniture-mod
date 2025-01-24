@@ -43,7 +43,7 @@ public class FurnitureDisplay implements Display {
     private int itemsPerInnerRecipe;
     public FurnitureDisplay(FurnitureRecipe recipe) {
         this.recipe = recipe;
-        this.itemsPerInnerRecipe = recipe.getIngredients().size(MinecraftClient.getInstance().world.getRegistryManager());
+        this.itemsPerInnerRecipe = recipe.getIngredients().size();
     }
 
     private final List<EntryIngredient> inputs = new ArrayList<>();
@@ -95,7 +95,7 @@ public class FurnitureDisplay implements Display {
     @Override
     public List<EntryIngredient> getOutputEntries() {
         if (outputs.isEmpty())
-            outputs.addAll(recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getOutput).map(EntryIngredients::of).toList());
+            outputs.addAll(recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).map(EntryIngredients::of).toList());
         return outputs;
     }
 

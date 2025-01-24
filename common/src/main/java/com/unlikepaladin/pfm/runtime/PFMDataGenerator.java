@@ -68,7 +68,7 @@ public class PFMDataGenerator extends PFMGenerator {
                 providers.add(new PFMRecipeProvider(this));
 
                 PFMMCMetaProvider metaProvider = new PFMMCMetaProvider(this);
-                metaProvider.setInfo(new PFMMCMetaProvider.PackInfo(PackType.DATA, "PFM-Data"));
+                metaProvider.setInfo(new PFMMCMetaProvider.PackInfo(ResourceType.SERVER_DATA, "PFM-Data"));
                 providers.add(metaProvider);
                 this.setTotalCount(providers.size());
 

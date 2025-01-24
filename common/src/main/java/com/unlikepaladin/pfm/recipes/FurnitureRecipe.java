@@ -34,7 +34,7 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
 
     String outputClass();
 
-    default List<CraftableFurnitureRecipe> getAvailableOutputs(PlayerInventory inventory) {
+    default List<CraftableFurnitureRecipe> getAvailableOutputs(PlayerInventory inventory, DynamicRegistryManager registryManager) {
         return getInnerRecipes();
     }
 
@@ -55,31 +55,33 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
         return getIngredients().size();
     }
 
-    default int getOutputCount() {
-        return getOutput().getCount();
+    default int getOutputCount(DynamicRegistryManager registryManager) {
+        return getOutput(registryManager).getCount();
     }
 
     default List<? extends CraftableFurnitureRecipe> getInnerRecipesForVariant(Identifier identifier) {
         return Collections.singletonList(getInnerRecipes().get(0));
     }
 
-    default String getName() {
-        return getOutput().getName().getString();
+    default String getName(DynamicRegistryManager registryManager) {
+        return getOutput(registryManager).getName().getString();
     }
 
     interface CraftableFurnitureRecipe extends Comparable<CraftableFurnitureRecipe> {
         List<Ingredient> getIngredients();
-        ItemStack getOutput();
-        ItemStack craft(PlayerInventory inventory);
+        ItemStack getOutput(DynamicRegistryManager registryManager);
+        ItemStack craft(PlayerInventory inventory, DynamicRegistryManager registryManager);
         boolean matches(PlayerInventory playerInventory, World world);
         FurnitureRecipe parent();
+        ItemStack getRecipeOuput();
+
         @Override
         default int compareTo(@NotNull FurnitureRecipe.CraftableFurnitureRecipe o) {
-            return getOutput().toString().compareTo(o.getOutput().toString());
+            return getRecipeOuput().toString().compareTo(o.getRecipeOuput().toString());
         }
 
-        default ItemStack craftAndRemoveItems(PlayerInventory playerInventory) {
-            ItemStack output = getOutput().copy();
+        default ItemStack craftAndRemoveItems(PlayerInventory playerInventory, DynamicRegistryManager registryManager) {
+            ItemStack output = getOutput(registryManager).copy();
             List<Ingredient> ingredients = getIngredients();
             for (Ingredient ingredient : ingredients) {
                 for (ItemStack stack : ingredient.getMatchingStacks()) {

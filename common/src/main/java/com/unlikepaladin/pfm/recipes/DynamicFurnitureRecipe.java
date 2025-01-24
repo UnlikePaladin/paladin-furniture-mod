@@ -22,6 +22,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeSerializer;
+import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
@@ -129,7 +130,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public List<CraftableFurnitureRecipe> getAvailableOutputs(PlayerInventory inventory) {
+    public List<CraftableFurnitureRecipe> getAvailableOutputs(PlayerInventory inventory, DynamicRegistryManager registryManager) {
         constructInnerRecipes();
         List<CraftableFurnitureRecipe> stacks = Lists.newArrayList();
         for (Identifier id : furnitureInnerRecipes.keySet()) {
@@ -157,7 +158,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public ItemStack craft(PlayerInventory inventory) {
+    public ItemStack craft(PlayerInventory inventory, DynamicRegistryManager registryManager) {
         PaladinFurnitureMod.GENERAL_LOGGER.warn("Something has tried to craft a dynamic furniture recipe without context");
         return ItemStack.EMPTY;
     }
@@ -168,7 +169,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public ItemStack getOutput() {
+    public ItemStack getOutput(DynamicRegistryManager registryManager) {
         PaladinFurnitureMod.GENERAL_LOGGER.warn("Something has tried to get the output of a dynamic furniture recipe without context");
         return ItemStack.EMPTY;
     }
@@ -196,7 +197,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public int getOutputCount() {
+    public int getOutputCount(DynamicRegistryManager registryManager) {
         return furnitureOutput.getOutputCount();
     }
 
@@ -225,7 +226,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
 
     @Override
-    public String getName() {
+    public String getName(DynamicRegistryManager registryManager) {
         return outputClass().replaceAll("(?<=[a-z])(?=[A-Z])", " ");
     }
 
@@ -247,10 +248,12 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             parentRecipe.outputItemToInnerRecipe.put(output.getItem(), this);
         }
 
-        public ItemStack getOutput() {
+        @Override
+        public ItemStack getOutput(DynamicRegistryManager registryManager) {
             return output;
         }
 
+        @Override
         public List<Ingredient> getIngredients() {
             return combinedIngredients;
         }
@@ -280,8 +283,13 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         }
 
         @Override
-        public ItemStack craft(PlayerInventory inventory) {
+        public ItemStack craft(PlayerInventory inventory, DynamicRegistryManager registryManager) {
             return output.copy();
+        }
+
+        @Override
+        public ItemStack getRecipeOuput() {
+            return output;
         }
     }
 

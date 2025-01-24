@@ -89,13 +89,13 @@ public class EmiFurnitureRecipe extends EmiPatternCraftingRecipe {
     private static final Map<FurnitureRecipe, List<EmiStack>> outputs = new HashMap<>();
     public static List<EmiStack> getOutputEntries(FurnitureRecipe recipe) {
         if (!outputs.containsKey(recipe))
-            outputs.put(recipe, recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getOutput).map(EmiStack::of).collect(Collectors.toList()));
+            outputs.put(recipe, recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).map(EmiStack::of).collect(Collectors.toList()));
         return outputs.get(recipe);
     }
 
     static Map<ItemStack, List<ItemStack>> itemStackListMap = new HashMap<>();
     public static List<ItemStack> collectIngredientsFromRecipe(FurnitureRecipe.CraftableFurnitureRecipe recipe) {
-        if (itemStackListMap.containsKey(recipe.getOutput())) return itemStackListMap.get(recipe.getOutput());
+        if (itemStackListMap.containsKey(recipe.getRecipeOuput())) return itemStackListMap.get(recipe.getRecipeOuput());
 
         List<Ingredient> ingredients = recipe.getIngredients();
         HashMap<Item, Integer> containedItems = new HashMap<>();
@@ -119,7 +119,7 @@ public class EmiFurnitureRecipe extends EmiPatternCraftingRecipe {
             }
         }
 
-        itemStackListMap.put(recipe.getOutput(), listOfList);
+        itemStackListMap.put(recipe.getRecipeOuput(), listOfList);
         return listOfList;
     }
 
@@ -160,7 +160,7 @@ public class EmiFurnitureRecipe extends EmiPatternCraftingRecipe {
     public SlotWidget getOutputWidget(int x, int y) {
         return new GeneratedSlotWidget((r -> {
             int selectedRecipe = r.nextInt(recipe.getInnerRecipes().size());
-            return EmiIngredient.of(Ingredient.ofStacks(recipe.getInnerRecipes().get(selectedRecipe).getOutput()), recipe.getOutputCount());
+            return EmiIngredient.of(Ingredient.ofStacks(recipe.getInnerRecipes().get(selectedRecipe).getRecipeOuput()), recipe.getInnerRecipes().get(selectedRecipe).getRecipeOuput().getCount());
         }), unique, x, y);
     }
 }

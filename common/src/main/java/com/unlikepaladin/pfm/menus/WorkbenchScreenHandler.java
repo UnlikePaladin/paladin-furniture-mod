@@ -93,7 +93,7 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         if (!this.availableRecipes.isEmpty() && this.isInBounds(this.availableRecipes, this.selectedRecipe.get())) {
             FurnitureRecipe.CraftableFurnitureRecipe simpleFurnitureRecipe = this.sortedRecipes.get(this.selectedRecipe.get());
             if (simpleFurnitureRecipe.matches(playerInventory, playerInventory.player.world)) {
-               simpleFurnitureRecipe.craftAndRemoveItems(playerInventory);
+               simpleFurnitureRecipe.craftAndRemoveItems(playerInventory, playerInventory.player.world.getRegistryManager());
                 return true;
             }
         }

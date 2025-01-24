@@ -69,7 +69,7 @@ public class PFMAssetGenerator extends PFMGenerator {
 
 
                 PFMMCMetaProvider metaProvider = new PFMMCMetaProvider(this);
-                metaProvider.setInfo(new PFMMCMetaProvider.PackInfo(PackType.RESOURCE, "PFM-Assets"));
+                metaProvider.setInfo(new PFMMCMetaProvider.PackInfo(ResourceType.CLIENT_RESOURCES, "PFM-Assets"));
                 providers.add(metaProvider);
                 providers.add(new PFMBlockstateModelProvider(this));
                 providers.add(new PFMLangProvider(this));

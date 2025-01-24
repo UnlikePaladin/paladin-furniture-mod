@@ -64,11 +64,11 @@ public class FurnitureRecipeProcessor implements IComponentProcessor {
                 ItemStack icon = recipe.createIcon();
                 return IVariable.from(icon);
             } else if (key.equals("text")) {
-                return IVariable.wrap(recipe.getOutputCount() + "x$(br)" + recipe.getName());
+                return IVariable.wrap(recipe.getOutputCount(level.getRegistryManager()) + "x$(br)" + recipe.getName(level.getRegistryManager()));
             } else if (key.equals("icount")) {
-                return IVariable.wrap(recipe.getOutputCount());
+                return IVariable.wrap(recipe.getOutputCount(level.getRegistryManager()));
             } else if (key.equals("iname")) {
-                return IVariable.wrap(recipe.getName());
+                return IVariable.wrap(recipe.getName(level.getRegistryManager()));
             }
         }
         return IVariable.empty();

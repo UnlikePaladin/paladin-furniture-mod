@@ -14,6 +14,7 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.recipe.*;
+import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
@@ -63,9 +64,14 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
         return this;
     }
 
+    @Override
+    public ItemStack getRecipeOuput() {
+        return output;
+    }
+
 
     @Override
-    public ItemStack craft(PlayerInventory playerInventory) {
+    public ItemStack craft(PlayerInventory playerInventory, DynamicRegistryManager registryManager) {
         if (this.output.getNbt() != null && this.output.getNbt().isEmpty()) {
             ItemStack stack = this.output.copy();
             stack.setNbt(null);
@@ -85,7 +91,7 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
     }
 
     @Override
-    public ItemStack getOutput() {
+    public ItemStack getOutput(DynamicRegistryManager registryManager) {
         return this.output;
     }
 

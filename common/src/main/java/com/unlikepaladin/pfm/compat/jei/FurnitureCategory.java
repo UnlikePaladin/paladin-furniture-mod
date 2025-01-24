@@ -132,7 +132,7 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
 
     Map<ItemStack, List<List<ItemStack>>> itemStackListMap = new HashMap<>();
     public List<List<ItemStack>> collectIngredientsFromRecipe(FurnitureRecipe.CraftableFurnitureRecipe recipe) {
-        if (itemStackListMap.containsKey(recipe.getOutput())) return itemStackListMap.get(recipe.getOutput());
+        if (itemStackListMap.containsKey(recipe.getRecipeOuput())) return itemStackListMap.get(recipe.getRecipeOuput());
 
         List<Ingredient> ingredients = recipe.getIngredients();
         HashMap<Item, Integer> containedItems = new HashMap<>();
@@ -156,14 +156,14 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
             }
         }
 
-        itemStackListMap.put(recipe.getOutput(), listOfList);
+        itemStackListMap.put(recipe.getRecipeOuput(), listOfList);
         return listOfList;
     }
 
     private final Map<FurnitureRecipe, List<ItemStack>> outputs = new HashMap<>();
     public List<ItemStack> getOutputEntries(FurnitureRecipe recipe) {
         if (!outputs.containsKey(recipe))
-            outputs.put(recipe, recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getOutput).toList());
+            outputs.put(recipe, recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).toList());
         return outputs.get(recipe);
     }
 }
