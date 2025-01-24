@@ -393,7 +393,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
             List<Identifier> supportedVariants = new ArrayList<>();
             JsonHelper.getArray(json, "supportedVariants").forEach(jsonElement -> supportedVariants.add(Identifier.tryParse(jsonElement.getAsString())));
-            FurnitureIngredients ingredients = FurnitureIngredients.read(json);
+            FurnitureIngredients ingredients = FurnitureIngredients.read(json.getAsJsonObject("ingredients"));
 
             return new DynamicFurnitureRecipe(id, group, FurnitureOutput.read(json.getAsJsonObject("result")), supportedVariants, ingredients);
         }

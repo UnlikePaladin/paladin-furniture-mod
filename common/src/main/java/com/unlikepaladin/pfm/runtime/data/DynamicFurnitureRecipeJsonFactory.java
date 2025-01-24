@@ -215,24 +215,27 @@ public class DynamicFurnitureRecipeJsonFactory {
             if (this.group != null && !this.group.isEmpty()) {
                 json.addProperty("group", this.group);
             }
-
-            JsonArray ingredientArray = new JsonArray();
-            for (Ingredient ingredient : this.vanillaIngredients) {
-                ingredientArray.add(ingredient.toJson());
-            }
-            json.add("vanillaIngredients", ingredientArray);
-
             JsonArray identifierArray = new JsonArray();
             for (Identifier identifier : this.supportedVariants) {
                 identifierArray.add(identifier.toString());
             }
             json.add("supportedVariants", identifierArray);
 
+            JsonObject ingredients = new JsonObject();
+
+            JsonArray ingredientArray = new JsonArray();
+            for (Ingredient ingredient : this.vanillaIngredients) {
+                ingredientArray.add(ingredient.toJson());
+            }
+            ingredients.add("vanillaIngredients", ingredientArray);
+
             JsonObject variantChildrenObject = new JsonObject();
             for (Map.Entry<String, Integer> entry : this.variantChildren.entrySet()) {
                 variantChildrenObject.addProperty(entry.getKey(), entry.getValue());
             }
-            json.add("variantChildren", variantChildrenObject);
+            ingredients.add("variantChildren", variantChildrenObject);
+
+            json.add("ingredients", ingredients);
 
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("outputClass", outputClass);
