@@ -89,7 +89,7 @@ if(rootProject.jei_compatibility == "true") {
     dependencies {
         modRuntimeOnly("mezz.jei:jei-${rootProject.minecraft_version}-forge:${rootProject.jei_version}")
     }
-}ﬁ
+}
 if (rootProject.immersive_portals_compatibility_forge == "true"){
     dependencies {
         modImplementation("curse.maven:imm_ptl-355440:${rootProject.immersive_portals_version_forge}")

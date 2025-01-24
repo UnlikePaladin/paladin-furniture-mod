@@ -18,7 +18,7 @@
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_kitchen_counter_oven",
+      "recipe": "pfm:kitchen_counter_oven_block",
       "recipe2": "pfm:kitchen_stovetop"
     },
     {

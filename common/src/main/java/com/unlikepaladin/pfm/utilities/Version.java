@@ -16,6 +16,13 @@ public class Version {
         return false;
     }
 
+    @ExpectPlatform
+    public static boolean compareVersions(String targetVersionNum, String version2) {
+        PaladinFurnitureMod.GENERAL_LOGGER.error("Unable to compare versions!");
+        return false;
+    }
+
+
     @Override
     public String toString() {
         return super.toString();
