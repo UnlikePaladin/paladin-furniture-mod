@@ -12,7 +12,10 @@ import net.minecraft.client.render.block.BlockModels;
 import net.minecraft.registry.Registries;
 import net.minecraft.resource.featuretoggle.FeatureFlag;
 import net.minecraft.resource.featuretoggle.FeatureSet;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.util.Identifier;
+import net.minecraft.registry.Registry;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
@@ -99,6 +102,18 @@ public class StoneVariant extends VariantBase<StoneVariant> {
         this.addChild("slab", this.findRelatedEntry("slab", Registries.BLOCK));
         this.addChild("stairs", this.findRelatedEntry("stairs", Registries.BLOCK));
         this.addChild("wall", this.findRelatedEntry("fence", Registries.BLOCK));
+    }
+
+    @Override
+    public @Nullable ItemConvertible getItemForRecipe(String key, Class<? extends Block> blockClass) {
+        ItemConvertible itemConvertible = super.getItemForRecipe(key, blockClass);
+        if ((identifier.getPath().equals("calcite") || identifier.getPath().equals("netherite")) && (key.equals("base") || key.equals("secondary")) && blockClass.getSimpleName().contains("Kitchen")) {
+            if (itemConvertible == getBaseBlock())
+                return getSecondaryBlock();
+            else
+                return getBaseBlock();
+        }
+        return itemConvertible;
     }
 
     @Override

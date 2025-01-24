@@ -7,15 +7,14 @@ import com.unlikepaladin.pfm.registry.BlockItemRegistry;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
 import net.minecraft.block.Material;
-import net.minecraft.client.render.block.BlockModels;
 import net.minecraft.entity.vehicle.BoatEntity;
 import net.minecraft.registry.Registries;
 import net.minecraft.resource.featuretoggle.FeatureFlag;
 import net.minecraft.resource.featuretoggle.FeatureFlags;
 import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.resource.featuretoggle.FeatureUniverse;
+import net.minecraft.item.ItemConvertible;
 import net.minecraft.util.Identifier;
 import net.minecraft.registry.Registry;
 import org.jetbrains.annotations.Nullable;
@@ -196,6 +195,17 @@ public class WoodVariant extends VariantBase<WoodVariant> {
         Object child = this.getChild("stripped_log");
         return child != null && child != this.getBaseBlock();
     }
+
+    public @Nullable ItemConvertible getItemForRecipe(String key, Class<? extends Block> blockClass, boolean stripped) {
+        if (stripped) {
+            if (key.equals("base")) {
+                return (ItemConvertible) getChild("stripped_log");
+            } else if (key.equals("secondary"))
+                return getBaseBlock();
+        }
+        return super.getItemForRecipe(key, blockClass);
+    }
+
     @Override
     public Block mainChild() {
         return this.plankBlock;

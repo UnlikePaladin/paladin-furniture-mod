@@ -29,7 +29,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class FurnitureRecipeJsonFactory implements CraftingRecipeJsonBuilder {
+public class SimpleFurnitureRecipeJsonFactory implements CraftingRecipeJsonBuilder {
     private final Item output;
     private final int outputCount;
     private final List<Ingredient> inputs = Lists.newArrayList();
@@ -40,51 +40,51 @@ public class FurnitureRecipeJsonFactory implements CraftingRecipeJsonBuilder {
     @Nullable
     private String group;
 
-    public FurnitureRecipeJsonFactory(ItemConvertible output, int outputCount) {
+    public SimpleFurnitureRecipeJsonFactory(ItemConvertible output, int outputCount) {
         this.output = output.asItem();
         this.outputCount = outputCount;
     }
 
-    public FurnitureRecipeJsonFactory(ItemConvertible output, int outputCount, @Nullable NbtElement nbtElement) {
+    public SimpleFurnitureRecipeJsonFactory(ItemConvertible output, int outputCount, @Nullable NbtElement nbtElement) {
         this.output = output.asItem();
         this.outputCount = outputCount;
         this.nbtElement = nbtElement;
     }
 
-    public static FurnitureRecipeJsonFactory create(ItemConvertible output, int count, NbtElement nbtElement) {
-        return new FurnitureRecipeJsonFactory(output, count, nbtElement);
+    public static SimpleFurnitureRecipeJsonFactory create(ItemConvertible output, int count, NbtElement nbtElement) {
+        return new SimpleFurnitureRecipeJsonFactory(output, count, nbtElement);
     }
 
-    public static FurnitureRecipeJsonFactory create(ItemConvertible output, NbtElement nbtElement) {
-        return new FurnitureRecipeJsonFactory(output, 1, nbtElement);
+    public static SimpleFurnitureRecipeJsonFactory create(ItemConvertible output, NbtElement nbtElement) {
+        return new SimpleFurnitureRecipeJsonFactory(output, 1, nbtElement);
     }
 
-    public static FurnitureRecipeJsonFactory create(ItemConvertible output) {
-        return new FurnitureRecipeJsonFactory(output, 1);
+    public static SimpleFurnitureRecipeJsonFactory create(ItemConvertible output) {
+        return new SimpleFurnitureRecipeJsonFactory(output, 1);
     }
-    public static FurnitureRecipeJsonFactory create(ItemConvertible output, int count) {
-        return new FurnitureRecipeJsonFactory(output, count);
+    public static SimpleFurnitureRecipeJsonFactory create(ItemConvertible output, int count) {
+        return new SimpleFurnitureRecipeJsonFactory(output, count);
     }
-    public FurnitureRecipeJsonFactory input(TagKey<Item> tag) {
+    public SimpleFurnitureRecipeJsonFactory input(TagKey<Item> tag) {
         return this.input(Ingredient.fromTag(tag));
     }
 
-    public FurnitureRecipeJsonFactory input(ItemConvertible itemProvider) {
+    public SimpleFurnitureRecipeJsonFactory input(ItemConvertible itemProvider) {
         return this.input(itemProvider, 1);
     }
 
-    public FurnitureRecipeJsonFactory input(ItemConvertible itemProvider, int size) {
+    public SimpleFurnitureRecipeJsonFactory input(ItemConvertible itemProvider, int size) {
         for (int i = 0; i < size; ++i) {
             this.input(Ingredient.ofItems(itemProvider));
         }
         return this;
     }
 
-    public FurnitureRecipeJsonFactory input(Ingredient ingredient) {
+    public SimpleFurnitureRecipeJsonFactory input(Ingredient ingredient) {
         return this.input(ingredient, 1);
     }
 
-    public FurnitureRecipeJsonFactory input(Ingredient ingredient, int size) {
+    public SimpleFurnitureRecipeJsonFactory input(Ingredient ingredient, int size) {
         for (int i = 0; i < size; ++i) {
             this.inputs.add(ingredient);
         }
@@ -92,13 +92,13 @@ public class FurnitureRecipeJsonFactory implements CraftingRecipeJsonBuilder {
     }
 
     @Override
-    public FurnitureRecipeJsonFactory criterion(String string, CriterionConditions criterionConditions) {
+    public SimpleFurnitureRecipeJsonFactory criterion(String string, CriterionConditions criterionConditions) {
         this.builder.criterion(string, criterionConditions);
         return this;
     }
 
     @Override
-    public FurnitureRecipeJsonFactory group(@Nullable String string) {
+    public SimpleFurnitureRecipeJsonFactory group(@Nullable String string) {
         this.group = string;
         return this;
     }
@@ -111,7 +111,7 @@ public class FurnitureRecipeJsonFactory implements CraftingRecipeJsonBuilder {
     @Override
     public void offerTo(Consumer<RecipeJsonProvider> exporter, Identifier recipeId) {
         this.builder.parent(new Identifier("recipes/root")).criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeId)).rewards(AdvancementRewards.Builder.recipe(recipeId)).criteriaMerger(CriterionMerger.OR);
-        exporter.accept(new FurnitureRecipeJsonFactory.FurnitureRecipeJsonProvider(recipeId, this.output, this.nbtElement, this.outputCount, this.group == null ? "" : this.group, this.inputs, this.builder, new Identifier(recipeId.getNamespace(), "recipes/furniture/" + recipeId.getPath())));
+        exporter.accept(new SimpleFurnitureRecipeJsonProvider(recipeId, this.output, this.nbtElement, this.outputCount, this.group == null ? "" : this.group, this.inputs, this.builder, new Identifier(recipeId.getNamespace(), "recipes/furniture/" + recipeId.getPath())));
     }
 
     private void validate(Identifier recipeId) {
@@ -120,7 +120,7 @@ public class FurnitureRecipeJsonFactory implements CraftingRecipeJsonBuilder {
         }
     }
 
-    public static class FurnitureRecipeJsonProvider
+    public static class SimpleFurnitureRecipeJsonProvider
             implements RecipeJsonProvider {
         private final Identifier recipeId;
         private final Item output;
@@ -132,7 +132,7 @@ public class FurnitureRecipeJsonFactory implements CraftingRecipeJsonBuilder {
         @Nullable
         private final NbtElement nbtElement;
 
-        public FurnitureRecipeJsonProvider(Identifier recipeId, Item output, @Nullable NbtElement nbtElement, int outputCount, String group, List<Ingredient> inputs, Advancement.Builder builder, Identifier advancementId) {
+        public SimpleFurnitureRecipeJsonProvider(Identifier recipeId, Item output, @Nullable NbtElement nbtElement, int outputCount, String group, List<Ingredient> inputs, Advancement.Builder builder, Identifier advancementId) {
             this.recipeId = recipeId;
             this.output = output;
             this.count = outputCount;
@@ -158,16 +158,16 @@ public class FurnitureRecipeJsonFactory implements CraftingRecipeJsonBuilder {
             if (this.count > 1) {
                 jsonObject.addProperty("count", this.count);
             }
-            json.add("result", jsonObject);
             if (nbtElement != null) {
                 JsonElement object = NbtOps.INSTANCE.convertTo(JsonOps.INSTANCE, this.nbtElement);
                 jsonObject.add("tag", object);
             }
+            json.add("result", jsonObject);
         }
 
         @Override
         public RecipeSerializer<?> getSerializer() {
-            return RecipeTypes.FURNITURE_SERIALIZER;
+            return RecipeTypes.SIMPLE_FURNITURE_SERIALIZER;
         }
 
         @Override
