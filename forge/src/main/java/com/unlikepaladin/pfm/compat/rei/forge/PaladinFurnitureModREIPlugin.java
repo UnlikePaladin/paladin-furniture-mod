@@ -2,7 +2,7 @@ package com.unlikepaladin.pfm.compat.rei.forge;
 
 import com.unlikepaladin.pfm.recipes.FreezingRecipe;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
-import com.unlikepaladin.pfm.recipes.SimpleFurnitureRecipe;
+import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
