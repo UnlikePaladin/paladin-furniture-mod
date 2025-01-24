@@ -1,7 +1,10 @@
 package com.unlikepaladin.pfm.recipes;
 
 import com.google.gson.*;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
@@ -14,6 +17,7 @@ import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.recipe.*;
 import net.minecraft.registry.DynamicRegistryManager;
@@ -127,10 +131,55 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
         Codec<SimpleFurnitureRecipe> CODEC = RecordCodecBuilder.create(simpleFurnitureRecipeInstance ->
                 simpleFurnitureRecipeInstance.group(
                         Codec.STRING.optionalFieldOf("group", "").forGetter(SimpleFurnitureRecipe::getGroup),
-                        ItemStack.CODEC.fieldOf("result").forGetter(recipe -> recipe.output),
+                        FURNITURE_RESULT.fieldOf("result").forGetter(recipe -> recipe.output),
                         Ingredient.DISALLOW_EMPTY_CODEC.listOf().fieldOf("ingredients").forGetter(SimpleFurnitureRecipe::getIngredients))
                         .apply(simpleFurnitureRecipeInstance, SimpleFurnitureRecipe::new)
         );
+
+        private static final Codec<Item> CRAFTING_RESULT_ITEM = Codecs.validate(Registries.ITEM.getCodec(), (item) -> {
+            return item == Items.AIR ? DataResult.error(() -> {
+                return "Crafting result must not be minecraft:air";
+            }) : DataResult.success(item);
+        });
+
+        private static final Codec<NbtCompound> NBT_CODEC = Codecs.xor(
+                Codec.STRING, NbtCompound.CODEC
+        ).flatXmap(either -> either.map(s -> {
+            try {
+                return DataResult.success(StringNbtReader.parse(s));
+            } catch (CommandSyntaxException e) {
+                return DataResult.error(e::getMessage);
+            }
+        }, DataResult::success), nbtCompound -> DataResult.success(Either.left(nbtCompound.asString())));
+
+
+        public static final Codec<NbtCompound> OUTPUT_TAGS = Codec.unboundedMap(Codec.STRING, NBT_CODEC).comapFlatMap(stringNbtCompoundMap -> {
+            NbtCompound compound = new NbtCompound();
+            stringNbtCompoundMap.forEach(compound::put);
+            return DataResult.success(compound);
+        }, nbtCompound -> {
+            Map<String, NbtCompound> map = new HashMap<>();
+            Set<String> keys = nbtCompound.getKeys();
+            keys.forEach(s -> {
+                NbtCompound compound = new NbtCompound();
+                if (nbtCompound.get(s) instanceof NbtCompound) {
+                    compound = nbtCompound.getCompound(s);
+                } else {
+                    compound.put(s, nbtCompound.get(s));
+                }
+                map.put(s, compound);
+            });
+            return map;
+        });
+
+        public static final Codec<ItemStack> FURNITURE_RESULT = RecordCodecBuilder.create((instance) -> {
+            return instance.group(CRAFTING_RESULT_ITEM.fieldOf("item").forGetter(ItemStack::getItem), Codecs.createStrictOptionalFieldCodec(Codecs.POSITIVE_INT, "count", 1).forGetter(ItemStack::getCount), Codecs.createStrictOptionalFieldCodec(OUTPUT_TAGS, "tag", new NbtCompound()).forGetter(ItemStack::getNbt)).apply(instance, (item, integer, nbtElement) -> {
+                ItemStack stack = new ItemStack(item, integer);
+                stack.setNbt(nbtElement);
+                return stack;
+            });
+        });
+
         @Override
         public Codec<SimpleFurnitureRecipe> codec() {
             return CODEC;

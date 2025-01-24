@@ -32,7 +32,7 @@ public class EmiFurnitureRecipe extends EmiPatternCraftingRecipe {
     private final FurnitureRecipe recipe;
     public EmiFurnitureRecipe(RecipeEntry<FurnitureRecipe> entry) {
         super(padIngredients(entry.value()), EmiStack.EMPTY,
-                entry.getId());
+                entry.id());
         for (int i = 0; i < input.size(); i++) {
             PlayerInventory playerInventory;
             if (PaladinFurnitureMod.isClient) {

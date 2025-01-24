@@ -101,7 +101,7 @@ public class SimpleFurnitureRecipeJsonFactory implements CraftingRecipeJsonBuild
         return this;
     }
 
-    public FurnitureRecipeJsonFactory showNotification(boolean showNotification) {
+    public SimpleFurnitureRecipeJsonFactory showNotification(boolean showNotification) {
         this.showNotification = showNotification;
         return this;
     }

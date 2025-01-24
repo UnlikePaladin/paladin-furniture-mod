@@ -41,6 +41,7 @@ public class PFMFileUtil {
     public enum ModLoader implements StringIdentifiable {
         MINECRAFTFORGE("minecraftforge"),
         FABRIC("fabric"),
+        NEOFORGE("neoforge"),
         INVALID("");
 
         private String loader;

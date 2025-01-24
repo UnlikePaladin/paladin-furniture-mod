@@ -47,7 +47,7 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
     }
 
     default int getOutputCount(DynamicRegistryManager registryManager) {
-        return getOutput(registryManager).getCount();
+        return getResult(registryManager).getCount();
     }
 
     default List<? extends CraftableFurnitureRecipe> getInnerRecipesForVariant(Identifier identifier) {
@@ -55,7 +55,7 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
     }
 
     default String getName(DynamicRegistryManager registryManager) {
-        return getOutput(registryManager).getName().getString();
+        return getResult(registryManager).getName().getString();
     }
 
     interface CraftableFurnitureRecipe extends Comparable<CraftableFurnitureRecipe> {
