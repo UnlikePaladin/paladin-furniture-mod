@@ -6,6 +6,7 @@ import com.unlikepaladin.pfm.compat.rei.FurnitureCategory;
 import com.unlikepaladin.pfm.compat.rei.FurnitureDisplay;
 import com.unlikepaladin.pfm.recipes.FreezingRecipe;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
+import com.unlikepaladin.pfm.registry.RecipeTypes;
 import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;

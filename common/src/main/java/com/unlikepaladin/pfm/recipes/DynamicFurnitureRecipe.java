@@ -294,7 +294,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         public static Codec<FurnitureOutput> CODEC = RecordCodecBuilder.create(furnitureOutputInstance -> furnitureOutputInstance.group(
                 Codec.STRING.fieldOf("outputClass").forGetter(out -> out.outputClass),
                 Codec.INT.optionalFieldOf("count", 1).forGetter(out -> out.outputCount),
-                NbtCompound.CODEC.optionalFieldOf("tag", null).forGetter(out -> out.nbt)
+                NbtCompound.CODEC.optionalFieldOf("tag", new NbtCompound()).forGetter(out -> out.nbt)
         ).apply(furnitureOutputInstance, FurnitureOutput::new));
 
         private final String outputClass;
@@ -336,7 +336,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
     public static final class FurnitureIngredients {
         public static Codec<FurnitureIngredients> CODEC = RecordCodecBuilder.create(furnitureIngredientsInstance -> furnitureIngredientsInstance.group(
-                Ingredient.DISALLOW_EMPTY_CODEC.listOf().fieldOf("vanillaIngredients").forGetter(ingredients -> ingredients.vanillaIngredients),
+                Ingredient.DISALLOW_EMPTY_CODEC.listOf().optionalFieldOf("vanillaIngredients", new ArrayList<>()).forGetter(ingredients -> ingredients.vanillaIngredients),
                 Codecs.strictUnboundedMap(Codec.STRING, Codec.INT).fieldOf("variantChildren").forGetter(ingredients -> ingredients.variantChildren)
         ).apply(furnitureIngredientsInstance, FurnitureIngredients::new));
 
@@ -365,7 +365,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         Codec<DynamicFurnitureRecipe> CODEC = RecordCodecBuilder.create((instance) -> instance.group(
                 Codec.STRING.optionalFieldOf("group", "").forGetter(DynamicFurnitureRecipe::getGroup),
                 FurnitureOutput.CODEC.fieldOf("result").forGetter(recipe -> recipe.furnitureOutput),
-                Identifier.CODEC.listOf().fieldOf("variants").forGetter(DynamicFurnitureRecipe::getSupportedVariants),
+                Identifier.CODEC.listOf().fieldOf("supportedVariants").forGetter(DynamicFurnitureRecipe::getSupportedVariants),
                 FurnitureIngredients.CODEC.fieldOf("ingredients").forGetter(recipe -> recipe.ingredients)
         ).apply(instance, DynamicFurnitureRecipe::new));
 
