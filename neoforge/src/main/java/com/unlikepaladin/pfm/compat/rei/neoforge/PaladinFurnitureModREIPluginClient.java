@@ -20,4 +20,10 @@ public class PaladinFurnitureModREIPluginClient implements REIClientPlugin {
         registry.add(new FreezingCategory());
         registry.addWorkstations(FreezingDisplay.IDENTIFIER, FreezingCategory.WORKSTATIONS);
     }
+
+    @Override
+    public void registerDisplays(DisplayRegistry registry) {
+        registry.beginFiller(FurnitureRecipe.class).fill(FurnitureDisplay::new);
+        registry.beginFiller(FreezingRecipe.class).fill(FreezingDisplay::new);
+    }
 }
