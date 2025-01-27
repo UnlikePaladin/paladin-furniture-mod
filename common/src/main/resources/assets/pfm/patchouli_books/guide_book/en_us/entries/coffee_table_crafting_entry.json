@@ -9,18 +9,24 @@
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:coffe_oak_table_basic",
-      "recipe2": "pfm:stripped_oak_coffee_table_basic"
+      "recipe": "pfm:basic_coffee_table_block",
+      "variant": "oak",
+      "recipe2": "pfm:basic_coffee_table_block",
+      "variant2": "stone"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:coffee_oak_table_classic",
-      "recipe2": "pfm:stripped_oak_coffee_table_classic"
+      "recipe": "pfm:classic_coffee_table_block",
+      "variant": "oak",
+      "recipe2": "pfm:classic_coffee_table_block",
+      "variant2": "stone"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_coffee_table_modern",
-      "recipe2": "pfm:stripped_oak_coffee_table_modern"
+      "recipe": "pfm:modern_coffee_table_block",
+      "variant": "oak",
+      "recipe2": "pfm:modern_coffee_table_block",
+      "variant2": "stone"
     }
   ]
 }
