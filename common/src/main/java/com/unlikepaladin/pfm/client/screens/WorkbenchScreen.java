@@ -1,18 +1,14 @@
 package com.unlikepaladin.pfm.client.screens;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.unlikepaladin.pfm.menus.WorkbenchScreenHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.render.GameRenderer;
-import net.minecraft.client.render.model.json.ModelTransformationMode;
 import net.minecraft.client.search.SearchManager;
 import net.minecraft.client.search.SearchProvider;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -205,20 +201,15 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
             for (Ingredient ingredient : this.handler.getSortedRecipes().get(iCopy).getIngredients()) {
                 for (ItemStack stack : ingredient.getMatchingStacks()) {
                     if (!itemStackCountMap.containsKey(stack.getItem())) {
-                        itemStackCountMap.put(stack.getItem(), 1);
+                        itemStackCountMap.put(stack.getItem(), stack.getCount());
                     } else {
-                        itemStackCountMap.put(stack.getItem(), itemStackCountMap.get(stack.getItem()) + 1);
+                        itemStackCountMap.put(stack.getItem(), itemStackCountMap.get(stack.getItem()) + stack.getCount());
                     }
                 }
             }
             itemStackCountMap.forEach((item, integer) -> {
-                int itemCount = 0;
+                int itemCount = handler.getPlayerInventory().count(item);
                 Style style = Style.EMPTY.withColor(Formatting.GRAY);
-                for (ItemStack stack1 : handler.getPlayerInventory().main) {
-                    if (stack1.isOf(item)) {
-                        itemCount += stack1.getCount();
-                    }
-                }
                 if (itemCount < integer) {
                     style = style.withColor(Formatting.RED);
                 }

@@ -15,38 +15,34 @@ import java.io.IOException;
 import java.util.concurrent.CompletableFuture;
 
 public class PFMMCMetaProvider extends PFMProvider {
-    private final ResourceType packType;
-    private final String description;
+    private PackInfo info;
 
-    public PFMMCMetaProvider(PFMGenerator parent, ResourceType packType, String description) {
-        super(parent);
-        this.packType = packType;
-        this.description = description;
+    public PFMMCMetaProvider(PFMGenerator parent) {
+        super(parent, "PFM MC Meta");
         parent.setProgress("Generating Minecraft Metadata");
     }
 
-    public CompletableFuture<?> run(ResourceType type, String description) {
+    public void setInfo(PackInfo info) {
+        this.info = info;
+    }
+
+    @Override
+    public void run() {
+        startProviderRun();
         try(BufferedWriter writer = IOUtils.buffer(new FileWriter(new File(PFMRuntimeResources.createDirIfNeeded(getParent().getOutput()).toFile(), "pack.mcmeta")))) {
             writer.write("{\n");
             writer.write("  \"pack\":\n   {\n");
             writer.write("          \"pack_format\": ");
-            writer.write(String.valueOf(SharedConstants.getGameVersion().getResourceVersion(type)));
-            writer.write(",\n           \"description\" : \"" + description + "\"\n  }\n");
+            writer.write(String.valueOf(SharedConstants.getGameVersion().getResourceVersion(info.type)));
+            writer.write(",\n           \"description\" : \"" + info.description + "\"\n  }\n");
             writer.write("}");
         } catch (IOException e) {
             getParent().getLogger().error("Writer exception: " + e);
             e.printStackTrace();
         }
-        return CompletableFuture.allOf();
+        endProviderRun();
     }
 
-    @Override
-    public CompletableFuture<?> run(DataWriter writer) {
-        run(packType, description);
-        return CompletableFuture.allOf();
-    }
-
-    public String getName() {
-        return "PFM Meta Provider";
+    public record PackInfo(ResourceType type, String description) {
     }
 }
