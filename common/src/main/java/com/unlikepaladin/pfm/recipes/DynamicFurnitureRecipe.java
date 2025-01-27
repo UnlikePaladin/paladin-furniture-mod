@@ -301,7 +301,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         private final int outputCount;
         private final NbtCompound nbt;
 
-        private FurnitureOutput(String outputClass, int outputCount, NbtCompound nbt) {
+        public FurnitureOutput(String outputClass, int outputCount, NbtCompound nbt) {
             this.outputClass = outputClass;
             this.outputCount = outputCount;
             this.nbt = nbt;

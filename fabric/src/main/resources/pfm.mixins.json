@@ -13,11 +13,10 @@
     "PFMCookingPotBlockEntityMixin",
     "PFMModResourcePackCreatorMixin",
     "PFMReloadableResourceManagerImplMixin",
-    "PFMGroupResourcePackAccessor",
     "PFMMinecraftServerMixin",
     "PFMSaveLoaderMixin",
     "PFMKitchenImplMixin",
-    "PFMMinecraftServerMixin",
+    "PFMMinecraftServerMixin"
   ],
   "injectors": {
     "defaultRequire": 1

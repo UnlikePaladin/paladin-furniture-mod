@@ -62,8 +62,8 @@ public class FurnitureDisplay implements Display {
 
         List<Ingredient> inputEntries = new ArrayList<>();
         this.itemsPerInnerRecipe = recipe.value().getMaxInnerRecipeSize();
-        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes()) {
-            List<Ingredient> ingredients = innerRecipe.value().getIngredients();
+        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.value().getInnerRecipes()) {
+            List<Ingredient> ingredients = innerRecipe.getIngredients();
             HashMap<Item, Integer> containedItems = new HashMap<>();
             for (Ingredient ingredient : ingredients) {
                 for (ItemStack stack : ingredient.getMatchingStacks()) {
