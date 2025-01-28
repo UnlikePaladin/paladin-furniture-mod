@@ -18,4 +18,10 @@ public class VersionImpl {
         IModInfo modInfo = ModList.get().getModContainerById("pfm").get().getModInfo();
         return modInfo.getVersion().toString();
     }
+
+    public static boolean compareVersions(String targetVersionNum, String version2) {
+        ComparableVersion targetVersion = new ComparableVersion(targetVersionNum);
+        ComparableVersion comparableVersion = new ComparableVersion(version2);
+        return (targetVersion.compareTo(comparableVersion) < 0);
+    }
 }

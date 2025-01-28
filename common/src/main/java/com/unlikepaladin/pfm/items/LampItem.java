@@ -36,6 +36,14 @@ public class LampItem extends BlockItem {
         return String.format("block.pfm.basic_%s_%s_lamp", color.asString(), variant.asString());
     }
 
+    @Override
+    public ItemStack getDefaultStack() {
+        ItemStack stack = new ItemStack(this);
+        stack.set(PFMComponents.COLOR_COMPONENT, DyeColor.WHITE);
+        stack.set(PFMComponents.VARIANT_COMPONENT, WoodVariantRegistry.OAK.identifier);
+        return stack;
+    }
+
     public void appendStacks(ItemGroup group, DefaultedList<ItemStack> stacks) {
     }
 

@@ -2,8 +2,10 @@ package com.unlikepaladin.pfm.registry.forge;
 
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.compat.cookingforblockheads.forge.PFMCookingForBlockHeadsCompat;
+import com.unlikepaladin.pfm.recipes.DynamicFurnitureRecipe;
 import com.unlikepaladin.pfm.recipes.FreezingRecipe;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
+import com.unlikepaladin.pfm.recipes.SimpleFurnitureRecipe;
 import com.unlikepaladin.pfm.recipes.forge.FurnitureSerializerForge;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
 import net.minecraft.block.Block;
@@ -27,31 +29,36 @@ public class RecipeRegistryForge {
     public static void registerRecipeSerializers(RegisterEvent event) {
         event.register(ForgeRegistries.Keys.RECIPE_SERIALIZERS, recipeSerializerRegisterHelper -> {
             recipeSerializerRegisterHelper.register(
-                    Identifier.of(PaladinFurnitureMod.MOD_ID, "freezing"), RecipeTypes.FREEZING_RECIPE_SERIALIZER = new CookingRecipeSerializer<>(FreezingRecipe::new, 200)
+                    RecipeTypes.FREEZING_ID, RecipeTypes.FREEZING_RECIPE_SERIALIZER = new CookingRecipeSerializer<>(FreezingRecipe::new, 200)
             );
             recipeSerializerRegisterHelper.register(
-                    Identifier.of(PaladinFurnitureMod.MOD_ID, "furniture"), RecipeTypes.FURNITURE_SERIALIZER = new FurnitureSerializerForge()
+                    RecipeTypes.SIMPLE_FURNITURE_ID, RecipeTypes.SIMPLE_FURNITURE_SERIALIZER = new FurnitureSerializerForge<>(new SimpleFurnitureRecipe.Serializer())
+            );
+            recipeSerializerRegisterHelper.register(
+                    RecipeTypes.DYNAMIC_FURNITURE_ID, RecipeTypes.DYNAMIC_FURNITURE_SERIALIZER = new FurnitureSerializerForge<>(new DynamicFurnitureRecipe.Serializer())
             );
             // Can't run resource gen until the recipe serializer has been registered or it dies because it needs the ID
             // PFMRuntimeResources.prepareAsyncResourceGen(); Had to disable async gen because Forge dies and I can't be bothered to figure out why, this is cursed enough as it is
         });
     }
 
-
     @SubscribeEvent
     public static void registerRecipeTypes(RegisterEvent event){
         event.register(ForgeRegistries.Keys.RECIPE_TYPES, recipeTypeRegisterHelper -> {
-            recipeTypeRegisterHelper.register(Identifier.of(PaladinFurnitureMod.MOD_ID, "freezing"), RecipeTypes.FREEZING_RECIPE = new RecipeType<FreezingRecipe>() {
+            recipeTypeRegisterHelper.register(RecipeTypes.FREEZING_ID, RecipeTypes.FREEZING_RECIPE = new RecipeType<>() {
                 @Override
-                public String toString() {return "freezing";}
+                public String toString() {
+                    return RecipeTypes.FREEZING_ID.getPath();
+                }
             });
-            recipeTypeRegisterHelper.register(RecipeTypes.FURNITURE_ID, RecipeTypes.FURNITURE_RECIPE = new RecipeType<FurnitureRecipe>() {
+            recipeTypeRegisterHelper.register(RecipeTypes.FURNITURE_ID, RecipeTypes.FURNITURE_RECIPE = new RecipeType<>() {
                 @Override
-                public String toString() {return "furniture";}
+                public String toString() {
+                    return RecipeTypes.FURNITURE_ID.getPath();
+                }
             });
         });
     }
-
 
 
 }

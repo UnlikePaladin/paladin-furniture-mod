@@ -25,5 +25,4 @@ public class PaladinFurnitureModREIPlugin implements REIClientPlugin {
         registry.registerRecipeFiller(FurnitureRecipe.class, RecipeTypes.FURNITURE_RECIPE, FurnitureDisplay::new);
         registry.registerRecipeFiller(FreezingRecipe.class, RecipeTypes.FREEZING_RECIPE, FreezingDisplay::new);
     }
-
 }
