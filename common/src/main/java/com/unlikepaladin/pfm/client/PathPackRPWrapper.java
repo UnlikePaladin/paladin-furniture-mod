@@ -37,14 +37,14 @@ public class PathPackRPWrapper implements ResourcePack {
         if (PFMRuntimeResources.ready && Arrays.asList(segments).contains("pack.png")) {
             return delegate.get().openRoot(segments);
         }
-        return InputStream::nullInputStream;
+        return () -> null;
     }
 
     @Override
     public InputSupplier<InputStream> open(ResourceType type, Identifier id) {
         if (PFMRuntimeResources.ready)
             return delegate.get().open(type, id);
-        return InputStream::nullInputStream;
+        return () -> null;
     }
 
     @Override

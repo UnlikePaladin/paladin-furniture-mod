@@ -1,12 +1,15 @@
 package com.unlikepaladin.pfm.registry.dynamic;
 
+import com.unlikepaladin.pfm.blocks.DyeableFurnitureBlock;
 import com.unlikepaladin.pfm.data.materials.VariantBase;
 import net.minecraft.block.Block;
 import net.minecraft.entity.vehicle.BoatEntity;
+import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class FurnitureEntry<T extends Block> {
@@ -36,7 +39,25 @@ public class FurnitureEntry<T extends Block> {
     }
 
     public Optional<Block> getEntryFromVariant(VariantBase<?> variant) {
-        if (variantToBlockMap.containsKey(variant)) {
+        return getEntryFromVariant(variant, false);
+    }
+    public Optional<Block> getEntryFromVariantAndColor(VariantBase<?> variant, DyeColor color) {
+        if (variantToBlockMapList.containsKey(variant)) {
+            for (T block : variantToBlockMapList.get(variant)) {
+                if (block instanceof DyeableFurnitureBlock dyeableFurnitureBlock && dyeableFurnitureBlock.getPFMColor() == color) {
+                    return Optional.of(block);
+                }
+            }
+        }
+        return getEntryFromVariant(variant, false);
+    }
+
+    public List<Identifier> getVariants() {
+        return variantToBlockMap.keySet().stream().map(variantBase -> variantBase.identifier).toList();
+    }
+
+    public Optional<Block> getEntryFromVariant(VariantBase<?> variant, boolean stripped) {
+        if (!stripped && variantToBlockMap.containsKey(variant)) {
             return Optional.of(variantToBlockMap.get(variant));
         } else if (variantToBlockMapNonBase.containsKey(variant)) {
             return Optional.of(variantToBlockMapNonBase.get(variant));

@@ -8,7 +8,9 @@ import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
 import mezz.jei.api.gui.ingredient.ICraftingGridHelper;
 import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.recipe.IFocus;
 import mezz.jei.api.recipe.IFocusGroup;
+import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.MinecraftClient;
@@ -19,6 +21,7 @@ import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -30,6 +33,7 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
     private final ICraftingGridHelper craftingGridHelper;
     private static final int craftOutputSlot = 9;
     private static final int craftInputSlot1 = 0;
+    private int itemsPerInnerRecipe;
 
     public FurnitureCategory(IGuiHelper guiHelper) {
         ICON = guiHelper.createDrawableIngredient(VanillaTypes.ITEM_STACK, new ItemStack(PaladinFurnitureModBlocksItems.WORKING_TABLE));
@@ -58,46 +62,110 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
         return ICON;
     }
 
+    Map<FurnitureRecipe, List<ItemStack>> inputCache = new HashMap<>();
+    public List<ItemStack> getIngredients(FurnitureRecipe recipe) {
+        this.itemsPerInnerRecipe = recipe.getMaxInnerRecipeSize();
+        if (!inputCache.containsKey(recipe)) {
+            List<ItemStack> inputEntries = new ArrayList<>();
+
+            // needed for registration apparently or something
+            for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes()) {
+                List<List<ItemStack>> finalList = collectIngredientsFromRecipe(innerRecipe);
+                finalList.forEach(inputEntries::addAll);
+            }
+            inputCache.put(recipe, inputEntries);
+        }
+
+        return inputCache.get(recipe);
+    }
+
+    Map<ItemStack, ItemStack> focusToOutput= new HashMap<>();
+    Map<FurnitureRecipe, List<List<ItemStack>>> cachedInput = new HashMap<>();
+    Map<FurnitureRecipe, List<ItemStack>> cachedOutput = new HashMap<>();
     @Override
-    public void setRecipe(IRecipeLayoutBuilder builder, FurnitureRecipe recipe, IFocusGroup focuses) {
-        List<Ingredient> ingredientsList = recipe.getIngredients();
-        HashMap<Item, Integer> containedItems = new LinkedHashMap<>();
-        for (Ingredient ingredient : ingredientsList) {
+    public void setRecipe(@NotNull IRecipeLayoutBuilder builder, FurnitureRecipe recipe, IFocusGroup focuses) {
+        this.itemsPerInnerRecipe = recipe.getMaxInnerRecipeSize();
+
+        List<ItemStack> outputs = getOutputEntries(recipe);
+
+        Optional<IFocus<ItemStack>> focused = focuses.getItemStackFocuses(RecipeIngredientRole.OUTPUT).findFirst();
+        List<List<ItemStack>> inputs;
+        List<ItemStack> output;
+        if (focused.isPresent() && focused.get().getRole()== RecipeIngredientRole.OUTPUT) {
+            // cache focus
+            ItemStack focusedStack = focused.get().getTypedValue().getItemStack().get();
+            if (!focusToOutput.containsKey(focusedStack)) {
+                for (ItemStack stack : outputs) {
+                    if (ItemStack.areItemsAndComponentsEqual(stack, focusedStack)) {
+                        focusToOutput.put(focusedStack, stack);
+                        break;
+                    }
+                }
+            }
+            output = List.of(focusToOutput.get(focusedStack));
+            inputs = collectIngredientsFromRecipe(recipe.getInnerRecipeFromOutput(focusToOutput.get(focusedStack)));
+
+            craftingGridHelper.createAndSetInputs(builder, VanillaTypes.ITEM_STACK, inputs, 3, 3);
+            craftingGridHelper.createAndSetOutputs(builder, VanillaTypes.ITEM_STACK, output);
+        } else {
+            if (!cachedOutput.containsKey(recipe)) {
+                cachedOutput.put(recipe, outputs);
+            }
+            craftingGridHelper.createAndSetOutputs(builder, VanillaTypes.ITEM_STACK, cachedOutput.get(recipe));
+            if (!cachedInput.containsKey(recipe)) {
+                List<List<ItemStack>> finalInput = new ArrayList<>(this.itemsPerInnerRecipe);
+                for (int i = 0; i < itemsPerInnerRecipe; i++)
+                    finalInput.add(new ArrayList<>());
+
+                for (FurnitureRecipe.CraftableFurnitureRecipe inner : recipe.getInnerRecipes()) {
+                    List<List<ItemStack>> stsk = collectIngredientsFromRecipe(inner);
+                    for (int i = 0; i < stsk.size(); i++) {
+                        // add to the right slot by adding to the right list
+                        finalInput.get(i % this.itemsPerInnerRecipe).addAll(stsk.get(i));
+                    }
+                }
+                cachedInput.put(recipe, finalInput);
+            }
+            craftingGridHelper.createAndSetInputs(builder, VanillaTypes.ITEM_STACK, cachedInput.get(recipe), 3, 3);
+        }
+    }
+
+
+    Map<ItemStack, List<List<ItemStack>>> itemStackListMap = new HashMap<>();
+    public List<List<ItemStack>> collectIngredientsFromRecipe(FurnitureRecipe.CraftableFurnitureRecipe recipe) {
+        if (itemStackListMap.containsKey(recipe.getRecipeOuput())) return itemStackListMap.get(recipe.getRecipeOuput());
+
+        List<Ingredient> ingredients = recipe.getIngredients();
+        HashMap<Item, Integer> containedItems = new HashMap<>();
+        for (Ingredient ingredient : ingredients) {
             for (RegistryEntry<Item> itemRegistryEntry : ingredient.getMatchingItems()) {
                 if (!containedItems.containsKey(itemRegistryEntry.value())) {
-                    containedItems.put(itemRegistryEntry.value(), 1);
+                    containedItems.put(itemRegistryEntry.value(), stack.getCount());
                 } else {
-                    containedItems.put(itemRegistryEntry.value(), containedItems.get(itemRegistryEntry.value()) + 1);
+                    containedItems.put(itemRegistryEntry.value(), containedItems.get(itemRegistryEntry.value()) + stack.getCount());
                 }
             }
         }
-        List<Ingredient> finalList = new ArrayList<>();
+        List<List<ItemStack>> listOfList = new ArrayList<>();
         for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            finalList.add(Ingredient.ofItem(entry.getKey()));
+            listOfList.add(List.of(new ItemStack(entry.getKey(), entry.getValue())));
         }
-        finalList.sort(Comparator.comparing(o -> o.getMatchingItems().get(0).toString()));
-        List<List<ItemStack>> inputLists = new ArrayList<>();
-        for (Ingredient input : finalList) {
-            List<RegistryEntry<Item>> stacks = input.getMatchingItems();
-          //  List<ItemStack> expandedInput = List.of(stacks);
-         //   inputLists.add(expandedInput);
+        if (listOfList.size() != itemsPerInnerRecipe) {
+            while (listOfList.size() != itemsPerInnerRecipe) {
+                // this is sadly necessary
+                listOfList.add(List.of());
+            }
         }
-       //ItemStack resultItem = recipe.getResult(MinecraftClient.getInstance().world.getRegistryManager());
 
-        int width = getSize(inputLists.size());
-        int height = width;
-      //  craftingGridHelper.createAndSetOutputs(builder, VanillaTypes.ITEM_STACK, List.of(resultItem));
-        craftingGridHelper.createAndSetInputs(builder, VanillaTypes.ITEM_STACK, inputLists, width, height);
+        itemStackListMap.put(recipe.getRecipeOuput(), listOfList);
+        return listOfList;
     }
 
-    private static int getSize(int total) {
-        if (total > 4) {
-            return 3;
-        } else if (total > 1) {
-            return 2;
-        } else {
-            return 1;
-        }
+    private final Map<FurnitureRecipe, List<ItemStack>> outputs = new HashMap<>();
+    public List<ItemStack> getOutputEntries(FurnitureRecipe recipe) {
+        if (!outputs.containsKey(recipe))
+            outputs.put(recipe, recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).toList());
+        return outputs.get(recipe);
     }
 }
 */

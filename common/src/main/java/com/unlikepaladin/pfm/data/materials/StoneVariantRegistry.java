@@ -27,12 +27,27 @@ public class StoneVariantRegistry extends VariantRegistryBase<StoneVariant> {
         return INSTANCE.variants.getOrDefault(name, STONE);
     }
 
+    public static Optional<StoneVariant> getOptionalVariant(Identifier name) {
+        return INSTANCE.variants.containsKey(name) ? Optional.of(INSTANCE.variants.get(name)) : Optional.empty();
+    }
+
     /**
      * Simplified Wood/Block detection based on MoonlightLib<a href="https://github.com/MehVahdJukaar/Moonlight/blob/multi-loader/common/src/main/java/net/mehvahdjukaar/moonlight/api/set/BlockTypeRegistry.java#L18">...</a>
      */
     public Optional<StoneVariant> getVariantFromBlock(Block baseBlock, Identifier blockId) {
         String name = null;
         String path = blockId.getPath();
+        if (blockId.getNamespace().equals("tfc")) {
+            if (path.contains("rock/polished/")) {
+                Optional<Block> cobble = Registries.BLOCK.getOrEmpty(
+                        Identifier.of(blockId.getNamespace(), path.replace("polished", "raw")));
+                if (cobble.isPresent()) {
+                    Identifier id = Identifier.of(blockId.getNamespace(), path.replace("rock/polished/", ""));
+                    return Optional.of(new StoneVariant(id, baseBlock, cobble.get()));
+                }
+            }
+            return Optional.empty();
+        }
         if (path.endsWith("_polished")) {
             name = path.substring(0, path.length() - "_polished".length());
         } else if (path.startsWith("polished_")) {

@@ -5,17 +5,21 @@
   "pages": [
     {
       "type": "patchouli:text",
-      "text": "There are many kinds of chairs, you'll need planks and logs depending on which type you're crafting. To get the different wood types just replace the oak with the wood type you want the chair to be."
+      "text": "There are many kinds of chairs and blocks to sit on, you'll need planks and logs depending on which type you're crafting. To get the different wood types just replace the oak with the wood type you want the chair to be."
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_chair",
-      "recipe2": "pfm:stripped_oak_chair"
+      "recipe": "pfm:basic_chair_block",
+      "variant": "oak",
+      "recipe2": "pfm:basic_chair_block",
+      "variant2": "stone"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_chair_dinner",
-      "recipe2": "pfm:stripped_oak_chair_dinner"
+      "recipe": "pfm:dinner_chair_block",
+      "variant": "oak",
+      "recipe2": "pfm:dinner_chair_block",
+      "variant2": "stone"
     },
     {
       "type": "pfm:furniturerecipe2template",
@@ -39,13 +43,17 @@
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_chair_classic",
-      "recipe2": "pfm:stripped_oak_chair_classic"
+      "recipe": "pfm:classic_chair_block",
+      "variant": "oak",
+      "recipe2": "pfm:classic_chair_block",
+      "variant2": "stone"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_chair_modern",
-      "recipe2": "pfm:stripped_oak_chair_modern"
+      "recipe": "pfm:modern_chair_block",
+      "variant": "oak",
+      "recipe2": "pfm:modern_chair_block",
+      "variant2": "stone"
     },
     {
       "type": "pfm:furniturerecipetemplate",
@@ -60,42 +68,47 @@
     {
       "type": "pfm:furniturerecipe2template",
       "recipe": "pfm:arm_chair_leather",
-      "recipe2": "pfm:oak_log_stool"
+      "recipe2": "pfm:log_stool_block",
+      "variant2": "oak"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_simple_stool",
-      "recipe2": "pfm:stripped_oak_simple_stool"
+      "recipe": "pfm:simple_stool_block",
+      "variant": "oak",
+      "recipe2": "pfm:simple_stool_block",
+      "variant2": "stone"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_classic_stool",
-      "recipe2": "pfm:stripped_oak_classic_stool"
+      "recipe": "pfm:classic_stool_block",
+      "variant": "oak",
+      "recipe2": "pfm:classic_stool_block",
+      "variant2": "stone"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_simple_stool",
-      "recipe2": "pfm:stripped_oak_simple_stool"
+      "recipe": "pfm:modern_stool_block",
+      "variant": "oak",
+      "recipe2": "pfm:modern_stool_block",
+      "variant2": "stone"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_modern_stool",
-      "recipe2": "pfm:stripped_oak_modern_stool"
+      "recipe": "pfm:modern_stool_block",
+      "variant": "white",
+      "recipe2": "pfm:modern_stool_block",
+      "variant2": "gray"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:white_modern_stool",
-      "recipe2": "pfm:gray_modern_stool"
+      "recipe": "pfm:modern_stool_block",
+      "variant": "dark_wood",
+      "recipe2": "pfm:modern_stool_block",
+      "variant2": "gray_dark_oak"
     },
     {
-      "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:dark_wood_modern_stool",
-      "recipe2": "pfm:gray_dark_oak_modern_stool"
-    },
-    {
-      "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:light_gray_dark_oak_modern_stool",
-      "recipe2": "pfm:light_wood_modern_stool"
+      "type": "patchouli:empty",
+      "draw_filler": "false"
     }
   ]
 }

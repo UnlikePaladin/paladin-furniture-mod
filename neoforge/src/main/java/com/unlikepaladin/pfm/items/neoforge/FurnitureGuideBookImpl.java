@@ -4,6 +4,8 @@ import com.unlikepaladin.pfm.items.FurnitureGuideBook;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
@@ -25,7 +27,8 @@ public class FurnitureGuideBookImpl extends FurnitureGuideBook {
         }
         else if (world.isClient && !ModList.get().isLoaded("patchouli"))
         {
-            user.sendMessage(Text.translatable("message.pfm.patchouli_not_installed"),false);
+            Text text = Text.translatable("message.pfm.patchouli_not_installed").setStyle(Style.EMPTY.withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://github.com/UnlikePaladin/paladins-furniture/wiki")));
+            user.sendMessage(text,false);
         }
         return ActionResult.PASS;
     }

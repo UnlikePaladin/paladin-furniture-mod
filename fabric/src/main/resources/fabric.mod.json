@@ -57,7 +57,8 @@
       "links": {
         "modmenu.discord": "https://discord.gg/zbMDUPB",
         "modmenu.kofi": "https://ko-fi.com/unlikepaladin",
-        "modmenu.modrinth": "https://modrinth.com/mod/paladins-furniture/"
+        "modmenu.modrinth": "https://modrinth.com/mod/paladins-furniture/",
+        "modmenu.wiki": "https://github.com/UnlikePaladin/paladins-furniture/wiki"
       }
     }
   }

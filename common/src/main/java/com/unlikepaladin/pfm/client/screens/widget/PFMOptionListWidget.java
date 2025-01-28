@@ -3,13 +3,12 @@ package com.unlikepaladin.pfm.client.screens.widget;
 import com.google.common.collect.ImmutableList;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.client.screens.PFMConfigScreen;
-import com.unlikepaladin.pfm.client.screens.PFMGeneratingOverlay;
 import com.unlikepaladin.pfm.config.option.AbstractConfigOption;
 import com.unlikepaladin.pfm.config.option.BooleanConfigOption;
 import com.unlikepaladin.pfm.config.option.Side;
-import com.unlikepaladin.pfm.runtime.PFMAssetGenerator;
 import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMRuntimeResources;
+import com.unlikepaladin.pfm.runtime.PFMAssetGenerator;
 import com.unlikepaladin.pfm.utilities.PFMFileUtil;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -70,15 +69,13 @@ public class PFMOptionListWidget extends ElementListWidget<PFMOptionListWidget.E
         this.addEntry(new ButtonEntry(Side.CLIENT, Text.translatable("pfm.option.regenAssets"), Text.translatable("pfm.config.regen"), Text.translatable("pfm.option.regenAssets.tooltip"), button -> {
             PFMFileUtil.deleteDir(PFMRuntimeResources.getAssetPackDirectory().toFile());
             PFMAssetGenerator.FROZEN = false;
-            PFMRuntimeResources.prepareAsyncAssetGen(true);
-            PFMRuntimeResources.runAsyncResourceGen();
+            PFMRuntimeResources.prepareAndRunAssetGen(true);
             MinecraftClient.getInstance().reloadResourcesConcurrently();
         }));
         ButtonEntry entry = new ButtonEntry(Side.SERVER, Text.translatable("pfm.option.regenData"), Text.translatable("pfm.config.regen"), Text.translatable("pfm.option.regenData.tooltip"), button -> {
             PFMFileUtil.deleteDir(PFMRuntimeResources.getDataPackDirectory().toFile());
             PFMDataGenerator.FROZEN = false;
-            PFMRuntimeResources.prepareAsyncDataGen(true);
-            PFMRuntimeResources.runAsyncResourceGen();
+            PFMRuntimeResources.prepareAndRunDataGen(true);
         });
         entry.button.active = !PFMConfigScreen.isOnServer;
         this.addEntry(entry);

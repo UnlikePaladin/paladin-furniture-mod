@@ -27,6 +27,10 @@ public class WoodVariantRegistry extends VariantRegistryBase<WoodVariant> {
         return INSTANCE.variants.getOrDefault(name, OAK);
     }
 
+    public static Optional<WoodVariant> getOptionalVariant(Identifier name) {
+        return INSTANCE.variants.containsKey(name) ? Optional.of(INSTANCE.variants.get(name)) : Optional.empty();
+    }
+
     /**
      * Simplified Wood/Block detection based on MoonlightLib<a href="https://github.com/MehVahdJukaar/Moonlight/blob/multi-loader/common/src/main/java/net/mehvahdjukaar/moonlight/api/set/BlockTypeRegistry.java#L18">...</a>
      */
@@ -55,7 +59,9 @@ public class WoodVariantRegistry extends VariantRegistryBase<WoodVariant> {
         }
         String namespace = blockId.getNamespace();
         if (!namespace.equals("cozy_home") && name != null && !namespace.equals("securitycraft") &&
-                !namespace.equals("absentbydesign") && !(namespace.equals("terrestria") && path.contains("sakura")) && !(namespace.equals("betternether") && path.contains("nether_mushroom")) && !namespace.equals("chipped") && !(namespace.equals("regions_unexplored") && path.contains("alpha"))) {
+                !namespace.equals("absentbydesign") && !(namespace.equals("terrestria") && path.contains("sakura")) &&
+                !(namespace.equals("betternether") && path.contains("nether_mushroom")) && !namespace.equals("chipped")
+                && !(namespace.equals("regions_unexplored") && path.contains("alpha"))) {
 
             BlockState state = baseBlock.getDefaultState();
             // can't check if the block is a full one, so I do this. Adding some checks here

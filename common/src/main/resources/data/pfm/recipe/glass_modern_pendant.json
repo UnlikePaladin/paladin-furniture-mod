@@ -1,5 +1,5 @@
 {
-  "type": "pfm:furniture",
+  "type": "pfm:simple_furniture",
   "group": "lighting",
   "ingredients": [
     "pfm:simple_light",
