@@ -6,6 +6,7 @@ import com.unlikepaladin.pfm.recipes.DynamicFurnitureRecipe;
 import net.minecraft.advancement.*;
 import net.minecraft.advancement.criterion.RecipeUnlockedCriterion;
 import net.minecraft.block.Block;
+import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.ComponentMap;
 import net.minecraft.data.server.recipe.RecipeExporter;
 import net.minecraft.item.Item;
@@ -25,18 +26,18 @@ public class DynamicFurnitureRecipeJsonFactory {
     private String group;
     private Map<String, Integer> variantChildren = new HashMap<>();
     private final List<Identifier> supportedVariants;
-    private final ComponentMap components;
+    private final ComponentChanges components;
     private final Map<String, AdvancementCriterion<?>> criteria = new LinkedHashMap<>();
 
     public DynamicFurnitureRecipeJsonFactory(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, Map<String, Integer> variantChildren) {
         this.outputClass = output.getSimpleName();
         this.outputCount = outputCount;
-        this.components = ComponentMap.EMPTY;
+        this.components = ComponentChanges.EMPTY;
         this.supportedVariants = supportedVariants;
         this.variantChildren = variantChildren;
     }
 
-    public DynamicFurnitureRecipeJsonFactory(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, Map<String, Integer> variantChildren, @Nullable ComponentMap components) {
+    public DynamicFurnitureRecipeJsonFactory(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, Map<String, Integer> variantChildren, @Nullable ComponentChanges components) {
         this.outputClass = output.getSimpleName();
         this.outputCount = outputCount;
         this.supportedVariants = supportedVariants;
@@ -47,13 +48,13 @@ public class DynamicFurnitureRecipeJsonFactory {
     public DynamicFurnitureRecipeJsonFactory(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, Map<String, Integer> variantChildren, List<Ingredient> inputs) {
         this.outputClass = output.getSimpleName();
         this.outputCount = outputCount;
-        this.components = ComponentMap.EMPTY;
+        this.components = ComponentChanges.EMPTY;
         this.supportedVariants = supportedVariants;
         this.vanillaIngredients = inputs;
         this.variantChildren = variantChildren;
     }
 
-    public DynamicFurnitureRecipeJsonFactory(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, Map<String, Integer> variantChildren, List<Ingredient> inputs, ComponentMap components) {
+    public DynamicFurnitureRecipeJsonFactory(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, Map<String, Integer> variantChildren, List<Ingredient> inputs, ComponentChanges components) {
         this.outputClass = output.getSimpleName();
         this.outputCount = outputCount;
         this.supportedVariants = supportedVariants;
@@ -66,10 +67,10 @@ public class DynamicFurnitureRecipeJsonFactory {
         this.outputClass = output.getSimpleName();
         this.outputCount = outputCount;
         this.supportedVariants = supportedVariants;
-        this.components = ComponentMap.EMPTY;
+        this.components = ComponentChanges.EMPTY;
     }
 
-    public DynamicFurnitureRecipeJsonFactory(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, ComponentMap components) {
+    public DynamicFurnitureRecipeJsonFactory(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, ComponentChanges components) {
         this.outputClass = output.getSimpleName();
         this.outputCount = outputCount;
         this.supportedVariants = supportedVariants;
@@ -77,7 +78,7 @@ public class DynamicFurnitureRecipeJsonFactory {
     }
 
 
-    public static DynamicFurnitureRecipeJsonFactory create(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, Map<String, Integer> variantChildren, List<Ingredient> inputs, ComponentMap nbtElement) {
+    public static DynamicFurnitureRecipeJsonFactory create(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, Map<String, Integer> variantChildren, List<Ingredient> inputs, ComponentChanges nbtElement) {
         return new DynamicFurnitureRecipeJsonFactory(output, outputCount, supportedVariants, variantChildren, inputs, nbtElement);
     }
 
@@ -89,14 +90,14 @@ public class DynamicFurnitureRecipeJsonFactory {
         return new DynamicFurnitureRecipeJsonFactory(output, outputCount, supportedVariants, variantChildren);
     }
 
-    public static DynamicFurnitureRecipeJsonFactory create(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, Map<String, Integer> variantChildren, ComponentMap nbtElement) {
+    public static DynamicFurnitureRecipeJsonFactory create(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, Map<String, Integer> variantChildren, ComponentChanges nbtElement) {
         return new DynamicFurnitureRecipeJsonFactory(output, outputCount, supportedVariants, variantChildren, nbtElement);
     }
     public static DynamicFurnitureRecipeJsonFactory create(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants) {
         return new DynamicFurnitureRecipeJsonFactory(output, outputCount, supportedVariants);
     }
 
-    public static DynamicFurnitureRecipeJsonFactory create(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, ComponentMap nbtElement) {
+    public static DynamicFurnitureRecipeJsonFactory create(Class<? extends Block> output, int outputCount, List<Identifier> supportedVariants, ComponentChanges nbtElement) {
         return new DynamicFurnitureRecipeJsonFactory(output, outputCount, supportedVariants, nbtElement);
     }
 

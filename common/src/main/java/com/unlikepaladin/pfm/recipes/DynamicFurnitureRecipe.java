@@ -53,17 +53,20 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             VariantBase<?> variant = VariantHelper.getVariant(id);
             if (variant == null || furnitureInnerRecipes.containsKey(id)) continue;
             Optional<Block> optionalOutput;
-            ComponentMap componentChanges = furnitureOutput.components != null ? furnitureOutput.components : ComponentMap.EMPTY;
+            ComponentChanges componentChanges = furnitureOutput.components != null ? furnitureOutput.components : ComponentChanges.EMPTY;
             ComponentMap.Builder builder = ComponentMap.builder();
-            if (!componentChanges.isEmpty() && componentChanges.contains(PFMComponents.COLOR_COMPONENT)) {
-                optionalOutput = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariantAndColor(variant, componentChanges.get(PFMComponents.COLOR_COMPONENT));
-                if (!optionalOutput.get().asItem().getComponents().contains(PFMComponents.COLOR_COMPONENT))
-                    builder.addAll(componentChanges.filtered(dataComponentType -> dataComponentType != PFMComponents.COLOR_COMPONENT));
+
+            if (!componentChanges.isEmpty() && componentChanges.entrySet().stream().anyMatch(dataComponentTypeOptionalEntry -> dataComponentTypeOptionalEntry.getKey() == PFMComponents.COLOR_COMPONENT)) {
+                optionalOutput = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariantAndColor(variant, componentChanges.get(PFMComponents.COLOR_COMPONENT).get());
+                if (!optionalOutput.get().asItem().getComponents().contains(PFMComponents.COLOR_COMPONENT)) {
+                    componentChanges = componentChanges.withRemovedIf(dataComponentType -> dataComponentType == PFMComponents.COLOR_COMPONENT);
+                    ComponentMapImpl.create(optionalOutput.get().asItem().getComponents(), componentChanges);
+                }
                 else
-                    builder.addAll(componentChanges);
+                    builder.addAll(ComponentMapImpl.create(optionalOutput.get().asItem().getComponents(), componentChanges));
             } else {
                 optionalOutput = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariant(variant);
-                builder.addAll(componentChanges);
+                builder.addAll(ComponentMapImpl.create(optionalOutput.get().asItem().getComponents(), componentChanges));
             }
             if (optionalOutput.isEmpty()) continue;
 
@@ -295,14 +298,14 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         public static MapCodec<FurnitureOutput> CODEC = RecordCodecBuilder.mapCodec(furnitureOutputInstance -> furnitureOutputInstance.group(
                 Codec.STRING.fieldOf("outputClass").forGetter(out -> out.outputClass),
                 Codec.INT.optionalFieldOf("count", 1).forGetter(out -> out.outputCount),
-                ComponentMap.CODEC.optionalFieldOf("components", ComponentMap.EMPTY).forGetter(out -> out.components)
+                ComponentChanges.CODEC.optionalFieldOf("components", ComponentChanges.EMPTY).forGetter(out -> out.components)
         ).apply(furnitureOutputInstance, FurnitureOutput::new));
 
         private final String outputClass;
         private final int outputCount;
-        private final ComponentMap components;
+        private final ComponentChanges components;
 
-        public FurnitureOutput(String outputClass, int outputCount, ComponentMap components) {
+        public FurnitureOutput(String outputClass, int outputCount, ComponentChanges components) {
             this.outputClass = outputClass;
             this.outputCount = outputCount;
             this.components = components;
@@ -312,7 +315,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             return outputCount;
         }
 
-        public ComponentMap getComponents() {
+        public ComponentChanges getComponents() {
             return components;
         }
 
@@ -323,21 +326,14 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         public static FurnitureOutput read(RegistryByteBuf buf) {
             String outputClass = buf.readString();
             int count = buf.readInt();
-            ComponentMap.Builder componentChanges = ComponentMap.builder();
-            Item item = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass(outputClass)).getVariantToBlockMap().entrySet().stream().findFirst().get().getValue().asItem();
-            componentChanges.addAll(ComponentMapImpl.create(item.getComponents(), ComponentChanges.PACKET_CODEC.decode(buf)));
-
-            return new FurnitureOutput(outputClass, count, componentChanges.build());
+            ComponentChanges componentChanges = ComponentChanges.PACKET_CODEC.decode(buf);
+            return new FurnitureOutput(outputClass, count,  componentChanges);
         }
 
         public static void write(RegistryByteBuf buf, FurnitureOutput output) {
             buf.writeString(output.outputClass);
             buf.writeInt(output.outputCount);
-            if (output.components != ComponentMap.EMPTY) {
-                ComponentChanges.PACKET_CODEC.encode(buf, ((ComponentMapImpl)output.components).getChanges());
-            } else {
-                ComponentChanges.PACKET_CODEC.encode(buf, ComponentChanges.EMPTY);
-            }
+            ComponentChanges.PACKET_CODEC.encode(buf, output.components);
         }
 
         public static Class<? extends Block> getOutputBlockClass(String outputClass) {
