@@ -2,30 +2,30 @@ package com.unlikepaladin.pfm.recipes;
 
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
-import net.minecraft.component.ComponentMap;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.Recipe;
+import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.RecipeType;
-import net.minecraft.recipe.book.RecipeBookCategories;
-import net.minecraft.recipe.book.RecipeBookCategory;
 import net.minecraft.recipe.input.RecipeInput;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeInput> {
     @Override
-    default RecipeType<?> getType() {
+    default RecipeType<? extends Recipe<FurnitureRecipeInput>> getType() {
         return RecipeTypes.FURNITURE_RECIPE;
     }
 
@@ -41,9 +41,9 @@ public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeI
         return getInnerRecipes().get(0);
     }
 
-    static int getSlotWithStackIgnoreNBT(PlayerInventory inventory, ItemStack stack) {
+    static int getSlotWithStackIgnoreNBT(PlayerInventory inventory, Item item) {
         for(int i = 0; i < inventory.main.size(); ++i) {
-            if (!inventory.main.get(i).isEmpty() && stack.isOf(inventory.main.get(i).getItem())) {
+            if (!inventory.main.get(i).isEmpty() && inventory.main.get(i).getItem() == item) {
                 return i;
             }
         }
@@ -51,12 +51,14 @@ public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeI
     }
 
     default int getMaxInnerRecipeSize() {
-        return getIngredients().size();
+        return getIngredientPlacement().getIngredients().size();
     }
 
     default int getOutputCount(RegistryWrapper.WrapperLookup registryManager) {
         return getResult(registryManager).getCount();
     }
+
+    ItemStack getResult(RegistryWrapper.WrapperLookup registryManager);
 
     default List<? extends CraftableFurnitureRecipe> getInnerRecipesForVariant(Identifier identifier) {
         return Collections.singletonList(getInnerRecipes().get(0));
@@ -66,6 +68,8 @@ public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeI
         return getResult(registryManager).getName().getString();
     }
 
+    void write(RegistryByteBuf buf);
+
     interface CraftableFurnitureRecipe extends Comparable<CraftableFurnitureRecipe> {
         List<Ingredient> getIngredients();
         ItemStack getResult(RegistryWrapper.WrapperLookup registryManager);
@@ -73,7 +77,6 @@ public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeI
         boolean matches(FurnitureRecipe.FurnitureRecipeInput playerInventory, World world);
         FurnitureRecipe parent();
         ItemStack getRecipeOuput();
-
         @Override
         default int compareTo(@NotNull FurnitureRecipe.CraftableFurnitureRecipe o) {
             return getRecipeOuput().toString().compareTo(o.getRecipeOuput().toString());
@@ -83,46 +86,60 @@ public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeI
             ItemStack output = getResult(registryManager).copy();
             List<Ingredient> ingredients = getIngredients();
             PlayerInventory playerInventory = input.playerInventory();
-            for (Ingredient ingredient : ingredients) {
-                for (ItemStack stack : ingredient.getMatchingStacks()) {
-                    int indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, stack);
-                    int count = stack.getCount();
-                    if (indexOfStack != -1) {
-                        if (playerInventory.getStack(indexOfStack).getCount() >= stack.getCount()) {
-                            ItemStack stack1 = playerInventory.getStack(indexOfStack);
-                            stack1.decrement(stack.getCount());
-                            playerInventory.setStack(indexOfStack, stack1);
-                            playerInventory.markDirty();
-                            break;
-                        } else {
-                            int remainingCount = count - playerInventory.getStack(indexOfStack).getCount();
-                            playerInventory.setStack(indexOfStack, ItemStack.EMPTY);
+            Map<Item, Integer> ingredientCounts = getItemCounts();
+            for (Map.Entry<Item, Integer> entry : ingredientCounts.entrySet()) {
+                Item item = entry.getKey();
+                Integer count = entry.getValue();
 
-                            while (remainingCount > 0) {
-                                indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, stack);
-                                if (indexOfStack != -1) {
-                                    ItemStack stack1 = playerInventory.getStack(indexOfStack);
-                                    if (stack1.getCount() >= remainingCount) {
-                                        stack1.decrement(remainingCount);
-                                        playerInventory.setStack(indexOfStack, stack1);
-                                        break;
-                                    } else {
-                                        int stackSize = stack1.getCount();
-                                        remainingCount = Math.max(remainingCount-stackSize, 0);
-                                        playerInventory.setStack(indexOfStack, ItemStack.EMPTY);
-                                    }
+                int indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, item);
+                if (indexOfStack != -1) {
+                    if (playerInventory.getStack(indexOfStack).getCount() >= count) {
+                        ItemStack stack1 = playerInventory.getStack(indexOfStack);
+                        stack1.decrement(count);
+                        playerInventory.setStack(indexOfStack, stack1);
+                        playerInventory.markDirty();
+                    } else {
+                        int remainingCount = count - playerInventory.getStack(indexOfStack).getCount();
+                        playerInventory.setStack(indexOfStack, ItemStack.EMPTY);
+                        while (remainingCount > 0) {
+                            indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, item);
+                            if (indexOfStack != -1) {
+                                ItemStack stack1 = playerInventory.getStack(indexOfStack);
+                                if (stack1.getCount() >= remainingCount) {
+                                    stack1.decrement(remainingCount);
+                                    playerInventory.setStack(indexOfStack, stack1);
+                                    break;
                                 } else {
-                                    PaladinFurnitureMod.GENERAL_LOGGER.warn("Unable to craft recipe, this should never happen");
-                                    return ItemStack.EMPTY;
+                                    int stackSize = stack1.getCount();
+                                    remainingCount = Math.max(remainingCount-stackSize, 0);
+                                    playerInventory.setStack(indexOfStack, ItemStack.EMPTY);
                                 }
+                            } else {
+                                PaladinFurnitureMod.GENERAL_LOGGER.warn("Unable to craft recipe, this should never happen");
+                                return ItemStack.EMPTY;
                             }
-                            playerInventory.markDirty();
                         }
+                        playerInventory.markDirty();
                     }
                 }
             }
             return output;
         }
+
+        default Map<Item, Integer> getItemCounts() {
+            Map<Item, Integer> ingredientCounts = new HashMap<>();
+            for (Ingredient ingredient : this.getIngredients()) {
+                for (RegistryEntry<Item> itemRegistryEntry : ingredient.getMatchingItems()) {
+                    if (ingredientCounts.containsKey(itemRegistryEntry.value())) {
+                        ingredientCounts.put(itemRegistryEntry.value(), ingredientCounts.get(itemRegistryEntry.value())+1);
+                    } else {
+                        ingredientCounts.put(itemRegistryEntry.value(), 1);
+                    }
+                }
+            }
+            return ingredientCounts;
+        }
+
     }
     public static record FurnitureRecipeInput(PlayerInventory playerInventory) implements RecipeInput {
 

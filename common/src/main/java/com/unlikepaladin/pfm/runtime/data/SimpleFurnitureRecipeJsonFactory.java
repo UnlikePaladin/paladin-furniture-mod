@@ -122,7 +122,7 @@ public class SimpleFurnitureRecipeJsonFactory implements CraftingRecipeJsonBuild
     public void offerTo(RecipeExporter exporter, RegistryKey<Recipe<?>> recipeKey) {
         Advancement.Builder advancement$builder = exporter.getAdvancementBuilder().criterion("has_the_recipe", RecipeUnlockedCriterion.create(recipeKey)).rewards(AdvancementRewards.Builder.recipe(recipeKey)).criteriaMerger(AdvancementRequirements.CriterionMerger.OR);
         this.criteria.forEach(advancement$builder::criterion);
-        exporter.accept(recipeKey, new FurnitureRecipe(this.group == null || this.group.isBlank() ? "" : this.group, stack, this.inputs), advancement$builder.build(recipeKey.getValue().withPrefixedPath("recipes/furniture/")));
+        exporter.accept(recipeKey, new SimpleFurnitureRecipe(this.group == null || this.group.isBlank() ? "" : this.group, stack, this.inputs), advancement$builder.build(recipeKey.getValue().withPrefixedPath("recipes/furniture/")));
     }
 
     public void offerTo(RecipeExporter exporter, Identifier recipeId) {

@@ -135,7 +135,7 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
                 List<Item> items = new ArrayList<>();
                 searchable.findAll(string.toLowerCase(Locale.ROOT)).forEach(itemStack -> items.add(itemStack.getItem()));
                 this.handler.getSortedRecipes().forEach(furnitureRecipe -> {
-                    if (items.contains(furnitureRecipe.result().getItem())) {
+                    if (items.contains(furnitureRecipe.getRecipeOuput().getItem())) {
                         this.handler.getSearchableRecipes().add(furnitureRecipe);
                     }
                 });
@@ -205,15 +205,15 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
             if (this.handler.searching) {
                 iCopy = this.handler.getSortedRecipes().indexOf(this.handler.getSearchableRecipes().get(iCopy));
             }
-            tooltip.add(getTooltipFromItem(this.handler.getSortedRecipes().get(iCopy).result()).get(0));
+            tooltip.add(getTooltipFromItem(this.handler.getSortedRecipes().get(iCopy).getRecipeOuput()).get(0));
             tooltip.add(Text.translatable("container.pfm.working_table.ingredient_required").setStyle(Style.EMPTY.withItalic(true)));
             HashMap<Item, Integer> itemStackCountMap = new HashMap<>();
             for (Ingredient ingredient : this.handler.getSortedRecipes().get(iCopy).getIngredients()) {
                 for (RegistryEntry<Item> item : ingredient.getMatchingItems()) {
                     if (!itemStackCountMap.containsKey(item.value())) {
-                        itemStackCountMap.put(item.value(), stack.getCount());
+                        itemStackCountMap.put(item.value(), 1);
                     } else {
-                        itemStackCountMap.put(item.value(), itemStackCountMap.get(item.value()) + stack.getCount());
+                        itemStackCountMap.put(item.value(), itemStackCountMap.get(item.value()) + 1);
                     }
                 }
             }
@@ -262,7 +262,7 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
             if (this.handler.searching) {
                 iCopy = this.handler.getSortedRecipes().indexOf(this.handler.getSearchableRecipes().get(iCopy));
             }
-            context.drawItem(this.handler.getSortedRecipes().get(iCopy).result(), xOffset, yOffset);
+            context.drawItem(this.handler.getSortedRecipes().get(iCopy).getRecipeOuput(), xOffset, yOffset);
         }
     }
 

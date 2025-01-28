@@ -2,6 +2,7 @@ package com.unlikepaladin.pfm.runtime;
 
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.unlikepaladin.pfm.client.screens.overlay.PFMGeneratingOverlay;
+import com.unlikepaladin.pfm.mixin.PFMMinecraftClientAcccessor;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.client.util.math.MatrixStack;
@@ -18,23 +19,18 @@ public class ClientOverlaySetter {
     public static void updateScreen() {
         MinecraftClient client = MinecraftClient.getInstance();
 
-        Matrix4fStack matrixStack = RenderSystem.getModelViewStack();
 
-        matrixStack.pushMatrix();
-        RenderSystem.applyModelViewMatrix();
         client.getFramebuffer().beginWrite(true);
-        long i = Util.getMeasuringTimeNano();
         client.gameRenderer.render(client.getRenderTickCounter(), shouldTick(client));
         client.getFramebuffer().endWrite();
-        matrixStack.popMatrix();
 
-        matrixStack.pushMatrix();
-        RenderSystem.applyModelViewMatrix();
         client.getFramebuffer().draw(client.getWindow().getFramebufferWidth(), client.getWindow().getFramebufferHeight());
-        matrixStack.popMatrix();
 
-        RenderSystem.applyModelViewMatrix();
-        client.getWindow().swapBuffers();
+        if (((PFMMinecraftClientAcccessor)client).getFrameCapturer() != null) {
+            ((PFMMinecraftClientAcccessor)client).getFrameCapturer().upload();
+            ((PFMMinecraftClientAcccessor)client).getFrameCapturer().capture(client.getFramebuffer());
+        }
+        client.getWindow().swapBuffers(((PFMMinecraftClientAcccessor)client).getFrameCapturer());
         ((RenderTickCounter.Dynamic)client.getRenderTickCounter()).tick(client.isPaused());
         ((RenderTickCounter.Dynamic)client.getRenderTickCounter()).setTickFrozen(!shouldTick(client));
     }

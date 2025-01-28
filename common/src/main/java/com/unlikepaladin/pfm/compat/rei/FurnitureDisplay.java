@@ -23,6 +23,7 @@ package com.unlikepaladin.pfm.compat.rei;
  * SOFTWARE.
  */
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
@@ -30,6 +31,7 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
 import me.shedaniel.rei.api.common.display.DisplaySerializer;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
+import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.Item;
@@ -47,62 +49,63 @@ import java.util.*;
 public class FurnitureDisplay implements Display {
     public static final CategoryIdentifier<FurnitureDisplay> IDENTIFIER = CategoryIdentifier.of(Identifier.of(PaladinFurnitureMod.MOD_ID, "furniture"));
     private int itemsPerInnerRecipe;
-    public FurnitureDisplay(RecipeEntry<FurnitureRecipe> entry) {
-        this.recipe = entry;
-        this.itemsPerInnerRecipe = entry.value().getIngredients().size();
+    public List<EntryIngredient> input;
+    public List<EntryIngredient> output;
+    public Optional<Identifier> location;
+    public FurnitureDisplay(RecipeEntry<FurnitureRecipe> recipeEntry) {
+        this(recipeEntry.value());
+        this.location = Optional.of(recipeEntry.id().getValue());
     }
 
-    private final List<EntryIngredient> inputs = new ArrayList<>();
+    public FurnitureDisplay(List<EntryIngredient> input, List<EntryIngredient> output, Optional<Identifier> location, int itemsPerInnerRecipe) {
+        this.input = input;
+        this.output = output;
+        this.location = location;
+        this.itemsPerInnerRecipe = itemsPerInnerRecipe;
+    }
+
+    public FurnitureDisplay(FurnitureRecipe recipe) {
+        input = new ArrayList<>();
+        output = new ArrayList<>();
+        List<EntryIngredient> inputEntries = new ArrayList<>();
+        this.itemsPerInnerRecipe = recipe.getMaxInnerRecipeSize();
+        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes()) {
+            Map<Item, Integer> containedItems = innerRecipe.getItemCounts();
+
+            List<ItemStack> finalList = new ArrayList<>();
+            for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
+                finalList.add(new ItemStack(entry.getKey(), entry.getValue()));
+            }
+            finalList.sort(Comparator.comparing(ItemStack::toString));
+
+            if (finalList.size() != itemsPerInnerRecipe) {
+                while (finalList.size() != itemsPerInnerRecipe) {
+                    finalList.add(ItemStack.EMPTY);
+                }
+            }
+            List<EntryIngredient> entryIngredients = new ArrayList<>();
+            for (final ItemStack stack : finalList) {
+                entryIngredients.add(EntryIngredients.of(stack));
+            }
+            inputEntries.addAll(entryIngredients);
+        }
+        input.addAll(inputEntries);
+        output.addAll(recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).map(EntryIngredients::of).toList());
+        location = Optional.empty();
+    }
 
     @Override
     public List<EntryIngredient> getInputEntries() {
-        if (!inputs.isEmpty()) return inputs;
-
-        List<Ingredient> inputEntries = new ArrayList<>();
-        this.itemsPerInnerRecipe = recipe.value().getMaxInnerRecipeSize();
-        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.value().getInnerRecipes()) {
-            List<Ingredient> ingredients = innerRecipe.getIngredients();
-            HashMap<Item, Integer> containedItems = new HashMap<>();
-            for (Ingredient ingredient : ingredients) {
-                for (ItemStack stack : ingredient.getMatchingStacks()) {
-                    if (!containedItems.containsKey(stack.getItem())) {
-                        containedItems.put(stack.getItem(), stack.getCount());
-                    } else {
-                        containedItems.put(stack.getItem(), containedItems.get(stack.getItem()) + stack.getCount());
-                    }
-                }
-            }
-            List<Ingredient> finalList = new ArrayList<>();
-            for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-                finalList.add(Ingredient.ofStacks(new ItemStack(entry.getKey(), entry.getValue())));
-            }
-            finalList.sort(Comparator.comparing(o -> o.getMatchingStacks()[0].getItem().toString()));
-            if (finalList.size() != itemsPerInnerRecipe) {
-                while (finalList.size() != itemsPerInnerRecipe) {
-                    finalList.add(Ingredient.EMPTY);
-                }
-            }
-            inputEntries.addAll(finalList);
-        }
-        for (Ingredient ingredient : inputEntries) {
-            if (!ingredient.isEmpty())
-                inputs.add(EntryIngredients.ofIngredient(ingredient));
-            else
-                inputs.add(EntryIngredient.empty());
-        }
-        return inputs;
+        return input;
     }
 
     public int itemsPerInnerRecipe() {
         return itemsPerInnerRecipe;
     }
 
-    private final List<EntryIngredient> outputs = new ArrayList<>();
     @Override
     public List<EntryIngredient> getOutputEntries() {
-        if (outputs.isEmpty())
-            outputs.addAll(recipe.value().getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).map(EntryIngredients::of).toList());
-        return outputs;
+        return output;
     }
 
     @Override
@@ -124,7 +127,8 @@ public class FurnitureDisplay implements Display {
             RecordCodecBuilder.mapCodec(instance -> instance.group(
                     EntryIngredient.codec().listOf().fieldOf("inputs").forGetter(FurnitureDisplay::getInputEntries),
                     EntryIngredient.codec().listOf().fieldOf("outputs").forGetter(FurnitureDisplay::getOutputEntries),
-                    Identifier.CODEC.optionalFieldOf("location").forGetter(FurnitureDisplay::getDisplayLocation)
+                    Identifier.CODEC.optionalFieldOf("location").forGetter(FurnitureDisplay::getDisplayLocation),
+                    Codec.INT.fieldOf("itemsPerInnerRecipe").forGetter(FurnitureDisplay::itemsPerInnerRecipe)
             ).apply(instance, FurnitureDisplay::new)),
             PacketCodec.tuple(
                     EntryIngredient.streamCodec().collect(PacketCodecs.toList()),
@@ -133,6 +137,8 @@ public class FurnitureDisplay implements Display {
                     FurnitureDisplay::getOutputEntries,
                     PacketCodecs.optional(Identifier.PACKET_CODEC),
                     FurnitureDisplay::getDisplayLocation,
+                    PacketCodecs.INTEGER,
+                    FurnitureDisplay::itemsPerInnerRecipe,
                     FurnitureDisplay::new
             ));
 }

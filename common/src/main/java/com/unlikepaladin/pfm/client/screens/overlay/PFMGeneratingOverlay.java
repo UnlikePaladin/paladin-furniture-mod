@@ -117,7 +117,7 @@ public class PFMGeneratingOverlay extends Overlay {
         int x = (width - logoWidth) / 2;
         int y = (height - logoHeight) / 2;
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        context.drawTexture(identifier -> RenderLayer.getMojangLogo(), pfmLogo, x, y, 0, 0, logoWidth, logoHeight, logoWidth, logoHeight);
+        context.drawTexture(identifier -> RenderLayer.getGuiTexturedOverlay(pfmLogo), pfmLogo, x, y, 0, 0, logoWidth, logoHeight, logoWidth, logoHeight);
 
         try (Closeable ignored1 = glText.gltBeginDraw()) {
             float textScale = (float) (client.getWindow().getScaleFactor() / 2.0f) * 1.5f;

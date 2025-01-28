@@ -18,15 +18,17 @@ import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.Ingredient;
+import net.minecraft.recipe.IngredientPlacement;
+import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeSerializer;
+import net.minecraft.recipe.book.RecipeBookCategories;
+import net.minecraft.recipe.book.RecipeBookCategory;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.util.DyeColor;
+import net.minecraft.registry.entry.RegistryEntry;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.world.World;
@@ -60,13 +62,13 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
                 optionalOutput = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariantAndColor(variant, componentChanges.get(PFMComponents.COLOR_COMPONENT).get());
                 if (!optionalOutput.get().asItem().getComponents().contains(PFMComponents.COLOR_COMPONENT)) {
                     componentChanges = componentChanges.withRemovedIf(dataComponentType -> dataComponentType == PFMComponents.COLOR_COMPONENT);
-                    ComponentMapImpl.create(optionalOutput.get().asItem().getComponents(), componentChanges);
+                    MergedComponentMap.create(optionalOutput.get().asItem().getComponents(), componentChanges);
                 }
                 else
-                    builder.addAll(ComponentMapImpl.create(optionalOutput.get().asItem().getComponents(), componentChanges));
+                    builder.addAll(MergedComponentMap.create(optionalOutput.get().asItem().getComponents(), componentChanges));
             } else {
                 optionalOutput = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariant(variant);
-                builder.addAll(ComponentMapImpl.create(optionalOutput.get().asItem().getComponents(), componentChanges));
+                builder.addAll(MergedComponentMap.create(optionalOutput.get().asItem().getComponents(), componentChanges));
             }
             if (optionalOutput.isEmpty()) continue;
 
@@ -81,9 +83,10 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
             Map<String, Integer> childrenToCountMap = ingredients.variantChildren;
 
-            List<Ingredient> stacks = Lists.newArrayList();
+            List<Ingredient> stacks = new ArrayList<>();
             for (Map.Entry<String, Integer> entry : childrenToCountMap.entrySet()) {
-                stacks.add(Ingredient.ofStacks(new ItemStack(variant.getItemForRecipe(entry.getKey(), getOutputBlockClass()), entry.getValue())));
+                for (int i = 0; i < entry.getValue(); i++)
+                    stacks.add(Ingredient.ofItem(variant.getItemForRecipe(entry.getKey(), getOutputBlockClass()).asItem()));
             }
 
             List<FurnitureInnerRecipe> recipes = new ArrayList<>();
@@ -93,12 +96,14 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
 
             if (variant instanceof WoodVariant woodVariant && woodVariant.hasStripped()) {
-                List<Ingredient> strippedIngredients = Lists.newArrayList();
+                List<Ingredient> strippedIngredients = new ArrayList<>();
                 for (Map.Entry<String, Integer> entry : childrenToCountMap.entrySet()) {
-                    strippedIngredients.add(Ingredient.ofStacks(new ItemStack(woodVariant.getItemForRecipe(entry.getKey(), getOutputBlockClass(), true), entry.getValue())));
-                }
-                if (getOutputBlockClass() == RawLogTableBlock.class) {
-                    strippedIngredients.set(0, Ingredient.ofItems((Block)woodVariant.getChild("stripped_log")));
+                    for (int i = 0; i < entry.getValue(); i++) {
+                        if (getOutputBlockClass() == RawLogTableBlock.class)
+                            strippedIngredients.add(Ingredient.ofItems((Block)woodVariant.getChild("stripped_log")));
+                        else
+                            strippedIngredients.add(Ingredient.ofItem(woodVariant.getItemForRecipe(entry.getKey(), getOutputBlockClass(), true).asItem()));
+                    }
                 }
 
                 Optional<Block> strippedOptional = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariant(variant, true);
@@ -166,19 +171,28 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public boolean fits(int width, int height) {
-        return true;
-    }
-
-    @Override
     public ItemStack getResult(RegistryWrapper.WrapperLookup registryManager) {
         PaladinFurnitureMod.GENERAL_LOGGER.warn("Something has tried to get the output of a dynamic furniture recipe without context");
         return ItemStack.EMPTY;
     }
 
     @Override
-    public RecipeSerializer<?> getSerializer() {
+    public RecipeSerializer<? extends Recipe<FurnitureRecipeInput>> getSerializer() {
         return RecipeTypes.DYNAMIC_FURNITURE_SERIALIZER;
+    }
+
+    @Override
+    public IngredientPlacement getIngredientPlacement() {
+        List<Ingredient> ingredientList = new ArrayList<>();
+        for (CraftableFurnitureRecipe recipe : getInnerRecipes()) {
+            ingredientList.addAll(recipe.getIngredients());
+        }
+        return IngredientPlacement.forMultipleSlots(ingredientList.stream().map(Optional::of).toList());
+    }
+
+    @Override
+    public RecipeBookCategory getRecipeBookCategory() {
+        return RecipeBookCategories.CRAFTING_MISC;
     }
 
     protected Class<? extends Block> getOutputBlockClass() {
@@ -217,6 +231,10 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         return List.of();
     }
 
+    @Override
+    public void write(RegistryByteBuf buf) {
+        Serializer.write(buf, this);
+    }
 
     @Override
     public String getName(RegistryWrapper.WrapperLookup registryManager) {
@@ -261,21 +279,22 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
         @Override
         public boolean matches(FurnitureRecipe.FurnitureRecipeInput inventory, World world) {
-            List<Ingredient> allIngredients = getIngredients();
-            BitSet hasIngredient = new BitSet(allIngredients.size());
-            for (int i = 0; i < allIngredients.size(); i++) {
-                Ingredient ingredient = allIngredients.get(i);
-                for (ItemStack stack : ingredient.getMatchingStacks()) {
-                    int countInInventory = inventory.playerInventory().count(stack.getItem());
-                    if (countInInventory >= stack.getCount()) {
-                        hasIngredient.set(i, true);
-                        break;
+            Map<Item, Integer> ingredientCounts = getItemCounts();
+            for (Map.Entry<Item, Integer> entry : ingredientCounts.entrySet()) {
+                Item item = entry.getKey();
+                Integer count = entry.getValue();
+
+                int itemCount = 0;
+                ItemStack defaultStack = item.getDefaultStack();
+                for (ItemStack stack1 : inventory.playerInventory().main) {
+                    if (defaultStack.isOf(stack1.getItem())) {
+                        itemCount += stack1.getCount();
                     }
                 }
+                if (itemCount < count)
+                    return false;
             }
-
-            // Compares the numbers of bits that are true to the size
-            return hasIngredient.cardinality() == allIngredients.size();
+            return true;
         }
 
         @Override
@@ -348,7 +367,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
     public static final class FurnitureIngredients {
         public static Codec<FurnitureIngredients> CODEC = RecordCodecBuilder.create(furnitureIngredientsInstance -> furnitureIngredientsInstance.group(
-                Ingredient.DISALLOW_EMPTY_CODEC.listOf().optionalFieldOf("vanillaIngredients", new ArrayList<>()).forGetter(ingredients -> ingredients.vanillaIngredients),
+                Ingredient.CODEC.listOf().optionalFieldOf("vanillaIngredients", new ArrayList<>()).forGetter(ingredients -> ingredients.vanillaIngredients),
                 Codecs.strictUnboundedMap(Codec.STRING, Codec.INT).fieldOf("variantChildren").forGetter(ingredients -> ingredients.variantChildren)
         ).apply(furnitureIngredientsInstance, FurnitureIngredients::new));
 

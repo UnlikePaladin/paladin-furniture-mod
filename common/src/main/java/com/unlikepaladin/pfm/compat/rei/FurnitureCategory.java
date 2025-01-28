@@ -52,7 +52,7 @@ public class FurnitureCategory implements DisplayCategory<FurnitureDisplay> {
         int recipeIndex = 0;
         for (EntryIngredient ingredient : display.getOutputEntries()) {
             output.entries(ingredient);
-            stackToSlotIndex.put(ingredient.get(0), recipeIndex);
+            stackToSlotIndex.put(ingredient.getFirst(), recipeIndex);
             recipeIndex++;
         }
 
@@ -77,6 +77,7 @@ public class FurnitureCategory implements DisplayCategory<FurnitureDisplay> {
                 }
             }));
         }
+
         widgets.addAll(slots);
         return widgets;
     }

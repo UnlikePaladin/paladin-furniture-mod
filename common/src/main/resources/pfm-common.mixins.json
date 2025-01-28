@@ -20,6 +20,7 @@
     "PFMBakedModelManagerMixin",
     "PFMItemRendererMixin",
     "PFMLanguageManagerAccessor",
+    "PFMMinecraftClientAcccessor",
     "PFMMixinClientPacketListener",
     "PFMReloadableResourceManagerImplMixin",
     "PFMRenderLayersMixin"
