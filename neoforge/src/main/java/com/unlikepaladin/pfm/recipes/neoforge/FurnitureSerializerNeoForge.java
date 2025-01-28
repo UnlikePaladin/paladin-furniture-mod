@@ -22,11 +22,6 @@ public class FurnitureSerializerNeoForge <J extends Recipe<I>, T extends RecipeS
     }
 
     @Override
-    public @Nullable J read(PacketByteBuf buf) {
-        return serializer.read(buf);
-    }
-
-    @Override
     public PacketCodec<RegistryByteBuf, J> packetCodec() {
         return serializer.packetCodec();
     }

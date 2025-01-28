@@ -21,16 +21,8 @@ public class FurnitureSerializerForge <J extends Recipe<I>, T extends RecipeSeri
     }
 
     @Override
-    public PacketCodec<RegistryByteBuf, FurnitureRecipe> packetCodec() {
+    public PacketCodec<RegistryByteBuf, J> packetCodec() {
         return serializer.packetCodec();
-    }
-
-    public @Nullable J read(RegistryByteBuf buf) {
-        return serializer.read(buf);
-    }
-
-    public void write(RegistryByteBuf buf, J recipe) {
-        serializer.write(buf, recipe);
     }
 }
 
