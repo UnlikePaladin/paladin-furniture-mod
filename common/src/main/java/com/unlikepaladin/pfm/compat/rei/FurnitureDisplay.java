@@ -72,22 +72,18 @@ public class FurnitureDisplay implements Display {
         for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes()) {
             Map<Item, Integer> containedItems = innerRecipe.getItemCounts();
 
-            List<ItemStack> finalList = new ArrayList<>();
+            List<EntryIngredient> finalList = new ArrayList<>();
             for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-                finalList.add(new ItemStack(entry.getKey(), entry.getValue()));
+                finalList.add(EntryIngredients.of(new ItemStack(entry.getKey(), entry.getValue())));
             }
-            finalList.sort(Comparator.comparing(ItemStack::toString));
+            finalList.sort(Comparator.comparing(entryStacks -> entryStacks.getFirst().getValue().toString()));
 
             if (finalList.size() != itemsPerInnerRecipe) {
                 while (finalList.size() != itemsPerInnerRecipe) {
-                    finalList.add(ItemStack.EMPTY);
+                    finalList.add(EntryIngredient.empty());
                 }
             }
-            List<EntryIngredient> entryIngredients = new ArrayList<>();
-            for (final ItemStack stack : finalList) {
-                entryIngredients.add(EntryIngredients.of(stack));
-            }
-            inputEntries.addAll(entryIngredients);
+            inputEntries.addAll(finalList);
         }
         input.addAll(inputEntries);
         output.addAll(recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).map(EntryIngredients::of).toList());
