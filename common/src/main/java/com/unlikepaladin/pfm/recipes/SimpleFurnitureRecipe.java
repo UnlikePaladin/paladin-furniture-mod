@@ -6,10 +6,12 @@ import com.mojang.datafixers.util.Either;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -19,8 +21,11 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.nbt.StringNbtReader;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.*;
-import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.registry.Registries;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
@@ -76,10 +81,10 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
 
 
     @Override
-    public ItemStack craft(PlayerInventory playerInventory, DynamicRegistryManager registryManager) {
-        if (this.output.getNbt() != null && this.output.getNbt().isEmpty()) {
+    public ItemStack craft(PlayerInventory playerInventory, RegistryWrapper.WrapperLookup registryManager) {
+        if (!this.output.getComponents().isEmpty() && output.contains(DataComponentTypes.BLOCK_ENTITY_DATA) && output.get(DataComponentTypes.BLOCK_ENTITY_DATA).isEmpty()) {
             ItemStack stack = this.output.copy();
-            stack.setNbt(null);
+            stack.remove(DataComponentTypes.BLOCK_ENTITY_DATA);
             return stack;
         }
         return this.output.copy();
@@ -96,7 +101,7 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
     }
 
     @Override
-    public ItemStack getResult(DynamicRegistryManager registryManager) {
+    public ItemStack getResult(RegistryWrapper.WrapperLookup registryManager) {
         return this.output;
     }
 
@@ -128,83 +133,53 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
     public static class Serializer
             implements RecipeSerializer<SimpleFurnitureRecipe> {
 
-        Codec<SimpleFurnitureRecipe> CODEC = RecordCodecBuilder.create(simpleFurnitureRecipeInstance ->
-                simpleFurnitureRecipeInstance.group(
-                        Codec.STRING.optionalFieldOf("group", "").forGetter(SimpleFurnitureRecipe::getGroup),
-                        FURNITURE_RESULT.fieldOf("result").forGetter(recipe -> recipe.output),
-                        Ingredient.DISALLOW_EMPTY_CODEC.listOf().fieldOf("ingredients").forGetter(SimpleFurnitureRecipe::getIngredients))
-                        .apply(simpleFurnitureRecipeInstance, SimpleFurnitureRecipe::new)
-        );
-
-        private static final Codec<Item> CRAFTING_RESULT_ITEM = Codecs.validate(Registries.ITEM.getCodec(), (item) -> {
-            return item == Items.AIR ? DataResult.error(() -> {
-                return "Crafting result must not be minecraft:air";
-            }) : DataResult.success(item);
-        });
-
-        private static final Codec<NbtCompound> NBT_CODEC = Codecs.xor(
-                Codec.STRING, NbtCompound.CODEC
-        ).flatXmap(either -> either.map(s -> {
-            try {
-                return DataResult.success(StringNbtReader.parse(s));
-            } catch (CommandSyntaxException e) {
-                return DataResult.error(e::getMessage);
-            }
-        }, DataResult::success), nbtCompound -> DataResult.success(Either.left(nbtCompound.asString())));
-
-
-        public static final Codec<NbtCompound> OUTPUT_TAGS = Codec.unboundedMap(Codec.STRING, NBT_CODEC).comapFlatMap(stringNbtCompoundMap -> {
-            NbtCompound compound = new NbtCompound();
-            stringNbtCompoundMap.forEach(compound::put);
-            return DataResult.success(compound);
-        }, nbtCompound -> {
-            Map<String, NbtCompound> map = new HashMap<>();
-            Set<String> keys = nbtCompound.getKeys();
-            keys.forEach(s -> {
-                NbtCompound compound = new NbtCompound();
-                if (nbtCompound.get(s) instanceof NbtCompound) {
-                    compound = nbtCompound.getCompound(s);
-                } else {
-                    compound.put(s, nbtCompound.get(s));
-                }
-                map.put(s, compound);
-            });
-            return map;
-        });
-
-        public static final Codec<ItemStack> FURNITURE_RESULT = RecordCodecBuilder.create((instance) -> {
-            return instance.group(CRAFTING_RESULT_ITEM.fieldOf("item").forGetter(ItemStack::getItem), Codecs.createStrictOptionalFieldCodec(Codecs.POSITIVE_INT, "count", 1).forGetter(ItemStack::getCount), Codecs.createStrictOptionalFieldCodec(OUTPUT_TAGS, "tag", new NbtCompound()).forGetter(ItemStack::getNbt)).apply(instance, (item, integer, nbtElement) -> {
-                ItemStack stack = new ItemStack(item, integer);
-                stack.setNbt(nbtElement);
-                return stack;
-            });
-        });
+        private static final MapCodec<SimpleFurnitureRecipe> CODEC = RecordCodecBuilder.mapCodec((instance) ->
+                instance.group(
+                                Codec.STRING.optionalFieldOf("group", "").forGetter(SimpleFurnitureRecipe::getGroup),
+                                ItemStack.VALIDATED_CODEC.fieldOf("result").forGetter(recipe -> recipe.output),
+                                Ingredient.DISALLOW_EMPTY_CODEC.listOf().fieldOf("ingredients").flatXmap((ingredients) -> {
+                                    Ingredient[] ingredients2 = ingredients.stream().filter((ingredient) -> {
+                                        return !ingredient.isEmpty();
+                                    }).toArray(Ingredient[]::new);
+                                    if (ingredients2.length == 0) {
+                                        return DataResult.error(() -> "No ingredients for furniture recipe");
+                                    } else {
+                                        return DataResult.success(DefaultedList.copyOf(Ingredient.EMPTY, ingredients2));
+                                    }
+                                }, DataResult::success).forGetter(SimpleFurnitureRecipe::getIngredients))
+                        .apply(instance, SimpleFurnitureRecipe::new));
 
         @Override
-        public Codec<SimpleFurnitureRecipe> codec() {
+        public MapCodec<SimpleFurnitureRecipe> codec() {
             return CODEC;
         }
 
+        public static final PacketCodec<RegistryByteBuf, SimpleFurnitureRecipe> PACKET_CODEC = PacketCodec.ofStatic(
+                SimpleFurnitureRecipe.Serializer::write, SimpleFurnitureRecipe.Serializer::read
+        );
         @Override
-        public SimpleFurnitureRecipe read(PacketByteBuf packetByteBuf) {
+        public PacketCodec<RegistryByteBuf, SimpleFurnitureRecipe> packetCodec() {
+            return PACKET_CODEC;
+        }
+
+        public static SimpleFurnitureRecipe read(RegistryByteBuf packetByteBuf) {
             String string = packetByteBuf.readString();
             int i = packetByteBuf.readVarInt();
             DefaultedList<Ingredient> defaultedList = DefaultedList.ofSize(i, Ingredient.EMPTY);
             for (int j = 0; j < defaultedList.size(); ++j) {
-                defaultedList.set(j, Ingredient.fromPacket(packetByteBuf));
+                defaultedList.set(j, Ingredient.PACKET_CODEC.decode(packetByteBuf));
             }
-            ItemStack itemStack = packetByteBuf.readItemStack();
+            ItemStack itemStack = ItemStack.PACKET_CODEC.decode(packetByteBuf);
             return new SimpleFurnitureRecipe(string, itemStack, defaultedList);
         }
 
-        @Override
-        public void write(PacketByteBuf packetByteBuf, SimpleFurnitureRecipe simpleFurnitureRecipe) {
+        public static void write(RegistryByteBuf packetByteBuf, SimpleFurnitureRecipe simpleFurnitureRecipe) {
             packetByteBuf.writeString(simpleFurnitureRecipe.group);
             packetByteBuf.writeVarInt(simpleFurnitureRecipe.input.size());
             for (Ingredient ingredient : simpleFurnitureRecipe.input) {
-                ingredient.write(packetByteBuf);
+                Ingredient.PACKET_CODEC.encode(packetByteBuf, ingredient);
             }
-            packetByteBuf.writeItemStack(simpleFurnitureRecipe.output);
+            ItemStack.PACKET_CODEC.encode(packetByteBuf, simpleFurnitureRecipe.output);
         }
     }
 }

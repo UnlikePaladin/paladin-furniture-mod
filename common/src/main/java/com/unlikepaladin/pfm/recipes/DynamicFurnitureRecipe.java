@@ -2,10 +2,7 @@ package com.unlikepaladin.pfm.recipes;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.JsonOps;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
@@ -13,22 +10,24 @@ import com.unlikepaladin.pfm.blocks.RawLogTableBlock;
 import com.unlikepaladin.pfm.data.materials.VariantBase;
 import com.unlikepaladin.pfm.data.materials.VariantHelper;
 import com.unlikepaladin.pfm.data.materials.WoodVariant;
-import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
+import com.unlikepaladin.pfm.items.PFMComponents;
 import com.unlikepaladin.pfm.registry.RecipeTypes;
 import net.minecraft.block.Block;
+import net.minecraft.component.*;
+import net.minecraft.component.ComponentMap;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
-import net.minecraft.util.JsonHelper;
 import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.world.World;
 
@@ -54,30 +53,28 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             VariantBase<?> variant = VariantHelper.getVariant(id);
             if (variant == null || furnitureInnerRecipes.containsKey(id)) continue;
             Optional<Block> optionalOutput;
-
-            NbtCompound outputCompound = furnitureOutput.nbt != null ? furnitureOutput.nbt.copy() : null;
-
-            if (outputCompound != null && outputCompound.contains("color")) {
-                optionalOutput = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariantAndColor(variant, DyeColor.byName(outputCompound.getString("color"), DyeColor.WHITE));
-                outputCompound.remove("color");
+            ComponentMap componentChanges = furnitureOutput.components != null ? furnitureOutput.components : ComponentMap.EMPTY;
+            ComponentMap.Builder builder = ComponentMap.builder();
+            if (!componentChanges.isEmpty() && componentChanges.contains(PFMComponents.COLOR_COMPONENT)) {
+                optionalOutput = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariantAndColor(variant, componentChanges.get(PFMComponents.COLOR_COMPONENT));
+                if (!optionalOutput.get().asItem().getComponents().contains(PFMComponents.COLOR_COMPONENT))
+                    builder.addAll(componentChanges.filtered(dataComponentType -> dataComponentType != PFMComponents.COLOR_COMPONENT));
+                else
+                    builder.addAll(componentChanges);
             } else {
                 optionalOutput = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass()).getEntryFromVariant(variant);
+                builder.addAll(componentChanges);
             }
             if (optionalOutput.isEmpty()) continue;
 
-            if (outputCompound != null && outputCompound.contains("variantInNbt") && outputCompound.getBoolean("variantInNbt")) {
-                NbtCompound compound;
-                 if (outputCompound.contains("BlockEntityTag", NbtElement.COMPOUND_TYPE))
-                     compound = outputCompound.getCompound("BlockEntityTag");
-                 else {
-                     compound = new NbtCompound();
-                     outputCompound.put("BlockEntityTag", compound);
-                }
-                compound.putString("variant", id.toString());
+            if (optionalOutput.get().asItem().getComponents().contains(PFMComponents.VARIANT_COMPONENT)) {
+                builder.add(PFMComponents.VARIANT_COMPONENT, variant.identifier);
             }
+
             ItemStack output = new ItemStack(optionalOutput.get().asItem(), furnitureOutput.getOutputCount());
-            if (outputCompound != null && !outputCompound.isEmpty())
-                output.setNbt(outputCompound.copy());
+            ComponentMap finalComponents = builder.build();
+            if (!finalComponents.isEmpty())
+                output.applyComponentsFrom(builder.build());
 
             Map<String, Integer> childrenToCountMap = ingredients.variantChildren;
 
@@ -105,8 +102,8 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
                 if (strippedOptional.isPresent()) {
 
                     ItemStack strippedOutput = new ItemStack(strippedOptional.get(), furnitureOutput.getOutputCount());
-                    if (outputCompound != null  && !outputCompound.isEmpty())
-                        output.setNbt(outputCompound.copy());
+                    if (!finalComponents.isEmpty())
+                        strippedOutput.applyComponentsFrom(finalComponents);
 
                     FurnitureInnerRecipe stripped = new FurnitureInnerRecipe(this, strippedOutput, strippedIngredients);
                     recipes.add(stripped);
@@ -131,7 +128,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public List<CraftableFurnitureRecipe> getAvailableOutputs(PlayerInventory inventory, DynamicRegistryManager registryManager) {
+    public List<CraftableFurnitureRecipe> getAvailableOutputs(PlayerInventory inventory, RegistryWrapper.WrapperLookup registryManager) {
         constructInnerRecipes();
         List<CraftableFurnitureRecipe> stacks = Lists.newArrayList();
         for (Identifier id : furnitureInnerRecipes.keySet()) {
@@ -159,7 +156,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public ItemStack craft(PlayerInventory inventory, DynamicRegistryManager registryManager) {
+    public ItemStack craft(PlayerInventory inventory, RegistryWrapper.WrapperLookup registryManager) {
         PaladinFurnitureMod.GENERAL_LOGGER.warn("Something has tried to craft a dynamic furniture recipe without context");
         return ItemStack.EMPTY;
     }
@@ -170,7 +167,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public ItemStack getResult(DynamicRegistryManager registryManager) {
+    public ItemStack getResult(RegistryWrapper.WrapperLookup registryManager) {
         PaladinFurnitureMod.GENERAL_LOGGER.warn("Something has tried to get the output of a dynamic furniture recipe without context");
         return ItemStack.EMPTY;
     }
@@ -181,11 +178,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     protected Class<? extends Block> getOutputBlockClass() {
-        try {
-            return (Class<? extends Block>) Class.forName("com.unlikepaladin.pfm.blocks."+furnitureOutput.getOutputClass());
-        } catch (ClassNotFoundException | ClassCastException e) {
-            throw new RuntimeException(e);
-        }
+        return FurnitureOutput.getOutputBlockClass(furnitureOutput.outputClass);
     }
 
     public List<Identifier> getSupportedVariants() {
@@ -193,7 +186,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public int getOutputCount(DynamicRegistryManager registryManager) {
+    public int getOutputCount(RegistryWrapper.WrapperLookup registryManager) {
         return furnitureOutput.getOutputCount();
     }
 
@@ -222,8 +215,16 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
 
     @Override
-    public String getName(DynamicRegistryManager registryManager) {
+    public String getName(RegistryWrapper.WrapperLookup registryManager) {
         return outputClass().replaceAll("(?<=[a-z])(?=[A-Z])", " ");
+    }
+
+    private FurnitureOutput getOutput() {
+        return this.furnitureOutput;
+    }
+
+    private FurnitureIngredients getInnerIngredients() {
+        return this.ingredients;
     }
 
     Map<ItemStack, FurnitureInnerRecipe> outputToInnerRecipe = new HashMap<>();
@@ -245,7 +246,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         }
 
         @Override
-        public ItemStack getResult(DynamicRegistryManager registryManager) {
+        public ItemStack getResult(RegistryWrapper.WrapperLookup registryManager) {
             return output;
         }
 
@@ -279,7 +280,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         }
 
         @Override
-        public ItemStack craft(PlayerInventory inventory, DynamicRegistryManager registryManager) {
+        public ItemStack craft(PlayerInventory inventory, RegistryWrapper.WrapperLookup registryManager) {
             return output.copy();
         }
 
@@ -291,47 +292,61 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
     public static class FurnitureOutput {
 
-        public static Codec<FurnitureOutput> CODEC = RecordCodecBuilder.create(furnitureOutputInstance -> furnitureOutputInstance.group(
+        public static MapCodec<FurnitureOutput> CODEC = RecordCodecBuilder.mapCodec(furnitureOutputInstance -> furnitureOutputInstance.group(
                 Codec.STRING.fieldOf("outputClass").forGetter(out -> out.outputClass),
                 Codec.INT.optionalFieldOf("count", 1).forGetter(out -> out.outputCount),
-                NbtCompound.CODEC.optionalFieldOf("tag", new NbtCompound()).forGetter(out -> out.nbt)
+                ComponentMap.CODEC.optionalFieldOf("components", ComponentMap.EMPTY).forGetter(out -> out.components)
         ).apply(furnitureOutputInstance, FurnitureOutput::new));
 
         private final String outputClass;
         private final int outputCount;
-        private final NbtCompound nbt;
+        private final ComponentMap components;
 
-        public FurnitureOutput(String outputClass, int outputCount, NbtCompound nbt) {
+        public FurnitureOutput(String outputClass, int outputCount, ComponentMap components) {
             this.outputClass = outputClass;
             this.outputCount = outputCount;
-            this.nbt = nbt;
+            this.components = components;
         }
 
         public int getOutputCount() {
             return outputCount;
         }
 
-        public NbtCompound getNbt() {
-            return nbt;
+        public ComponentMap getComponents() {
+            return components;
         }
 
         public String getOutputClass() {
             return outputClass;
         }
 
-        public static FurnitureOutput read(PacketByteBuf buf) {
+        public static FurnitureOutput read(RegistryByteBuf buf) {
             String outputClass = buf.readString();
             int count = buf.readInt();
-            NbtCompound nbt = buf.readNbt();
-            return new FurnitureOutput(outputClass, count, nbt);
+            ComponentMap.Builder componentChanges = ComponentMap.builder();
+            Item item = PaladinFurnitureMod.furnitureEntryMap.get(getOutputBlockClass(outputClass)).getVariantToBlockMap().entrySet().stream().findFirst().get().getValue().asItem();
+            componentChanges.addAll(ComponentMapImpl.create(item.getComponents(), ComponentChanges.PACKET_CODEC.decode(buf)));
+
+            return new FurnitureOutput(outputClass, count, componentChanges.build());
         }
 
-        public static void write(PacketByteBuf buf, FurnitureOutput output) {
+        public static void write(RegistryByteBuf buf, FurnitureOutput output) {
             buf.writeString(output.outputClass);
             buf.writeInt(output.outputCount);
-            buf.writeNbt(output.nbt);
+            if (output.components != ComponentMap.EMPTY) {
+                ComponentChanges.PACKET_CODEC.encode(buf, ((ComponentMapImpl)output.components).getChanges());
+            } else {
+                ComponentChanges.PACKET_CODEC.encode(buf, ComponentChanges.EMPTY);
+            }
         }
 
+        public static Class<? extends Block> getOutputBlockClass(String outputClass) {
+            try {
+                return (Class<? extends Block>) Class.forName("com.unlikepaladin.pfm.blocks."+outputClass);
+            } catch (ClassNotFoundException | ClassCastException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
     public static final class FurnitureIngredients {
@@ -348,34 +363,42 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             this.variantChildren = variantChildren;
         }
 
-        public static FurnitureIngredients read(PacketByteBuf buf) {
-            List<Ingredient> vanillaIngredients = buf.readCollection(Lists::newArrayListWithCapacity, Ingredient::fromPacket);
+        public static FurnitureIngredients read(RegistryByteBuf buf) {
+            List<Ingredient> vanillaIngredients = buf.readCollection(Lists::newArrayListWithCapacity, buf1 -> Ingredient.PACKET_CODEC.decode(buf));
             Map<String, Integer> variantChildren = buf.readMap((PacketByteBuf::readString), (PacketByteBuf::readInt));
             return new FurnitureIngredients(vanillaIngredients, variantChildren);
         }
 
-        public static void write(PacketByteBuf buf, FurnitureIngredients ingredients) {
-            buf.writeCollection(ingredients.vanillaIngredients, ((packetByteBuf, ingredient) -> ingredient.write(buf)));
+        public static void write(RegistryByteBuf buf, FurnitureIngredients ingredients) {
+            buf.writeCollection(ingredients.vanillaIngredients, ((packetByteBuf, ingredient) -> Ingredient.PACKET_CODEC.encode((RegistryByteBuf) packetByteBuf, ingredient)));
             buf.writeMap(ingredients.variantChildren, PacketByteBuf::writeString, PacketByteBuf::writeInt);
         }
-
     }
 
     public static class Serializer implements RecipeSerializer<DynamicFurnitureRecipe> {
-        Codec<DynamicFurnitureRecipe> CODEC = RecordCodecBuilder.create((instance) -> instance.group(
+        MapCodec<DynamicFurnitureRecipe> CODEC = RecordCodecBuilder.mapCodec((instance) -> instance.group(
                 Codec.STRING.optionalFieldOf("group", "").forGetter(DynamicFurnitureRecipe::getGroup),
-                FurnitureOutput.CODEC.fieldOf("result").forGetter(recipe -> recipe.furnitureOutput),
+                FurnitureOutput.CODEC.fieldOf("result").forGetter(DynamicFurnitureRecipe::getOutput),
                 Identifier.CODEC.listOf().fieldOf("supportedVariants").forGetter(DynamicFurnitureRecipe::getSupportedVariants),
-                FurnitureIngredients.CODEC.fieldOf("ingredients").forGetter(recipe -> recipe.ingredients)
+                FurnitureIngredients.CODEC.fieldOf("ingredients").forGetter(DynamicFurnitureRecipe::getInnerIngredients)
         ).apply(instance, DynamicFurnitureRecipe::new));
 
+
+        public static final PacketCodec<RegistryByteBuf, DynamicFurnitureRecipe> PACKET_CODEC = PacketCodec.ofStatic(
+                Serializer::write, Serializer::read
+        );
+
         @Override
-        public Codec<DynamicFurnitureRecipe> codec() {
+        public MapCodec<DynamicFurnitureRecipe> codec() {
             return CODEC;
         }
 
         @Override
-        public DynamicFurnitureRecipe read(PacketByteBuf buf) {
+        public PacketCodec<RegistryByteBuf, DynamicFurnitureRecipe> packetCodec() {
+            return PACKET_CODEC;
+        }
+
+        public static DynamicFurnitureRecipe read(RegistryByteBuf buf) {
             String group = buf.readString();
             List<Identifier> supportedVariants = buf.readList(PacketByteBuf::readIdentifier);
             FurnitureIngredients ingredients = FurnitureIngredients.read(buf);
@@ -383,8 +406,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
             return new DynamicFurnitureRecipe(group, output, supportedVariants, ingredients);
         }
 
-        @Override
-        public void write(PacketByteBuf buf, DynamicFurnitureRecipe recipe) {
+        public static void write(RegistryByteBuf buf, DynamicFurnitureRecipe recipe) {
             buf.writeString(recipe.group);
             buf.writeCollection(recipe.supportedVariants, PacketByteBuf::writeIdentifier);
             FurnitureIngredients.write(buf, recipe.ingredients);

@@ -1,8 +1,10 @@
 package com.unlikepaladin.pfm.items;
 
+import com.mojang.serialization.Codec;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.component.DataComponentType;
+import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Identifier;
 

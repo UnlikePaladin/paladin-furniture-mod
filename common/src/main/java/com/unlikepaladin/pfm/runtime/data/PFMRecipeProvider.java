@@ -27,6 +27,7 @@ import net.minecraft.advancement.criterion.InventoryChangedCriterion;
 import net.minecraft.block.BedBlock;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.component.ComponentMap;
 import net.minecraft.data.server.recipe.CraftingRecipeJsonBuilder;
 import net.minecraft.data.server.recipe.CraftingRecipeJsonBuilder;
 import net.minecraft.data.server.recipe.RecipeExporter;
@@ -104,7 +105,7 @@ public class PFMRecipeProvider extends PFMProvider {
                 return Advancement.Builder.createUntelemetered().parent(CraftingRecipeJsonBuilder.ROOT);
             }
         });
-        saveRecipeAdvancement(Util.getResult(Advancement.CODEC.encodeStart(JsonOps.INSTANCE, Advancement.Builder.create().criterion("has_planks", conditionsFromTag(ItemTags.PLANKS)).build(new Identifier("root")).value()), IllegalAccessError::new), path.resolve("data/pfm/advancements/recipes/root.json"));
+        saveRecipeAdvancement(Advancement.CODEC.encodeStart(JsonOps.INSTANCE, Advancement.Builder.create().criterion("has_planks", conditionsFromTag(ItemTags.PLANKS)).build(new Identifier("root")).value()).getOrThrow(IllegalStateException::new), path.resolve("data/pfm/advancements/recipes/root.json"));
         endProviderRun();
     }
 
@@ -362,14 +363,10 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     public static void offerLampRecipes(RecipeExporter exporter) {
-        for (WoodVariant variant : WoodVariantRegistry.getVariants()) {
-            for (DyeColor color : DyeColor.values()) {
-                ItemStack stack = new ItemStack(PaladinFurnitureModBlocksItems.BASIC_LAMP);
-                stack.set(PFMComponents.VARIANT_COMPONENT, variant.identifier);
-                stack.set(PFMComponents.COLOR_COMPONENT, color);
-                FurnitureRecipeJsonFactory.create(stack).input(ModelHelper.getWoolColor(color.asString()), 3).input((Block)variant.getChild("stripped_log"), 2).offerTo(exporter, new Identifier("pfm", String.format("basic_%s_%s_lamp", color.asString(), variant.asString())));
-                DynamicFurnitureRecipeJsonFactory.create(BasicLampBlock.class, 1,  WoodVariantRegistry.getVariants().stream().map(woodVariant -> woodVariant.identifier).toList(), tag).vanillaInput(ModelHelper.getWoolColor(color.asString()), 3).vanillaInput(Items.TORCH).vanillaInput(Items.REDSTONE).childInput("stripped_log", 2).offerTo(exporter, new Identifier("pfm", String.format("basic_%s_lamp", color.asString())));
-            }
+        for (DyeColor color : DyeColor.values()) {
+            ComponentMap.Builder builder = ComponentMap.builder();
+            builder.add(PFMComponents.COLOR_COMPONENT, color);
+            DynamicFurnitureRecipeJsonFactory.create(BasicLampBlock.class, 1,  WoodVariantRegistry.getVariants().stream().map(woodVariant -> woodVariant.identifier).toList(), builder.build()).vanillaInput(ModelHelper.getWoolColor(color.asString()), 3).vanillaInput(Items.TORCH).vanillaInput(Items.REDSTONE).childInput("stripped_log", 2).offerTo(exporter, new Identifier("pfm", String.format("basic_%s_lamp", color.asString())));
         }
     }
 
@@ -493,16 +490,16 @@ public class PFMRecipeProvider extends PFMProvider {
 
     public static void offerSimpleBedRecipe(Class<? extends Block> output, String legMaterial, List<Identifier> variants, Ingredient baseBed, RecipeExporter exporter) {
         DyeColor color = ((BedBlock)((BlockItem)Arrays.stream(baseBed.getMatchingStacks()).findFirst().get().getItem()).getBlock()).getColor();
-        NbtCompound tag = new NbtCompound();
-        tag.putString("color", color.asString());
-        DynamicFurnitureRecipeJsonFactory.create(output, 1, variants, tag).group("bedroom").childInput(legMaterial, 5).vanillaInput(baseBed, 1).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US) + "_"+ color.asString()));
+        ComponentMap.Builder builder = ComponentMap.builder();
+        builder.add(PFMComponents.COLOR_COMPONENT, color);
+        DynamicFurnitureRecipeJsonFactory.create(output, 1, variants, builder.build()).group("bedroom").childInput(legMaterial, 5).vanillaInput(baseBed, 1).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US) + "_"+ color.asString()));
     }
 
     public static void offerClassicBedRecipe(Class<? extends Block> output, String legMaterial, List<Identifier> variants, Ingredient baseBed, String fence, RecipeExporter exporter) {
         DyeColor color = ((BedBlock)((BlockItem)Arrays.stream(baseBed.getMatchingStacks()).findFirst().get().getItem()).getBlock()).getColor();
-        NbtCompound tag = new NbtCompound();
-        tag.putString("color", color.asString());
-        DynamicFurnitureRecipeJsonFactory.create(output, 1, variants, tag).group("bedroom").childInput(legMaterial, 3).childInput(fence, 2).vanillaInput(baseBed, 1).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US) + "_"+ ((BedBlock)((BlockItem)Arrays.stream(baseBed.getMatchingStacks()).findFirst().get().getItem()).getBlock()).getColor()));
+        ComponentMap.Builder builder = ComponentMap.builder();
+        builder.add(PFMComponents.COLOR_COMPONENT, color);
+        DynamicFurnitureRecipeJsonFactory.create(output, 1, variants, builder.build()).group("bedroom").childInput(legMaterial, 3).childInput(fence, 2).vanillaInput(baseBed, 1).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US) + "_"+ ((BedBlock)((BlockItem)Arrays.stream(baseBed.getMatchingStacks()).findFirst().get().getItem()).getBlock()).getColor()));
     }
 
     public static void offerSimpleBunkLadderRecipe(Class<? extends Block> output, String base, List<Identifier> variants, RecipeExporter exporter) {

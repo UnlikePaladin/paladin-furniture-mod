@@ -4,6 +4,7 @@ import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.compat.jei.FreezingCategory;
 import com.unlikepaladin.pfm.compat.jei.FurnitureCategory;
 import com.unlikepaladin.pfm.compat.jei.PaladinFurnitureModJEI;
+import com.unlikepaladin.pfm.items.PFMComponents;
 import com.unlikepaladin.pfm.recipes.FreezingRecipe;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
@@ -63,7 +64,8 @@ public class PaladinFurnitureModJEIPlugin implements IModPlugin {
 
     @Override
     public void registerItemSubtypes(ISubtypeRegistration registration) {
-        registration.useNbtForSubtypes(PaladinFurnitureModBlocksItems.BASIC_LAMP_ITEM);
+        registration.registerSubtypeInterpreter(PaladinFurnitureModBlocksItems.BASIC_LAMP_ITEM, (ingredient, context)
+                -> ingredient.get(PFMComponents.COLOR_COMPONENT).asString() + "_"+ingredient.get(PFMComponents.VARIANT_COMPONENT).toString());
     }
 
     @Override

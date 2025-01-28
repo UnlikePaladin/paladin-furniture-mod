@@ -39,10 +39,8 @@ public class LampItem extends BlockItem {
     @Override
     public ItemStack getDefaultStack() {
         ItemStack stack = new ItemStack(this);
-        NbtCompound tag = new NbtCompound();
-        tag.putString("color", DyeColor.WHITE.asString());
-        tag.putString("variant", WoodVariantRegistry.OAK.asString());
-        stack.setSubNbt("BlockEntityTag", tag);
+        stack.set(PFMComponents.COLOR_COMPONENT, DyeColor.WHITE);
+        stack.set(PFMComponents.VARIANT_COMPONENT, WoodVariantRegistry.OAK.identifier);
         return stack;
     }
 

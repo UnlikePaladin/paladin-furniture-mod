@@ -1,14 +1,7 @@
 package com.unlikepaladin.pfm.runtime.data;
 
 
-import com.google.common.collect.Lists;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.mojang.serialization.JsonOps;
-import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
 import com.unlikepaladin.pfm.recipes.SimpleFurnitureRecipe;
-import com.unlikepaladin.pfm.registry.RecipeTypes;
 import net.minecraft.advancement.*;
 import net.minecraft.advancement.criterion.RecipeUnlockedCriterion;
 import net.minecraft.component.DataComponentTypes;
@@ -19,11 +12,7 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemConvertible;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtOps;
 import net.minecraft.recipe.Ingredient;
-import net.minecraft.recipe.RecipeSerializer;
-import net.minecraft.registry.Registries;
 import net.minecraft.registry.tag.TagKey;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.collection.DefaultedList;
@@ -31,9 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class SimpleFurnitureRecipeJsonFactory implements CraftingRecipeJsonBuilder {
     private final ItemStack stack;
@@ -43,23 +30,16 @@ public class SimpleFurnitureRecipeJsonFactory implements CraftingRecipeJsonBuild
     @Nullable
     private String group;
 
-    public FurnitureRecipeJsonFactory(ItemConvertible output, int outputCount) {
-        this.stack = output.asItem().getDefaultStack().copyWithCount(outputCount);
-    }
-
     public SimpleFurnitureRecipeJsonFactory(ItemConvertible output, int outputCount) {
-        this.output = output.asItem();
-        this.outputCount = outputCount;
-        this.nbtElement = new NbtCompound();
+        this.stack = new ItemStack(output, outputCount);
     }
 
     public SimpleFurnitureRecipeJsonFactory(ItemConvertible output, int outputCount, @NotNull NbtCompound nbtElement) {
-        this.output = output.asItem();
-        this.outputCount = outputCount;
-        this.nbtElement = nbtElement;
+        this.stack = new ItemStack(output, outputCount);
+        this.stack.set(DataComponentTypes.BLOCK_ENTITY_DATA, NbtComponent.of(nbtElement));
     }
 
-    public FurnitureRecipeJsonFactory(ItemStack stack) {
+    public SimpleFurnitureRecipeJsonFactory(ItemStack stack) {
         this.stack = stack;
     }
 
@@ -74,16 +54,13 @@ public class SimpleFurnitureRecipeJsonFactory implements CraftingRecipeJsonBuild
     public static SimpleFurnitureRecipeJsonFactory create(ItemConvertible output) {
         return new SimpleFurnitureRecipeJsonFactory(output, 1);
     }
+
     public static SimpleFurnitureRecipeJsonFactory create(ItemConvertible output, int count) {
         return new SimpleFurnitureRecipeJsonFactory(output, count);
     }
 
-    public static FurnitureRecipeJsonFactory create(ItemStack stack) {
-        return new FurnitureRecipeJsonFactory(stack);
-    }
-
-    public static FurnitureRecipeJsonFactory create(ItemConvertible output) {
-        return new FurnitureRecipeJsonFactory(output, 1);
+    public static SimpleFurnitureRecipeJsonFactory create(ItemStack stack) {
+        return new SimpleFurnitureRecipeJsonFactory(stack);
     }
 
     public SimpleFurnitureRecipeJsonFactory input(TagKey<Item> tag) {

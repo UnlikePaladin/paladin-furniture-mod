@@ -95,7 +95,7 @@ public class FurnitureCategory implements IRecipeCategory<FurnitureRecipe> {
             ItemStack focusedStack = focused.get().getTypedValue().getItemStack().get();
             if (!focusToOutput.containsKey(focusedStack)) {
                 for (ItemStack stack : outputs) {
-                    if (ItemStack.canCombine(stack, focusedStack)) {
+                    if (ItemStack.areItemsAndComponentsEqual(stack, focusedStack)) {
                         focusToOutput.put(focusedStack, stack);
                         break;
                     }

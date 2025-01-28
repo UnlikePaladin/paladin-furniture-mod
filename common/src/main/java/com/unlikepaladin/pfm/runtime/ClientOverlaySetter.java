@@ -5,6 +5,7 @@ import com.unlikepaladin.pfm.client.screens.overlay.PFMGeneratingOverlay;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Util;
+import org.joml.Matrix4fStack;
 
 public class ClientOverlaySetter {
     public static void setOverlayToPFMOverlay(PFMResourceProgress resourceProgress) {
@@ -16,20 +17,20 @@ public class ClientOverlaySetter {
     public static void updateScreen() {
         MinecraftClient client = MinecraftClient.getInstance();
 
-        MatrixStack matrixStack = RenderSystem.getModelViewStack();
+        Matrix4fStack matrixStack = RenderSystem.getModelViewStack();
 
-        matrixStack.push();
+        matrixStack.pushMatrix();
         RenderSystem.applyModelViewMatrix();
         client.getFramebuffer().beginWrite(true);
         long i = Util.getMeasuringTimeNano();
         client.gameRenderer.render(1, i, false);
         client.getFramebuffer().endWrite();
-        matrixStack.pop();
+        matrixStack.popMatrix();
 
-        matrixStack.push();
+        matrixStack.pushMatrix();
         RenderSystem.applyModelViewMatrix();
         client.getFramebuffer().draw(client.getWindow().getFramebufferWidth(), client.getWindow().getFramebufferHeight());
-        matrixStack.pop();
+        matrixStack.popMatrix();
 
         RenderSystem.applyModelViewMatrix();
         client.getWindow().swapBuffers();

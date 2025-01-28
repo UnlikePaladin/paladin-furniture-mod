@@ -28,7 +28,7 @@ public class FurnitureRecipeProcessor implements IComponentProcessor {
         RecipeManager manager = level.getRecipeManager();
         Recipe<?> recipe = manager.get(new Identifier(recipeId)).map(RecipeEntry::value).orElse(null);
         this.recipe = recipe instanceof FurnitureRecipe ? (FurnitureRecipe) recipe : null;
-        this.variant = variables.has("variant") ? Identifier.tryParse(variables.get("variant").asString()) : null;
+        this.variant = variables.has("variant") ? Identifier.tryParse(variables.get("variant", level.getRegistryManager()).asString()) : null;
     }
 
     @Override
@@ -53,14 +53,14 @@ public class FurnitureRecipeProcessor implements IComponentProcessor {
                     ItemStack[] stacks = ingredient.getMatchingStacks();
                     ingredientsArr[i] = stacks.length == 0 ? ItemStack.EMPTY : stacks[0];
                 }
-                return IVariable.from(ingredientsArr);
+                return IVariable.from(ingredientsArr, level.getRegistryManager());
             } else if (key.equals("resultitem")) {
                 ItemStack[] resultsArr = new ItemStack[innerRecipeList.size()];
                 for (int i = 0; i < innerRecipeList.size(); i++) {
                     FurnitureRecipe.CraftableFurnitureRecipe innerRecipe = innerRecipeList.get(i);
                     resultsArr[i] = innerRecipe.getResult(level.getRegistryManager());
                 }
-                return IVariable.from(resultsArr);
+                return IVariable.from(resultsArr, level.getRegistryManager());
             } else if (key.equals("icon")) {
                 ItemStack icon = recipe.createIcon();
                 return IVariable.from(icon, level.getRegistryManager());
