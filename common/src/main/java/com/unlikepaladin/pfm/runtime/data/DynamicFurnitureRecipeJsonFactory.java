@@ -164,12 +164,12 @@ public class DynamicFurnitureRecipeJsonFactory {
 
 
     public void offerTo(RecipeExporter exporter) {
-        this.offerTo(exporter, new Identifier(PaladinFurnitureMod.MOD_ID, this.getOutputClass().toLowerCase(Locale.US)));
+        this.offerTo(exporter, Identifier.of(PaladinFurnitureMod.MOD_ID, this.getOutputClass().toLowerCase(Locale.US)));
     }
 
     public void offerTo(RecipeExporter exporter, String recipePath) {
-        Identifier identifier2 = new Identifier(recipePath);
-        Identifier identifier = new Identifier(PaladinFurnitureMod.MOD_ID, this.getOutputClass().toLowerCase(Locale.US));
+        Identifier identifier2 = Identifier.of(recipePath);
+        Identifier identifier = Identifier.of(PaladinFurnitureMod.MOD_ID, this.getOutputClass().toLowerCase(Locale.US));
         if (identifier2.equals(identifier)) {
             throw new IllegalStateException("Recipe " + recipePath + " should remove its 'save' argument as it is equal to default one");
         }

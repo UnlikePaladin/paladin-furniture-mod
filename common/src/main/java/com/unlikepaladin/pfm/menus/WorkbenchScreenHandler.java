@@ -96,7 +96,7 @@ public class WorkbenchScreenHandler extends ScreenHandler {
             FurnitureRecipe.CraftableFurnitureRecipe simpleFurnitureRecipe = this.sortedRecipes.get(this.selectedRecipe.get());
             FurnitureRecipe.FurnitureRecipeInput furnitureRecipeInput = new FurnitureRecipe.FurnitureRecipeInput(playerInventory);
             if (simpleFurnitureRecipe.matches(furnitureRecipeInput, playerInventory.player.getWorld())) {
-               simpleFurnitureRecipe.craftAndRemoveItems(playerInventory, playerInventory.player.getWorld().getRegistryManager());
+               simpleFurnitureRecipe.craftAndRemoveItems(furnitureRecipeInput, playerInventory.player.getWorld().getRegistryManager());
                 return true;
             }
         }

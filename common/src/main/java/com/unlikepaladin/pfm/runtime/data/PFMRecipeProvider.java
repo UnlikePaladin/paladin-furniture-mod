@@ -105,7 +105,7 @@ public class PFMRecipeProvider extends PFMProvider {
                 return Advancement.Builder.createUntelemetered().parent(CraftingRecipeJsonBuilder.ROOT);
             }
         });
-        saveRecipeAdvancement(Advancement.CODEC.encodeStart(JsonOps.INSTANCE, Advancement.Builder.create().criterion("has_planks", conditionsFromTag(ItemTags.PLANKS)).build(new Identifier("root")).value()).getOrThrow(IllegalStateException::new), path.resolve("data/pfm/advancements/recipes/root.json"));
+        saveRecipeAdvancement(Advancement.CODEC.encodeStart(JsonOps.INSTANCE, Advancement.Builder.create().criterion("has_planks", conditionsFromTag(ItemTags.PLANKS)).build(Identifier.of("root")).value()).getOrThrow(IllegalStateException::new), path.resolve("data/pfm/advancements/recipes/root.json"));
         endProviderRun();
     }
 
@@ -407,7 +407,7 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     public static void offerDinnerChairRecipe(Class<? extends Block> output, String legMaterial, String baseMaterial, List<Identifier> variants, RecipeExporter exporter) {
-        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("chairs").childInput(legMaterial, 3).childInput(baseMaterial, 3).offerTo(exporter, new Identifier("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
+        DynamicFurnitureRecipeJsonFactory.create(output, 4, variants).group("chairs").childInput(legMaterial, 3).childInput(baseMaterial, 3).offerTo(exporter, Identifier.of("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US)));
     }
 
     public static void offerClassicChairDyedRecipe(ItemConvertible output, Ingredient legMaterial, Ingredient baseMaterial, RecipeExporter exporter) {

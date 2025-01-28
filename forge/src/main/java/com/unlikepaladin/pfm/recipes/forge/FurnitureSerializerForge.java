@@ -7,9 +7,10 @@ import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeSerializer;
+import net.minecraft.recipe.input.RecipeInput;
 import org.jetbrains.annotations.Nullable;
 
-public class FurnitureSerializerForge <J extends Recipe<I>, T extends RecipeSerializer<J>, I extends Inventory> implements RecipeSerializer<J> {
+public class FurnitureSerializerForge <J extends Recipe<I>, T extends RecipeSerializer<J>, I extends RecipeInput> implements RecipeSerializer<J> {
     public FurnitureSerializerForge(T recipeSerializer) {
         this.serializer = recipeSerializer;
     }

@@ -53,10 +53,10 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
     }
 
     @Override
-    public boolean matches(PlayerInventory playerInventory, World world) {
+    public boolean matches(FurnitureRecipe.FurnitureRecipeInput input, World world) {
         List<Ingredient> ingredients = this.getIngredients();
         BitSet hasIngredients = new BitSet(ingredients.size());
-
+        PlayerInventory playerInventory = input.playerInventory();
         for (int i = 0; i < ingredients.size(); i++) {
             Ingredient ingredient = ingredients.get(i);
             for (ItemStack stack : ingredient.getMatchingStacks()) {
@@ -81,7 +81,7 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
 
 
     @Override
-    public ItemStack craft(PlayerInventory playerInventory, RegistryWrapper.WrapperLookup registryManager) {
+    public ItemStack craft(FurnitureRecipe.FurnitureRecipeInput playerInventory, RegistryWrapper.WrapperLookup registryManager) {
         if (!this.output.getComponents().isEmpty() && output.contains(DataComponentTypes.BLOCK_ENTITY_DATA) && output.get(DataComponentTypes.BLOCK_ENTITY_DATA).isEmpty()) {
             ItemStack stack = this.output.copy();
             stack.remove(DataComponentTypes.BLOCK_ENTITY_DATA);

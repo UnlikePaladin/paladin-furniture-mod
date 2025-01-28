@@ -40,9 +40,9 @@ public class StoneVariantRegistry extends VariantRegistryBase<StoneVariant> {
         if (blockId.getNamespace().equals("tfc")) {
             if (path.contains("rock/polished/")) {
                 Optional<Block> cobble = Registries.BLOCK.getOrEmpty(
-                        new Identifier(blockId.getNamespace(), path.replace("polished", "raw")));
+                        Identifier.of(blockId.getNamespace(), path.replace("polished", "raw")));
                 if (cobble.isPresent()) {
-                    Identifier id = new Identifier(blockId.getNamespace(), path.replace("rock/polished/", ""));
+                    Identifier id = Identifier.of(blockId.getNamespace(), path.replace("rock/polished/", ""));
                     return Optional.of(new StoneVariant(id, baseBlock, cobble.get()));
                 }
             }

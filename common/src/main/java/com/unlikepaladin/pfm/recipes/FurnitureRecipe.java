@@ -10,6 +10,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.Recipe;
 import net.minecraft.recipe.RecipeType;
+import net.minecraft.recipe.input.RecipeInput;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.RegistryWrapper.WrapperLookup;
 import net.minecraft.util.Identifier;
@@ -19,7 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collections;
 import java.util.List;
 
-public interface FurnitureRecipe extends Recipe<PlayerInventory> {
+public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeInput> {
     @Override
     default RecipeType<?> getType() {
         return RecipeTypes.FURNITURE_RECIPE;
@@ -29,7 +30,7 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
 
     String outputClass();
 
-    default List<CraftableFurnitureRecipe> getAvailableOutputs(PlayerInventory inventory, RegistryWrapper.WrapperLookup registryManager) {
+    default List<CraftableFurnitureRecipe> getAvailableOutputs(FurnitureRecipe.FurnitureRecipeInput inventory, RegistryWrapper.WrapperLookup registryManager) {
         return getInnerRecipes();
     }
 
@@ -65,8 +66,8 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
     interface CraftableFurnitureRecipe extends Comparable<CraftableFurnitureRecipe> {
         List<Ingredient> getIngredients();
         ItemStack getResult(RegistryWrapper.WrapperLookup registryManager);
-        ItemStack craft(PlayerInventory inventory, RegistryWrapper.WrapperLookup registryManager);
-        boolean matches(PlayerInventory playerInventory, World world);
+        ItemStack craft(FurnitureRecipe.FurnitureRecipeInput inventory, RegistryWrapper.WrapperLookup registryManager);
+        boolean matches(FurnitureRecipe.FurnitureRecipeInput playerInventory, World world);
         FurnitureRecipe parent();
         ItemStack getRecipeOuput();
 
@@ -75,9 +76,10 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
             return getRecipeOuput().toString().compareTo(o.getRecipeOuput().toString());
         }
 
-        default ItemStack craftAndRemoveItems(PlayerInventory playerInventory, RegistryWrapper.WrapperLookup registryManager) {
+        default ItemStack craftAndRemoveItems(FurnitureRecipe.FurnitureRecipeInput input, RegistryWrapper.WrapperLookup registryManager) {
             ItemStack output = getResult(registryManager).copy();
             List<Ingredient> ingredients = getIngredients();
+            PlayerInventory playerInventory = input.playerInventory();
             for (Ingredient ingredient : ingredients) {
                 for (ItemStack stack : ingredient.getMatchingStacks()) {
                     int indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, stack);
@@ -117,6 +119,23 @@ public interface FurnitureRecipe extends Recipe<PlayerInventory> {
                 }
             }
             return output;
+        }
+    }
+    public static record FurnitureRecipeInput(PlayerInventory playerInventory) implements RecipeInput {
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return playerInventory.getStack(slot);
+        }
+
+        @Override
+        public int getSize() {
+            return playerInventory.size();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return playerInventory.isEmpty();
         }
     }
 }

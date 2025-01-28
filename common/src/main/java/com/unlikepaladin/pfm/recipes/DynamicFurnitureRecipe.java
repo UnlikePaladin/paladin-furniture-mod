@@ -117,7 +117,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public boolean matches(PlayerInventory inventory, World world) {
+    public boolean matches(FurnitureRecipe.FurnitureRecipeInput inventory, World world) {
         constructInnerRecipes();
 
         for (Identifier id : furnitureInnerRecipes.keySet()) {
@@ -131,13 +131,14 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public List<CraftableFurnitureRecipe> getAvailableOutputs(PlayerInventory inventory, RegistryWrapper.WrapperLookup registryManager) {
+    public List<CraftableFurnitureRecipe> getAvailableOutputs(FurnitureRecipe.FurnitureRecipeInput input, RegistryWrapper.WrapperLookup registryManager) {
         constructInnerRecipes();
+        PlayerInventory inventory = input.playerInventory();
         List<CraftableFurnitureRecipe> stacks = Lists.newArrayList();
         for (Identifier id : furnitureInnerRecipes.keySet()) {
             List<FurnitureInnerRecipe> recipes = furnitureInnerRecipes.get(id);
             for (FurnitureInnerRecipe recipe : recipes) {
-                if (recipe.matches(inventory, inventory.player.getWorld()))
+                if (recipe.matches(input, inventory.player.getWorld()))
                     stacks.add(recipe);
             }
         }
@@ -159,7 +160,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public ItemStack craft(PlayerInventory inventory, RegistryWrapper.WrapperLookup registryManager) {
+    public ItemStack craft(FurnitureRecipe.FurnitureRecipeInput inventory, RegistryWrapper.WrapperLookup registryManager) {
         PaladinFurnitureMod.GENERAL_LOGGER.warn("Something has tried to craft a dynamic furniture recipe without context");
         return ItemStack.EMPTY;
     }
@@ -259,13 +260,13 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         }
 
         @Override
-        public boolean matches(PlayerInventory inventory, World world) {
+        public boolean matches(FurnitureRecipe.FurnitureRecipeInput inventory, World world) {
             List<Ingredient> allIngredients = getIngredients();
             BitSet hasIngredient = new BitSet(allIngredients.size());
             for (int i = 0; i < allIngredients.size(); i++) {
                 Ingredient ingredient = allIngredients.get(i);
                 for (ItemStack stack : ingredient.getMatchingStacks()) {
-                    int countInInventory = inventory.count(stack.getItem());
+                    int countInInventory = inventory.playerInventory().count(stack.getItem());
                     if (countInInventory >= stack.getCount()) {
                         hasIngredient.set(i, true);
                         break;
@@ -283,7 +284,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         }
 
         @Override
-        public ItemStack craft(PlayerInventory inventory, RegistryWrapper.WrapperLookup registryManager) {
+        public ItemStack craft(FurnitureRecipe.FurnitureRecipeInput inventory, RegistryWrapper.WrapperLookup registryManager) {
             return output.copy();
         }
 
