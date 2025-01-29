@@ -38,10 +38,6 @@ public class ExtraStoolVariant extends VariantBase<ExtraStoolVariant> {
         return DEFAULT_VARIANTS;
     }
 
-    public static Optional<ExtraStoolVariant> getOptionalVariant(Identifier name) {
-        return ExtraStoolVariant.DEFAULT_VARIANTS.stream().filter(extraStoolVariant -> extraStoolVariant.identifier.equals(name)).findFirst();
-    }
-
     ExtraStoolVariant(Identifier identifier, Block baseBlock, Block secondaryBlock) {
         super(identifier);
         this.name = identifier.getPath();

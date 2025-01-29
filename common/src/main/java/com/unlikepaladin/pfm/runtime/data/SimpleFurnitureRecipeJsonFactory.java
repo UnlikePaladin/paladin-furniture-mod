@@ -4,6 +4,8 @@ package com.unlikepaladin.pfm.runtime.data;
 import com.unlikepaladin.pfm.recipes.SimpleFurnitureRecipe;
 import net.minecraft.advancement.*;
 import net.minecraft.advancement.criterion.RecipeUnlockedCriterion;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
 import net.minecraft.data.recipe.CraftingRecipeJsonBuilder;
 import net.minecraft.data.recipe.RecipeExporter;
 import net.minecraft.item.Item;
@@ -34,7 +36,7 @@ public class SimpleFurnitureRecipeJsonFactory implements CraftingRecipeJsonBuild
         this.stack = new ItemStack(output, outputCount);
     }
 
-    public SimpleFurnitureRecipeJsonFactory(ItemConvertible output, int outputCount, @NotNull NbtCompound nbtElement) {
+    public SimpleFurnitureRecipeJsonFactory(ItemConvertible output, int outputCount, NbtCompound nbtElement) {
         this.stack = new ItemStack(output, outputCount);
         this.stack.set(DataComponentTypes.BLOCK_ENTITY_DATA, NbtComponent.of(nbtElement));
     }

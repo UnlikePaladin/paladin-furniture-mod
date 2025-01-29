@@ -28,7 +28,6 @@ import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.ComponentMap;
-import net.minecraft.data.server.recipe.CraftingRecipeJsonBuilder;
 import net.minecraft.data.recipe.CraftingRecipeJsonBuilder;
 import net.minecraft.data.recipe.RecipeExporter;
 import net.minecraft.data.recipe.ShapedRecipeJsonBuilder;
@@ -490,14 +489,14 @@ public class PFMRecipeProvider extends PFMProvider {
     }
 
     public static void offerSimpleBedRecipe(Class<? extends Block> output, String legMaterial, List<Identifier> variants, Ingredient baseBed, RecipeExporter exporter) {
-        DyeColor color = ((BedBlock)((BlockItem)(baseBed.getMatchingItems().stream().findFirst().get().value())).getBlock()).getColor();
+        DyeColor color = ((BedBlock)((BlockItem)(baseBed.getMatchingItems().findFirst().get().value())).getBlock()).getColor();
         ComponentChanges.Builder builder = ComponentChanges.builder();
         builder.add(PFMComponents.COLOR_COMPONENT, color);
         DynamicFurnitureRecipeJsonFactory.create(output, 1, variants, builder.build()).group("bedroom").childInput(legMaterial, 5).vanillaInput(baseBed, 1).offerTo(exporter, Identifier.of("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US) + "_"+ color.asString()));
     }
 
     public static void offerClassicBedRecipe(Class<? extends Block> output, String legMaterial, List<Identifier> variants, Ingredient baseBed, String fence, RecipeExporter exporter) {
-        DyeColor color = ((BedBlock)((BlockItem)(baseBed.getMatchingItems().stream().findFirst().get().value())).getBlock()).getColor();
+        DyeColor color = ((BedBlock)((BlockItem)(baseBed.getMatchingItems().findFirst().get().value())).getBlock()).getColor();
         ComponentChanges.Builder builder = ComponentChanges.builder();
         builder.add(PFMComponents.COLOR_COMPONENT, color);
         DynamicFurnitureRecipeJsonFactory.create(output, 1, variants, builder.build()).group("bedroom").childInput(legMaterial, 3).childInput(fence, 2).vanillaInput(baseBed, 1).offerTo(exporter, Identifier.of("pfm", output.getSimpleName().replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(Locale.US) + "_"+ color.asString()));

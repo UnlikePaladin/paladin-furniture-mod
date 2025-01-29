@@ -17,6 +17,7 @@ import com.unlikepaladin.pfm.data.materials.VariantBase;
 import com.unlikepaladin.pfm.mixin.PFMTextureKeyFactory;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
 import com.unlikepaladin.pfm.registry.TriFunc;
+import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
 import net.minecraft.block.Block;
@@ -113,6 +114,7 @@ public class PFMBlockstateModelProvider extends PFMProvider {
         new PFMItemModelGenerator(consumer, identifierSupplierBiConsumer).register(generateModelFor);
         this.writeJsons(path, blockstates, PFMBlockstateModelProvider::getBlockStateJsonPath);
         this.writeJsons(path, models, PFMBlockstateModelProvider::getModelJsonPath);
+        this.writeJsons(path, itemModels, PFMBlockstateModelProvider::getItemsJsonPath);
         endProviderRun();
     }
 

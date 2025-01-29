@@ -63,9 +63,6 @@ public class PFMModelLoadingPlugin implements ModelLoadingPlugin {
 
     public @Nullable UnbakedModel loadModelResource(Identifier id) {
         Identifier resourceId = id;
-        if (id.getPath().contains("item")) {
-            resourceId = id;
-        }
         if (ModelHelper.containsIdentifier(UnbakedMirrorModel.MIRROR_MODEL_IDS, resourceId)){
             return new UnbakedMirrorModel(UnbakedMirrorModel.DEFAULT_TEXTURES[2], ModelHelper.getVanillaConcreteColor(resourceId), UnbakedMirrorModel.DEFAULT_TEXTURES[1], new ArrayList<>(), ModelHelper.getColor(resourceId));
         } else if (UnbakedBedModel.BED_MODEL_IDS.contains(resourceId)){

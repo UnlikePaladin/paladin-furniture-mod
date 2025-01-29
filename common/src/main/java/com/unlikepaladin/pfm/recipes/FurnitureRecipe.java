@@ -148,7 +148,7 @@ public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeI
         default Map<Item, Integer> getItemCounts() {
             Map<Item, Integer> ingredientCounts = new HashMap<>();
             for (Ingredient ingredient : this.getIngredients()) {
-                for (RegistryEntry<Item> itemRegistryEntry : ingredient.getMatchingItems()) {
+                for (RegistryEntry<Item> itemRegistryEntry : ingredient.getMatchingItems().toList()) {
                     if (ingredientCounts.containsKey(itemRegistryEntry.value())) {
                         ingredientCounts.put(itemRegistryEntry.value(), ingredientCounts.get(itemRegistryEntry.value())+1);
                     } else {

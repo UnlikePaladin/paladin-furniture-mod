@@ -59,10 +59,6 @@ public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
         this(Identifier.of("", name), baseBlock, secondaryBlock);
     }
 
-    public static Optional<ExtraCounterVariant> getOptionalVariant(Identifier name) {
-        return ExtraCounterVariant.DEFAULT_VARIANTS.stream().filter(extraCounterVariant -> extraCounterVariant.identifier.equals(name)).findFirst();
-    }
-
     @Override
     public String asString() {
         return name;
@@ -84,7 +80,6 @@ public class ExtraCounterVariant extends VariantBase<ExtraCounterVariant> {
     public static Optional<ExtraCounterVariant> getOptionalVariant(Identifier name) {
         return DEFAULT_VARIANTS.stream().filter(extraStoolVariant -> extraStoolVariant.identifier.equals(name)).findFirst();
     }
-
 
     @Override
     public boolean isNetherWood() {

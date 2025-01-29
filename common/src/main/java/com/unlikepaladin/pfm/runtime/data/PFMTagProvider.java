@@ -12,6 +12,7 @@ import com.unlikepaladin.pfm.data.FurnitureBlock;
 import com.unlikepaladin.pfm.data.PFMTag;
 import com.unlikepaladin.pfm.data.PFMTags;
 import com.unlikepaladin.pfm.registry.PaladinFurnitureModBlocksItems;
+import com.unlikepaladin.pfm.runtime.PFMDataGenerator;
 import com.unlikepaladin.pfm.runtime.PFMGenerator;
 import com.unlikepaladin.pfm.runtime.PFMProvider;
 import dev.architectury.injectables.annotations.ExpectPlatform;
@@ -24,6 +25,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.util.JsonHelper;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
