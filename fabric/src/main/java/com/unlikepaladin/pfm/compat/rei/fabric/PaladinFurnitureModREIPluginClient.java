@@ -32,15 +32,10 @@ public class PaladinFurnitureModREIPluginClient implements REIClientPlugin {
         registry.addWorkstations(FreezingDisplay.IDENTIFIER, FreezingCategory.WORKSTATIONS);
     }
 
-    List<Display> displayList = new ArrayList<>();
     @Override
     public void registerDisplays(DisplayRegistry registry) {
         World world = MinecraftClient.getInstance().world;
-        registry.beginFiller(FurnitureRecipe.class).fill(recipe -> {
-            FurnitureDisplay display = new FurnitureDisplay(recipe, world.getEnabledFeatures());
-            displayList.add(display);
-            return display;
-        });
+        registry.beginFiller(FurnitureRecipe.class).fill(recipe -> new FurnitureDisplay(recipe, world.getEnabledFeatures()));
         registry.beginFiller(FreezingRecipe.class).fill(FreezingDisplay::new);
     }
 }
