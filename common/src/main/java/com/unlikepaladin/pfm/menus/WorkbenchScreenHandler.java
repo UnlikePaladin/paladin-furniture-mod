@@ -26,10 +26,11 @@ import java.util.*;
 
 public class WorkbenchScreenHandler extends ScreenHandler {
     private final ScreenHandlerContext context;
-    private final List<FurnitureRecipe> availableRecipes = Lists.newArrayList();
-    private static ArrayList<FurnitureRecipe> allRecipes = Lists.newArrayList();
-    private final List<FurnitureRecipe> sortedRecipes = Lists.newArrayList();
-    private final List<FurnitureRecipe> searchableRecipes = Lists.newArrayList();
+    private final List<FurnitureRecipe.CraftableFurnitureRecipe> availableRecipes = Lists.newArrayList();
+    public static ArrayList<FurnitureRecipe> ALL_RECIPES = Lists.newArrayList();
+    public static ArrayList<FurnitureRecipe.CraftableFurnitureRecipe> CRAFTABLE_RECIPES = Lists.newArrayList();
+    private final List<FurnitureRecipe.CraftableFurnitureRecipe> sortedRecipes = Lists.newArrayList();
+    private final List<FurnitureRecipe.CraftableFurnitureRecipe> searchableRecipes = Lists.newArrayList();
 
     private final Property selectedRecipe = Property.create();
     private final World world;
@@ -85,9 +86,18 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         }
         this.addProperty(this.selectedRecipe);
         if (world instanceof ServerWorld) {
-            if (allRecipes.isEmpty())
-                allRecipes.addAll(((ServerRecipeManagerAccessor)((ServerWorld)world).getRecipeManager()).getPreparedRecipes().getAll(RecipeTypes.FURNITURE_RECIPE).stream().map(RecipeEntry::value).filter(furnitureRecipe -> furnitureRecipe.enabled(world)).sorted().toList());
-            sendSyncRecipesPayload(playerInventory.player, world, allRecipes);
+            if (ALL_RECIPES.isEmpty()) {
+                ((ServerRecipeManagerAccessor)((ServerWorld)world).getRecipeManager()).getPreparedRecipes().getAll(RecipeTypes.FURNITURE_RECIPE).stream().map(RecipeEntry::value).forEach(recipe -> {
+                    ALL_RECIPES.add(recipe);
+                    CRAFTABLE_RECIPES.addAll(recipe.getInnerRecipes(world.getEnabledFeatures()));
+                });
+            } else {
+                for (FurnitureRecipe recipe : ALL_RECIPES) {
+                    CRAFTABLE_RECIPES.addAll(recipe.getInnerRecipes(world.getEnabledFeatures()));
+                }
+            }
+            sendSyncRecipesPayload(playerInventory.player, world, ALL_RECIPES);
+            CRAFTABLE_RECIPES.sort(FurnitureRecipe.CraftableFurnitureRecipe::compareTo);
         }
         this.updateInput();
         selectedRecipe.set(-1);
@@ -98,54 +108,21 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         throw new AssertionError();
     }
 
-    public void setAllRecipes(List<FurnitureRecipe> recipes) {
-        allRecipes = new ArrayList<>(recipes);
+    public void setAllRecipes(World world, List<FurnitureRecipe> recipes) {
+        ALL_RECIPES = new ArrayList<>(recipes);
+        CRAFTABLE_RECIPES = new ArrayList<>();
+        for (FurnitureRecipe recipe : ALL_RECIPES) {
+            CRAFTABLE_RECIPES.addAll(recipe.getInnerRecipes(world.getEnabledFeatures()));
+        }
+        CRAFTABLE_RECIPES.sort(FurnitureRecipe.CraftableFurnitureRecipe::compareTo);
     }
 
     boolean craft() {
         if (!this.availableRecipes.isEmpty() && this.isInBounds(this.availableRecipes, this.selectedRecipe.get())) {
-            FurnitureRecipe furnitureRecipe = this.sortedRecipes.get(this.selectedRecipe.get());
+            FurnitureRecipe.CraftableFurnitureRecipe simpleFurnitureRecipe = this.sortedRecipes.get(this.selectedRecipe.get());
             FurnitureRecipe.FurnitureRecipeInput furnitureRecipeInput = new FurnitureRecipe.FurnitureRecipeInput(playerInventory);
-            if (furnitureRecipe.matches(furnitureRecipeInput, playerInventory.player.getWorld())) {
-                Map<Item, Integer> ingredientCounts = furnitureRecipe.getItemCounts();
-
-                for (Map.Entry<Item, Integer> entry : ingredientCounts.entrySet()) {
-                    Item item = entry.getKey();
-                    int count = entry.getValue();
-
-                    int indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, item);
-                    if (indexOfStack != -1) {
-                        if (playerInventory.getStack(indexOfStack).getCount() >= count) {
-                            ItemStack stack1 = playerInventory.getStack(indexOfStack);
-                            stack1.decrement(count);
-                            playerInventory.setStack(indexOfStack, stack1);
-                            playerInventory.markDirty();
-                        } else {
-                            int remainingCount = count - playerInventory.getStack(indexOfStack).getCount();
-                            playerInventory.setStack(indexOfStack, ItemStack.EMPTY);
-
-                            while (remainingCount > 0 && indexOfStack != -1) {
-                                indexOfStack = FurnitureRecipe.getSlotWithStackIgnoreNBT(playerInventory, item);
-                                if (indexOfStack != -1) {
-                                    ItemStack stack1 = playerInventory.getStack(indexOfStack);
-                                    if (stack1.getCount() >= remainingCount) {
-                                        int stackSize = stack1.getCount();
-                                        stack1.decrement(remainingCount);
-                                        remainingCount = Math.max(remainingCount-stackSize, 0);
-
-                                        playerInventory.setStack(indexOfStack, stack1);
-                                    } else {
-                                        int stackSize = stack1.getCount();
-                                        remainingCount = Math.max(remainingCount-stackSize, 0);
-                                        playerInventory.setStack(indexOfStack, ItemStack.EMPTY);
-                                    }
-                                }
-                            }
-                            playerInventory.markDirty();
-                        }
-                    }
-                }
-
+            if (simpleFurnitureRecipe.matches(furnitureRecipeInput, playerInventory.player.getWorld())) {
+               simpleFurnitureRecipe.craftAndRemoveItems(furnitureRecipeInput, playerInventory.player.getWorld().getRegistryManager());
                 return true;
             }
         }
@@ -154,19 +131,19 @@ public class WorkbenchScreenHandler extends ScreenHandler {
 
     void populateResult(PlayerEntity player) {
         if (!this.availableRecipes.isEmpty() && this.isInBounds(this.availableRecipes, this.selectedRecipe.get())) {
-            FurnitureRecipe furnitureRecipe = this.sortedRecipes.get(this.selectedRecipe.get());
-            this.outputSlot.setStack(furnitureRecipe.craft(new FurnitureRecipe.FurnitureRecipeInput(player.getInventory()), player.getWorld().getRegistryManager()));
+            FurnitureRecipe.CraftableFurnitureRecipe simpleFurnitureRecipe = this.sortedRecipes.get(this.selectedRecipe.get());
+            this.outputSlot.setStack(simpleFurnitureRecipe.craft(new FurnitureRecipe.FurnitureRecipeInput(player.getInventory()), player.getWorld().getRegistryManager()));
         } else {
             this.outputSlot.setStack(ItemStack.EMPTY);
         }
         this.sendContentUpdates();
     }
 
-    public boolean isInBounds(List<FurnitureRecipe> furnitureRecipes, int id) {
-        if (id >= furnitureRecipes.size() || id < 0) {
+    public boolean isInBounds(List<FurnitureRecipe.CraftableFurnitureRecipe> simpleFurnitureRecipes, int id) {
+        if (id >= simpleFurnitureRecipes.size() || id < 0) {
             return false;
         }
-        return furnitureRecipes.contains(this.getSortedRecipes().get(id));
+        return simpleFurnitureRecipes.contains(this.getSortedRecipes().get(id));
     }
 
     @Override
@@ -183,16 +160,16 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         return this.selectedRecipe.get();
     }
 
-    public List<FurnitureRecipe> getAvailableRecipes() {
+    public List<FurnitureRecipe.CraftableFurnitureRecipe> getAvailableRecipes() {
         return this.availableRecipes;
     }
 
-    public List<FurnitureRecipe> getSortedRecipes() {
+    public List<FurnitureRecipe.CraftableFurnitureRecipe> getSortedRecipes() {
         return this.sortedRecipes;
     }
 
-    public List<FurnitureRecipe> getAllRecipes() {
-        return this.allRecipes;
+    public List<FurnitureRecipe.CraftableFurnitureRecipe> getAllRecipes() {
+        return CRAFTABLE_RECIPES;
     }
 
     public int getAvailableRecipeCount() {
@@ -218,11 +195,11 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         }
         // Reset the available recipes list and add all recipes that can be crafted
         this.availableRecipes.clear();
-        this.availableRecipes.addAll(allRecipes.stream().filter(newFurnitureRecipe -> newFurnitureRecipe.matches(input, world)).toList());
+        this.availableRecipes.addAll(CRAFTABLE_RECIPES.stream().filter(newFurnitureRecipe -> newFurnitureRecipe.matches(input, world)).toList());
         // Clear the visible recipe list and add the craft-able recipes first, then add the rest, checking that it's not present already so that it's not overridden.
         this.sortedRecipes.clear();
         this.sortedRecipes.addAll(availableRecipes);
-        this.sortedRecipes.addAll(allRecipes.stream().filter(furnitureRecipe -> !sortedRecipes.contains(furnitureRecipe)).toList());
+        this.sortedRecipes.addAll(CRAFTABLE_RECIPES.stream().filter(furnitureRecipe -> !sortedRecipes.contains(furnitureRecipe)).toList());
     }
 
     public boolean canCraft() {
@@ -292,7 +269,7 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         return false;
     }
 
-    public List<FurnitureRecipe> getSearchableRecipes() {
+    public List<FurnitureRecipe.CraftableFurnitureRecipe> getSearchableRecipes() {
         return searchableRecipes;
     }
 }

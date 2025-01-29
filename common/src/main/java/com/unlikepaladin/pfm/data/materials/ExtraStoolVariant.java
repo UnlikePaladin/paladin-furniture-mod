@@ -70,6 +70,11 @@ public class ExtraStoolVariant extends VariantBase<ExtraStoolVariant> {
         return secondaryBlock;
     }
 
+    public static Optional<ExtraStoolVariant> getOptionalVariant(Identifier name) {
+        return DEFAULT_VARIANTS.stream().filter(extraStoolVariant -> extraStoolVariant.identifier.equals(name)).findFirst();
+    }
+
+
     @Override
     public boolean isNetherWood() {
         return false;

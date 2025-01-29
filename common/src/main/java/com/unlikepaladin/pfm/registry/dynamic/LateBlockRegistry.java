@@ -563,7 +563,9 @@ public class LateBlockRegistry {
         registerLateBlock("white_mirror",() -> PaladinFurnitureModBlocksItems.WHITE_MIRROR, true, PaladinFurnitureMod.FURNITURE_GROUP);
         registerLateBlock("gray_mirror",() -> PaladinFurnitureModBlocksItems.GRAY_MIRROR, true, PaladinFurnitureMod.FURNITURE_GROUP);
         PaladinFurnitureMod.furnitureEntryMap.put(BasicLampBlock.class, new FurnitureEntry<>() {{
-            addBlock(registerLateBlockClassic("basic_lamp", PaladinFurnitureModBlocksItems.BASIC_LAMP, false, PaladinFurnitureMod.FURNITURE_GROUP));
+            Block lampBlock = registerLateBlockClassic("basic_lamp", PaladinFurnitureModBlocksItems.BASIC_LAMP, false, PaladinFurnitureMod.FURNITURE_GROUP);
+            for (WoodVariant variant : WoodVariantRegistry.getVariants())
+                addBlock(variant, lampBlock, true);
         }});
         PaladinFurnitureModBlocksItems.BASIC_LAMP_ITEM = LampItem.getItemFactory(PaladinFurnitureModBlocksItems.BASIC_LAMP, new Item.Settings().component(PFMComponents.VARIANT_COMPONENT, WoodVariantRegistry.OAK.identifier).component(PFMComponents.COLOR_COMPONENT, DyeColor.WHITE).registryKey(getItemRegistryKey("basic_lamp")));
         LateBlockRegistry.registerLateItem( "basic_lamp", () -> PaladinFurnitureModBlocksItems.BASIC_LAMP_ITEM, PaladinFurnitureMod.FURNITURE_GROUP);

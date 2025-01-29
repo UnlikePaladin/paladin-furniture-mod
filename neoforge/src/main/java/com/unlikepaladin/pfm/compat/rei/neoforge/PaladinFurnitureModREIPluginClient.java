@@ -10,6 +10,8 @@ import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
 import me.shedaniel.rei.forge.REIPluginClient;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.world.World;
 
 @REIPluginClient
 public class PaladinFurnitureModREIPluginClient implements REIClientPlugin {
@@ -23,7 +25,8 @@ public class PaladinFurnitureModREIPluginClient implements REIClientPlugin {
 
     @Override
     public void registerDisplays(DisplayRegistry registry) {
-        registry.beginFiller(FurnitureRecipe.class).fill(FurnitureDisplay::new);
+        World world = MinecraftClient.getInstance().world;
+        registry.beginFiller(FurnitureRecipe.class).fill(recipe -> new FurnitureDisplay(recipe, world.getEnabledFeatures()));
         registry.beginFiller(FreezingRecipe.class).fill(FreezingDisplay::new);
     }
 }

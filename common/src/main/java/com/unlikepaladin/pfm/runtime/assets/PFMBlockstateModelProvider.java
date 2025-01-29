@@ -35,6 +35,9 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.JsonHelper;
 import net.minecraft.util.math.Direction;
 
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
@@ -53,11 +56,13 @@ public class PFMBlockstateModelProvider extends PFMProvider {
     public static Map<Block, Identifier> modelPathMap = new HashMap<>();
 
     public PFMBlockstateModelProvider(PFMGenerator parent) {
-        super(parent);
+        super(parent, "PFM Blockstates and Models");
         parent.setProgress("Generating Blockstates and Models");
     }
 
-    public CompletableFuture<?> run(DataWriter writer) {
+    @Override
+    public void run() {
+        startProviderRun();
         Path path = getParent().getOutput();
         HashMap<Block, BlockStateSupplier> blockstates = Maps.newHashMap();
         Consumer<BlockStateSupplier> blockStateSupplierConsumer = blockStateSupplier -> {
@@ -108,13 +113,7 @@ public class PFMBlockstateModelProvider extends PFMProvider {
         new PFMItemModelGenerator(consumer, identifierSupplierBiConsumer).register(generateModelFor);
         this.writeJsons(path, blockstates, PFMBlockstateModelProvider::getBlockStateJsonPath);
         this.writeJsons(path, models, PFMBlockstateModelProvider::getModelJsonPath);
-        this.writeJsons(path, itemModels, PFMBlockstateModelProvider::getItemsJsonPath);
-        return CompletableFuture.allOf();
-    }
-
-
-    public String getName() {
-        return "PFM Models and BlockStates";
+        endProviderRun();
     }
 
     private static Path getBlockStateJsonPath(Path root, Block block) {
@@ -135,23 +134,19 @@ public class PFMBlockstateModelProvider extends PFMProvider {
     private <T> void writeJsons(Path root, Map<T, ? extends Supplier<JsonElement>> jsons, BiFunction<Path, T, Path> locator) {
         jsons.forEach((object, supplier) -> {
             Path path2 = locator.apply(root, object);
-            if (supplier != null && object != null && path2 != null) {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                try (JsonWriter jsonWriter = new JsonWriter(new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8));){
-                    Files.createDirectories(path2.getParent());
-                    Files.createFile(path2);
-                    jsonWriter.setSerializeNulls(false);
-                    jsonWriter.setIndent("  ");
-                    JsonHelper.writeSorted(jsonWriter, supplier.get(), JSON_KEY_SORTING_COMPARATOR);
-                    jsonWriter.flush();
-                    Files.write(path2, byteArrayOutputStream.toByteArray(), StandardOpenOption.WRITE);
-                    byteArrayOutputStream.close();
+            if (supplier != null && supplier.get() != null && object != null && path2 != null)
+                try {
+                    String string = PFMDataGenerator.GSON.toJson(supplier.get());
+                    if (!Files.exists(path2.getParent()))
+                        Files.createDirectories(path2.getParent());
+
+                    Files.writeString(path2, string);
                 }
                 catch (Exception exception) {
                     getParent().getLogger().error("Couldn't save {}", path2, exception);
                 }
             }
-        });
+        );
     }
     static class PFMItemModelGenerator {
         final BiConsumer<Identifier, ItemModel.Unbaked> output;

@@ -23,6 +23,7 @@ package com.unlikepaladin.pfm.compat.rei;
  * SOFTWARE.
  */
 
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.unlikepaladin.pfm.PaladinFurnitureMod;
 import com.unlikepaladin.pfm.recipes.FurnitureRecipe;
@@ -30,6 +31,7 @@ import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.Display;
 import me.shedaniel.rei.api.common.display.DisplaySerializer;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
+import me.shedaniel.rei.api.common.entry.EntryStack;
 import me.shedaniel.rei.api.common.util.EntryIngredients;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.item.Item;
@@ -39,81 +41,64 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 public class FurnitureDisplay implements Display {
     public static final CategoryIdentifier<FurnitureDisplay> IDENTIFIER = CategoryIdentifier.of(Identifier.of(PaladinFurnitureMod.MOD_ID, "furniture"));
+    private int itemsPerInnerRecipe;
     public List<EntryIngredient> input;
     public List<EntryIngredient> output;
     public Optional<Identifier> location;
-    public FurnitureDisplay(RecipeEntry<FurnitureRecipe> recipe) {
-        this.output = Collections.singletonList(EntryIngredients.of(recipe.value().result()));
-        this.location = Optional.of(recipe.id().getValue());
-        List<Ingredient> ingredients = recipe.value().getIngredients();
-        HashMap<Item, Integer> containedItems = new HashMap<>();
-        for (Ingredient ingredient : ingredients) {
-            for (RegistryEntry<Item> item : ingredient.getMatchingItems().toList()) {
-                if (!containedItems.containsKey(item.value())) {
-                    containedItems.put(item.value(), 1);
-                } else {
-                    containedItems.put(item.value(), containedItems.get(item.value()) + 1);
-                }
-            }
-        }
-        List<ItemStack> finalList = new ArrayList<>();
-        for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            finalList.add(new ItemStack(entry.getKey(), entry.getValue()));
-        }
-        finalList.sort(Comparator.comparing(ItemStack::toString));
-
-        List<EntryIngredient> entryIngredients = new ArrayList<>();
-        for (final ItemStack stack : finalList) {
-            entryIngredients.add(EntryIngredients.of(stack));
-        }
-        this.input = entryIngredients;
+    public FurnitureDisplay(RecipeEntry<FurnitureRecipe> recipeEntry, FeatureSet set) {
+        this(recipeEntry.value(), set);
+        this.location = Optional.of(recipeEntry.id().getValue());
     }
 
-
-    public FurnitureDisplay(List<EntryIngredient> input, List<EntryIngredient> output, Optional<Identifier> location) {
+    public FurnitureDisplay(List<EntryIngredient> input, List<EntryIngredient> output, Optional<Identifier> location, int itemsPerInnerRecipe) {
         this.input = input;
         this.output = output;
         this.location = location;
+        this.itemsPerInnerRecipe = itemsPerInnerRecipe;
     }
 
-    public FurnitureDisplay(FurnitureRecipe furnitureRecipe) {
-        this.output = Collections.singletonList(EntryIngredients.of(furnitureRecipe.result()));
-        this.location = Optional.empty();
-        List<Ingredient> ingredients = furnitureRecipe.getIngredients();
-        HashMap<Item, Integer> containedItems = new HashMap<>();
-        for (Ingredient ingredient : ingredients) {
-            for (RegistryEntry<Item> item : ingredient.getMatchingItems().toList()) {
-                if (!containedItems.containsKey(item.value())) {
-                    containedItems.put(item.value(), 1);
-                } else {
-                    containedItems.put(item.value(), containedItems.get(item.value()) + 1);
+    public FurnitureDisplay(FurnitureRecipe recipe, FeatureSet set) {
+        input = new ArrayList<>();
+        output = new ArrayList<>();
+        List<EntryIngredient> inputEntries = new ArrayList<>();
+        this.itemsPerInnerRecipe = recipe.getMaxInnerRecipeSize();
+        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes(set)) {
+            Map<Item, Integer> containedItems = innerRecipe.getItemCounts();
+
+            List<EntryIngredient> finalList = new ArrayList<>();
+            for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
+                finalList.add(EntryIngredients.of(new ItemStack(entry.getKey(), entry.getValue())));
+            }
+            finalList.sort(Comparator.comparing(entryStacks -> entryStacks.getFirst().getValue().toString()));
+
+            if (finalList.size() != itemsPerInnerRecipe) {
+                while (finalList.size() != itemsPerInnerRecipe) {
+                    finalList.add(EntryIngredient.empty());
                 }
             }
+            inputEntries.addAll(finalList);
         }
-        List<ItemStack> finalList = new ArrayList<>();
-        for (Map.Entry<Item, Integer> entry: containedItems.entrySet()) {
-            finalList.add(new ItemStack(entry.getKey(), entry.getValue()));
-        }
-        finalList.sort(Comparator.comparing(ItemStack::toString));
-
-        List<EntryIngredient> entryIngredients = new ArrayList<>();
-        for (final ItemStack stack : finalList) {
-            entryIngredients.add(EntryIngredients.of(stack));
-        }
-        this.input = entryIngredients;
+        input.addAll(inputEntries);
+        output.addAll(recipe.getInnerRecipes(set).stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).map(EntryIngredients::of).toList());
+        location = Optional.empty();
     }
-
 
     @Override
     public List<EntryIngredient> getInputEntries() {
         return input;
+    }
+
+    public int itemsPerInnerRecipe() {
+        return itemsPerInnerRecipe;
     }
 
     @Override
@@ -140,7 +125,8 @@ public class FurnitureDisplay implements Display {
             RecordCodecBuilder.mapCodec(instance -> instance.group(
                     EntryIngredient.codec().listOf().fieldOf("inputs").forGetter(FurnitureDisplay::getInputEntries),
                     EntryIngredient.codec().listOf().fieldOf("outputs").forGetter(FurnitureDisplay::getOutputEntries),
-                    Identifier.CODEC.optionalFieldOf("location").forGetter(FurnitureDisplay::getDisplayLocation)
+                    Identifier.CODEC.optionalFieldOf("location").forGetter(FurnitureDisplay::getDisplayLocation),
+                    Codec.INT.fieldOf("itemsPerInnerRecipe").forGetter(FurnitureDisplay::itemsPerInnerRecipe)
             ).apply(instance, FurnitureDisplay::new)),
             PacketCodec.tuple(
                     EntryIngredient.streamCodec().collect(PacketCodecs.toList()),
@@ -149,6 +135,8 @@ public class FurnitureDisplay implements Display {
                     FurnitureDisplay::getOutputEntries,
                     PacketCodecs.optional(Identifier.PACKET_CODEC),
                     FurnitureDisplay::getDisplayLocation,
+                    PacketCodecs.INTEGER,
+                    FurnitureDisplay::itemsPerInnerRecipe,
                     FurnitureDisplay::new
             ));
 }

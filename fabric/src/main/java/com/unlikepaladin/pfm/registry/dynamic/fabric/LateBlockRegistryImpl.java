@@ -58,16 +58,8 @@ public class LateBlockRegistryImpl {
             ItemGroupEvents.modifyEntriesEvent(Registries.ITEM_GROUP.getKey(group.getRight()).get()).register(entries -> {
                 List<ItemStack> stacks = new ArrayList<>();
                 for (WoodVariant variant : WoodVariantRegistry.getVariants()) {
-                    boolean variantEnabled = true;
-                    for (FeatureFlag flag : variant.getFeatureList()) {
-                        if (!entries.getEnabledFeatures().contains(flag)) {
-                            variantEnabled = false;
-                            break;
-                        }
-                    }
-                    if (!variantEnabled) {
-                        continue;
-                    }
+                    if (!variant.isEnabled(entries.getEnabledFeatures())) continue;
+
                     for (DyeColor color : DyeColor.values()) {
                         ItemStack stack = new ItemStack(item);
                         stack.set(PFMComponents.VARIANT_COMPONENT, variant.getIdentifier());

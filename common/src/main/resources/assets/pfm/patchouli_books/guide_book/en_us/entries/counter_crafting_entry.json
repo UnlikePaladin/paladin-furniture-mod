@@ -9,46 +9,24 @@
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:oak_kitchen_counter",
-      "recipe2": "pfm:stripped_oak_kitchen_wall_counter"
+      "recipe": "pfm:kitchen_counter_block",
+      "variant": "oak",
+      "recipe2": "pfm:kitchen_wall_counter_block",
+      "variant2": "oak"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:concrete_kitchen_wall_counter",
-      "recipe2": "pfm:dark_concrete_kitchen_counter"
+      "recipe": "pfm:kitchen_wall_counter_block",
+      "variant": "concrete",
+      "recipe2": "pfm:kitchen_counter_block",
+      "variant2": "dark_concrete"
     },
     {
       "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:light_wood_kitchen_counter",
-      "recipe2": "pfm:dark_wood_kitchen_wall_counter"
-    },
-    {
-      "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:granite_kitchen_wall_counter",
-      "recipe2": "pfm:calcite_kitchen_counter"
-    },
-    {
-      "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:netherite_kitchen_counter",
-      "recipe2": "pfm:andesite_kitchen_wall_counter"
-    },
-    {
-      "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:diorite_kitchen_wall_counter",
-      "recipe2": "pfm:stone_kitchen_counter"
-    },
-    {
-      "type": "pfm:furniturerecipe2template",
-      "recipe": "pfm:deepslate_tile_kitchen_counter",
-      "recipe2": "pfm:deepslate_kitchen_wall_counter"
-    },
-    {
-      "type": "pfm:furniturerecipetemplate",
-      "recipe": "pfm:blackstone_kitchen_counter"
-    },
-    {
-      "type": "patchouli:empty",
-      "draw_filler": "false"
+      "recipe": "pfm:kitchen_counter_block",
+      "variant": "light_wood",
+      "recipe2": "pfm:kitchen_wall_counter_block",
+      "variant2": "dark_wood"
     }
   ]
 }

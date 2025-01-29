@@ -1,6 +1,5 @@
 package com.unlikepaladin.pfm.client.screens;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.unlikepaladin.pfm.menus.WorkbenchScreenHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -14,7 +13,6 @@ import net.minecraft.client.search.SearchManager;
 import net.minecraft.client.search.SearchProvider;
 import net.minecraft.client.sound.PositionedSoundInstance;
 import net.minecraft.client.util.InputUtil;
-import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -137,7 +135,7 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
                 List<Item> items = new ArrayList<>();
                 searchable.findAll(string.toLowerCase(Locale.ROOT)).forEach(itemStack -> items.add(itemStack.getItem()));
                 this.handler.getSortedRecipes().forEach(furnitureRecipe -> {
-                    if (items.contains(furnitureRecipe.result().getItem())) {
+                    if (items.contains(furnitureRecipe.getRecipeOuput().getItem())) {
                         this.handler.getSearchableRecipes().add(furnitureRecipe);
                     }
                 });
@@ -207,7 +205,7 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
             if (this.handler.searching) {
                 iCopy = this.handler.getSortedRecipes().indexOf(this.handler.getSearchableRecipes().get(iCopy));
             }
-            tooltip.add(getTooltipFromItem(this.handler.getSortedRecipes().get(iCopy).result()).get(0));
+            tooltip.add(getTooltipFromItem(this.handler.getSortedRecipes().get(iCopy).getRecipeOuput()).get(0));
             tooltip.add(Text.translatable("container.pfm.working_table.ingredient_required").setStyle(Style.EMPTY.withItalic(true)));
             HashMap<Item, Integer> itemStackCountMap = new HashMap<>();
             for (Ingredient ingredient : this.handler.getSortedRecipes().get(iCopy).getIngredients()) {
@@ -220,13 +218,8 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
                 }
             }
             itemStackCountMap.forEach((item, integer) -> {
-                int itemCount = 0;
+                int itemCount = handler.getPlayerInventory().count(item);
                 Style style = Style.EMPTY.withColor(Formatting.GRAY);
-                for (ItemStack stack1 : handler.getPlayerInventory().main) {
-                    if (stack1.isOf(item)) {
-                        itemCount += stack1.getCount();
-                    }
-                }
                 if (itemCount < integer) {
                     style = style.withColor(Formatting.RED);
                 }
@@ -269,7 +262,7 @@ public class WorkbenchScreen extends HandledScreen<WorkbenchScreenHandler> {
             if (this.handler.searching) {
                 iCopy = this.handler.getSortedRecipes().indexOf(this.handler.getSearchableRecipes().get(iCopy));
             }
-            context.drawItem(this.handler.getSortedRecipes().get(iCopy).result(), xOffset, yOffset);
+            context.drawItem(this.handler.getSortedRecipes().get(iCopy).getRecipeOuput(), xOffset, yOffset);
         }
     }
 
