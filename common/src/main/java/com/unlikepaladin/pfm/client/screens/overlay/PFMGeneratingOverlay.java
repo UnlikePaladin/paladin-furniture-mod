@@ -11,12 +11,16 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Overlay;
 import net.minecraft.client.gui.screen.SplashOverlay;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.RenderPhase;
+import net.minecraft.client.render.VertexFormat;
+import net.minecraft.client.render.VertexFormats;
 import net.minecraft.client.resource.metadata.TextureResourceMetadata;
 import net.minecraft.client.texture.NativeImage;
 import net.minecraft.client.texture.ResourceTexture;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
+import net.minecraft.util.TriState;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.ColorHelper;
 import net.minecraft.util.math.MathHelper;
@@ -117,7 +121,7 @@ public class PFMGeneratingOverlay extends Overlay {
         int x = (width - logoWidth) / 2;
         int y = (height - logoHeight) / 2;
         RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        context.drawTexture(identifier -> RenderLayer.getGuiTexturedOverlay(pfmLogo), pfmLogo, x, y, 0, 0, logoWidth, logoHeight, logoWidth, logoHeight);
+        context.drawTexture(id -> PFM_LOGO, pfmLogo, x, y, 0, 0, logoWidth, logoHeight, logoWidth, logoHeight);
 
         try (Closeable ignored1 = glText.gltBeginDraw()) {
             float textScale = (float) (client.getWindow().getScaleFactor() / 2.0f) * 1.5f;
@@ -203,4 +207,18 @@ public class PFMGeneratingOverlay extends Overlay {
             return textureData;
         }
     }
+
+    private static final RenderLayer.MultiPhase PFM_LOGO = RenderLayer.of(
+            "pfm_logo",
+            VertexFormats.POSITION_TEXTURE_COLOR,
+            VertexFormat.DrawMode.QUADS,
+            786432,
+            RenderLayer.MultiPhaseParameters.builder()
+                    .texture(new RenderPhase.Texture(pfmLogo, TriState.DEFAULT, false))
+                    .program(RenderLayer.POSITION_TEXTURE_COLOR_PROGRAM)
+                    .transparency(RenderLayer.TRANSLUCENT_TRANSPARENCY)
+                    .depthTest(RenderLayer.ALWAYS_DEPTH_TEST)
+                    .writeMaskState(RenderLayer.COLOR_MASK)
+                    .build(false)
+    );
 }
