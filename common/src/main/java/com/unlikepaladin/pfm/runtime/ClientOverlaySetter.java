@@ -19,6 +19,10 @@ public class ClientOverlaySetter {
     public static void updateScreen() {
         MinecraftClient client = MinecraftClient.getInstance();
 
+        Runnable runnable;
+        while((runnable = ((PFMMinecraftClientAcccessor)client).getRenderTasks().poll()) != null) {
+            runnable.run();
+        }
 
         client.getFramebuffer().beginWrite(true);
         client.gameRenderer.render(client.getRenderTickCounter(), shouldTick(client));
@@ -33,6 +37,8 @@ public class ClientOverlaySetter {
         client.getWindow().swapBuffers(((PFMMinecraftClientAcccessor)client).getFrameCapturer());
         ((RenderTickCounter.Dynamic)client.getRenderTickCounter()).tick(client.isPaused());
         ((RenderTickCounter.Dynamic)client.getRenderTickCounter()).setTickFrozen(!shouldTick(client));
+
+        client.getTextureManager().tick();
     }
 
 
