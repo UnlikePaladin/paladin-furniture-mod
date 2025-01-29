@@ -28,10 +28,11 @@ import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.book.RecipeBookCategories;
 import net.minecraft.recipe.book.RecipeBookCategory;
 import net.minecraft.registry.RegistryWrapper;
-import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.dynamic.Codecs;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -124,11 +125,10 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     @Override
     public boolean matches(FurnitureRecipe.FurnitureRecipeInput inventory, World world) {
         constructInnerRecipes();
-
         for (Identifier id : furnitureInnerRecipes.keySet()) {
             List<FurnitureInnerRecipe> recipes = furnitureInnerRecipes.get(id);
             for (FurnitureInnerRecipe recipe : recipes) {
-                if (recipe.matches(inventory, world))
+                if (recipe.isInnerEnabled(world.getEnabledFeatures()) && recipe.matches(inventory, world))
                     return true;
             }
         }
@@ -143,7 +143,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
         for (Identifier id : furnitureInnerRecipes.keySet()) {
             List<FurnitureInnerRecipe> recipes = furnitureInnerRecipes.get(id);
             for (FurnitureInnerRecipe recipe : recipes) {
-                if (recipe.matches(input, inventory.player.getWorld()))
+                if (recipe.isInnerEnabled(inventory.player.getWorld().getEnabledFeatures()) && recipe.matches(input, inventory.player.getWorld()))
                     stacks.add(recipe);
             }
         }
@@ -151,11 +151,15 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public List<CraftableFurnitureRecipe> getInnerRecipes() {
+    public List<CraftableFurnitureRecipe> getInnerRecipes(FeatureSet featureSet) {
         constructInnerRecipes();
         List<CraftableFurnitureRecipe> outputs = new ArrayList<>();
         for (List<FurnitureInnerRecipe> recipes : furnitureInnerRecipes.values())
-            outputs.addAll(recipes);
+            for (FurnitureInnerRecipe recipe : recipes)
+                if (featureSet != null && recipe.isInnerEnabled(featureSet))
+                    outputs.add(recipe);
+                else if (featureSet == null)
+                    outputs.add(recipe);
         return outputs;
     }
 
@@ -184,7 +188,7 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     @Override
     public IngredientPlacement getIngredientPlacement() {
         List<Ingredient> ingredientList = new ArrayList<>();
-        for (CraftableFurnitureRecipe recipe : getInnerRecipes()) {
+        for (CraftableFurnitureRecipe recipe : getInnerRecipes(null)) {
             ingredientList.addAll(recipe.getIngredients());
         }
         return IngredientPlacement.forMultipleSlots(ingredientList.stream().map(Optional::of).toList());
@@ -209,21 +213,12 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
     }
 
     @Override
-    public CraftableFurnitureRecipe getInnerRecipeFromOutput(ItemStack stack) {
-        constructInnerRecipes();
-        if(outputToInnerRecipe.containsKey(stack)) {
-            return outputToInnerRecipe.get(stack);
-        }
-        return outputItemToInnerRecipe.get(stack.getItem());
-    }
-
-    @Override
     public int getMaxInnerRecipeSize() {
         return ingredients.vanillaIngredients.size()+ingredients.variantChildren.size();
     }
 
     @Override
-    public List<? extends CraftableFurnitureRecipe> getInnerRecipesForVariant(Identifier identifier){
+    public List<? extends CraftableFurnitureRecipe> getInnerRecipesForVariant(World world, Identifier identifier){
         constructInnerRecipes();
         if (furnitureInnerRecipes.containsKey(identifier)) {
             return furnitureInnerRecipes.get(identifier);
@@ -247,6 +242,15 @@ public class DynamicFurnitureRecipe implements FurnitureRecipe {
 
     private FurnitureIngredients getInnerIngredients() {
         return this.ingredients;
+    }
+
+    @Override
+    public List<Ingredient> getIngredients(World world) {
+        List<Ingredient> ingredientList = new ArrayList<>();
+        for (CraftableFurnitureRecipe recipe : getInnerRecipes(world.getEnabledFeatures())) {
+            ingredientList.addAll(recipe.getIngredients());
+        }
+        return ingredientList;
     }
 
     Map<ItemStack, FurnitureInnerRecipe> outputToInnerRecipe = new HashMap<>();

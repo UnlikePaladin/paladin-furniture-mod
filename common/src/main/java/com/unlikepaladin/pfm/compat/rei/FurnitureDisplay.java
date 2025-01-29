@@ -41,7 +41,9 @@ import net.minecraft.network.codec.PacketCodecs;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.RecipeEntry;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.util.Identifier;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -52,8 +54,8 @@ public class FurnitureDisplay implements Display {
     public List<EntryIngredient> input;
     public List<EntryIngredient> output;
     public Optional<Identifier> location;
-    public FurnitureDisplay(RecipeEntry<FurnitureRecipe> recipeEntry) {
-        this(recipeEntry.value());
+    public FurnitureDisplay(RecipeEntry<FurnitureRecipe> recipeEntry, FeatureSet set) {
+        this(recipeEntry.value(), set);
         this.location = Optional.of(recipeEntry.id().getValue());
     }
 
@@ -64,12 +66,12 @@ public class FurnitureDisplay implements Display {
         this.itemsPerInnerRecipe = itemsPerInnerRecipe;
     }
 
-    public FurnitureDisplay(FurnitureRecipe recipe) {
+    public FurnitureDisplay(FurnitureRecipe recipe, FeatureSet set) {
         input = new ArrayList<>();
         output = new ArrayList<>();
         List<EntryIngredient> inputEntries = new ArrayList<>();
         this.itemsPerInnerRecipe = recipe.getMaxInnerRecipeSize();
-        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes()) {
+        for (FurnitureRecipe.CraftableFurnitureRecipe innerRecipe: recipe.getInnerRecipes(set)) {
             Map<Item, Integer> containedItems = innerRecipe.getItemCounts();
 
             List<EntryIngredient> finalList = new ArrayList<>();
@@ -86,7 +88,7 @@ public class FurnitureDisplay implements Display {
             inputEntries.addAll(finalList);
         }
         input.addAll(inputEntries);
-        output.addAll(recipe.getInnerRecipes().stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).map(EntryIngredients::of).toList());
+        output.addAll(recipe.getInnerRecipes(set).stream().map(FurnitureRecipe.CraftableFurnitureRecipe::getRecipeOuput).map(EntryIngredients::of).toList());
         location = Optional.empty();
     }
 

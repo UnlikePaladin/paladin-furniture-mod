@@ -14,9 +14,12 @@ import com.unlikepaladin.pfm.networking.SyncConfigPayload;
 import com.unlikepaladin.pfm.registry.*;
 import com.unlikepaladin.pfm.registry.dynamic.LateBlockRegistry;
 import com.unlikepaladin.pfm.registry.fabric.*;
+import com.unlikepaladin.pfm.utilities.PFMFileUtil;
+import com.unlikepaladin.pfm.utilities.fabric.PFMFileUtilImpl;
 import io.netty.buffer.Unpooled;
 import net.fabricmc.api.DedicatedServerModInitializer;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
@@ -73,6 +76,13 @@ public class PaladinFurnitureModFabric extends PaladinFurnitureMod implements Mo
         ParticleTypeRegistryFabric.registerParticleTypes();
         CriteriaRegistryFabric.registerCriteria();
         ServerPlayConnectionEvents.JOIN.register(PaladinFurnitureModFabric::onServerJoin);
+        ServerLifecycleEvents.SERVER_STARTING.register(server -> {
+            PFMFileUtilImpl.currentServer = server;
+        });
+
+        ServerLifecycleEvents.SERVER_STOPPING.register(server -> {
+            PFMFileUtilImpl.currentServer = null;
+        });
     }
 
 

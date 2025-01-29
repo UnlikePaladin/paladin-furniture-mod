@@ -15,6 +15,7 @@ import net.minecraft.recipe.*;
 import net.minecraft.recipe.book.RecipeBookCategories;
 import net.minecraft.recipe.book.RecipeBookCategory;
 import net.minecraft.registry.RegistryWrapper;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.world.World;
 
@@ -118,7 +119,7 @@ public class SimpleFurnitureRecipe implements FurnitureRecipe, FurnitureRecipe.C
     }
 
     @Override
-    public List<CraftableFurnitureRecipe> getInnerRecipes() {
+    public List<CraftableFurnitureRecipe> getInnerRecipes(FeatureSet featureSet) {
         return Collections.singletonList(this);
     }
 

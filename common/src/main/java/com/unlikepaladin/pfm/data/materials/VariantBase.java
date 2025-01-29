@@ -21,6 +21,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.StringIdentifiable;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -139,6 +140,15 @@ public abstract class VariantBase<T> implements StringIdentifiable, Comparable<V
                 v.mapBlockToType(itemLike, this);
             }
         }
+    }
+
+    public boolean isEnabled(FeatureSet set) {
+        for (FeatureFlag flag : getFeatureList()) {
+            if (!set.contains(flag)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public abstract void initializeChildrenBlocks();

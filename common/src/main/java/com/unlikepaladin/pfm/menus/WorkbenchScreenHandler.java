@@ -89,11 +89,11 @@ public class WorkbenchScreenHandler extends ScreenHandler {
             if (ALL_RECIPES.isEmpty()) {
                 ((ServerRecipeManagerAccessor)((ServerWorld)world).getRecipeManager()).getPreparedRecipes().getAll(RecipeTypes.FURNITURE_RECIPE).stream().map(RecipeEntry::value).forEach(recipe -> {
                     ALL_RECIPES.add(recipe);
-                    CRAFTABLE_RECIPES.addAll(recipe.getInnerRecipes());
+                    CRAFTABLE_RECIPES.addAll(recipe.getInnerRecipes(world.getEnabledFeatures()));
                 });
             } else {
                 for (FurnitureRecipe recipe : ALL_RECIPES) {
-                    CRAFTABLE_RECIPES.addAll(recipe.getInnerRecipes());
+                    CRAFTABLE_RECIPES.addAll(recipe.getInnerRecipes(world.getEnabledFeatures()));
                 }
             }
             sendSyncRecipesPayload(playerInventory.player, world, ALL_RECIPES);
@@ -108,11 +108,11 @@ public class WorkbenchScreenHandler extends ScreenHandler {
         throw new AssertionError();
     }
 
-    public void setAllRecipes(List<FurnitureRecipe> recipes) {
+    public void setAllRecipes(World world, List<FurnitureRecipe> recipes) {
         ALL_RECIPES = new ArrayList<>(recipes);
         CRAFTABLE_RECIPES = new ArrayList<>();
         for (FurnitureRecipe recipe : ALL_RECIPES) {
-            CRAFTABLE_RECIPES.addAll(recipe.getInnerRecipes());
+            CRAFTABLE_RECIPES.addAll(recipe.getInnerRecipes(world.getEnabledFeatures()));
         }
         CRAFTABLE_RECIPES.sort(FurnitureRecipe.CraftableFurnitureRecipe::compareTo);
     }

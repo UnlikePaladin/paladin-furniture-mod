@@ -2,6 +2,7 @@ package com.unlikepaladin.pfm.utilities;
 
 import dev.architectury.injectables.annotations.ExpectPlatform;
 import net.minecraft.resource.ResourcePack;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.StringIdentifiable;
 
 import java.io.File;
@@ -62,5 +63,10 @@ public class PFMFileUtil {
         public String asString() {
             return loader;
         }
+    }
+
+    @ExpectPlatform
+    public static MinecraftServer getCurrentServer() {
+        throw new AssertionError();
     }
 }

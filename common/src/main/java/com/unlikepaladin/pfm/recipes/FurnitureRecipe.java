@@ -6,14 +6,13 @@ import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.RegistryByteBuf;
-import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.recipe.Ingredient;
 import net.minecraft.recipe.Recipe;
-import net.minecraft.recipe.RecipeSerializer;
 import net.minecraft.recipe.RecipeType;
 import net.minecraft.recipe.input.RecipeInput;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.util.Identifier;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.NotNull;
@@ -29,16 +28,12 @@ public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeI
         return RecipeTypes.FURNITURE_RECIPE;
     }
 
-    List<CraftableFurnitureRecipe> getInnerRecipes();
+    List<CraftableFurnitureRecipe> getInnerRecipes(FeatureSet features);
 
     String outputClass();
 
     default List<CraftableFurnitureRecipe> getAvailableOutputs(FurnitureRecipe.FurnitureRecipeInput inventory, RegistryWrapper.WrapperLookup registryManager) {
-        return getInnerRecipes();
-    }
-
-    default CraftableFurnitureRecipe getInnerRecipeFromOutput(ItemStack stack) {
-        return getInnerRecipes().get(0);
+        return getInnerRecipes(inventory.playerInventory.player.getWorld().getEnabledFeatures());
     }
 
     static int getSlotWithStackIgnoreNBT(PlayerInventory inventory, Item item) {
@@ -60,8 +55,8 @@ public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeI
 
     ItemStack getResult(RegistryWrapper.WrapperLookup registryManager);
 
-    default List<? extends CraftableFurnitureRecipe> getInnerRecipesForVariant(Identifier identifier) {
-        return Collections.singletonList(getInnerRecipes().get(0));
+    default List<? extends CraftableFurnitureRecipe> getInnerRecipesForVariant(World world, Identifier identifier) {
+        return Collections.singletonList(getInnerRecipes(world.getEnabledFeatures()).getFirst());
     }
 
     default String getName(RegistryWrapper.WrapperLookup registryManager) {
@@ -69,6 +64,18 @@ public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeI
     }
 
     void write(RegistryByteBuf buf);
+
+    default boolean enabled(World world) {
+        for (CraftableFurnitureRecipe recipe : getInnerRecipes(world.getEnabledFeatures())) {
+            if (!recipe.isInnerEnabled(world.getEnabledFeatures()))
+                return false;
+        }
+        return true;
+    }
+
+    default List<Ingredient> getIngredients(World world) {
+        return getIngredientPlacement().getIngredients();
+    }
 
     interface CraftableFurnitureRecipe extends Comparable<CraftableFurnitureRecipe> {
         List<Ingredient> getIngredients();
@@ -80,6 +87,18 @@ public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeI
         @Override
         default int compareTo(@NotNull FurnitureRecipe.CraftableFurnitureRecipe o) {
             return getRecipeOuput().toString().compareTo(o.getRecipeOuput().toString());
+        }
+
+        default boolean isInnerEnabled(FeatureSet featureSet) {
+            if (!this.getRecipeOuput().isItemEnabled(featureSet))
+                return false;
+            for (Ingredient ingredient : this.getIngredients()) {
+                for (RegistryEntry<Item> item : ingredient.getMatchingItems()) {
+                    if (!item.value().isEnabled(featureSet))
+                        return false;
+                }
+            }
+            return true;
         }
 
         default ItemStack craftAndRemoveItems(FurnitureRecipe.FurnitureRecipeInput input, RegistryWrapper.WrapperLookup registryManager) {
@@ -141,7 +160,7 @@ public interface FurnitureRecipe extends Recipe<FurnitureRecipe.FurnitureRecipeI
         }
 
     }
-    public static record FurnitureRecipeInput(PlayerInventory playerInventory) implements RecipeInput {
+    record FurnitureRecipeInput(PlayerInventory playerInventory) implements RecipeInput {
 
         @Override
         public ItemStack getStackInSlot(int slot) {
